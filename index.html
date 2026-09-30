@@ -430,9 +430,9 @@ function workability(r1,r3,r7,sm,et3){
 }
 async function getWeather(feature){
  let id=String(feature.properties.FIELD_ID), cached=wxCache[id];
- if(cached&&Date.now()-cached.saved<3*60*60*1000)return cached;
+ if(cached&&Date.now()-cached.saved<15*60*1000)return cached;
  let p=centroid(feature), start=seasonStart(), today=iso(new Date()), recentStart=iso(new Date(Date.now()-14*86400000));
- let histUrl='https://archive-api.open-meteo.com/v1/archive?latitude='+p.lat+'&longitude='+p.lon+'&start_date='+start+'&end_date='+today+'&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm&precipitation_unit=mm&timezone=America%2FChicago';
+ let histUrl='https://archive-api.open-meteo.com/v1/archive?latitude='+p.lat+'&longitude='+p.lon+'&start_date='+start+'&end_date='+today+'&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=precipitation,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm&precipitation_unit=mm&timezone=America%2FChicago';
  let recUrl='https://api.open-meteo.com/v1/forecast?latitude='+p.lat+'&longitude='+p.lon+'&past_days=14&forecast_days=1&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm&precipitation_unit=mm&timezone=America%2FChicago';
  let [hr,rr]=await Promise.all([fetch(histUrl),fetch(recUrl)]); if(!hr.ok||!rr.ok)throw Error('weather unavailable');
  let h=await hr.json(),r=await rr.json();
@@ -441,12 +441,18 @@ async function getWeather(feature){
  let dates=Object.keys(byDate).filter(d=>d>=start&&d<=today).sort(), rain=dates.map(d=>byDate[d].p), et=dates.map(d=>byDate[d].e);
  let sm0=(r.hourly?.soil_moisture_0_to_7cm||[]).filter(Number.isFinite),sm1=(r.hourly?.soil_moisture_7_to_28cm||[]).filter(Number.isFinite);
  let sm=((sm0.at(-1)||0)+(sm1.at(-1)||0))/2;
- let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),r1:sum(rain,1),r3:sum(rain,3),r7:sum(rain,7),r14:sum(rain,14),et3:sum(et,3),sm,point:p};
- out.work=workability(out.r1,out.r3,out.r7,out.sm,out.et3); wxCache[id]=out;localStorage.setItem(WXKEY,JSON.stringify(wxCache));return out;
+ let now=Date.now(),hourTimes=r.hourly?.time||[],hourRain=r.hourly?.precipitation||[],todayLocal=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ let todayRain=0,rain24=0,lastObserved=null;
+ hourTimes.forEach((t,i)=>{let ts=new Date(t+'-05:00').getTime(),v=Number(hourRain[i])||0;if(ts<=now){if(String(t).slice(0,10)===todayLocal)todayRain+=v;if(ts>=now-24*3600000)rain24+=v;if(v>0)lastObserved=t;}});
+ let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),todayRain,r1:rain24,r3:sum(rain,3),r7:sum(rain,7),r14:sum(rain,14),et3:sum(et,3),sm,point:p,lastObserved};
+ out.work=workability(out.r1,out.r3,out.r7,out.sm,out.et3);
+ if(out.r1>=19.05||out.todayRain>=19.05)out.work={label:'TOO WET',cls:'toowet',score:Math.min(out.work.score,25),override:'Fresh rain ≥ 0.75" in last 24 hr'};
+ else if(out.r1>=12.7||out.todayRain>=12.7)out.work={label:'TOO WET',cls:'toowet',score:Math.min(out.work.score,40),override:'Fresh rain ≥ 0.50" in last 24 hr'};
+ else if(out.r1>=6.35||out.todayRain>=6.35)out.work={label:'MARGINAL',cls:'marginal',score:Math.min(out.work.score,60),override:'Fresh rain ≥ 0.25" in last 24 hr'}; wxCache[id]=out;localStorage.setItem(WXKEY,JSON.stringify(wxCache));return out;
 }
 function render(w){
  let el=document.getElementById('fieldWeather');if(!el)return;
- el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">Score '+Math.round(w.work.score)+'/100</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 24 hr</span><b>'+inch(w.r1)+'</b></div><div class="weatherMetric"><span class="muted">Last 3 days</span><b>'+inch(w.r3)+'</b></div><div class="weatherMetric"><span class="muted">Last 7 days</span><b>'+inch(w.r7)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days</span><b>'+inch(w.r14)+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+((w.sm||0)*100).toFixed(1)+'%</b></div></div><div class="weatherSmall">Estimated field conditions • weather/model data • updated '+new Date(w.saved).toLocaleString()+'</div>';
+ el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">Score '+Math.round(w.work.score)+'/100</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Rain Today</span><b>'+inch(w.todayRain||0)+'</b></div><div class="weatherMetric"><span class="muted">Last 24 hr</span><b>'+inch(w.r1)+'</b></div><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 3 days</span><b>'+inch(w.r3)+'</b></div><div class="weatherMetric"><span class="muted">Last 7 days</span><b>'+inch(w.r7)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days</span><b>'+inch(w.r14)+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+((w.sm||0)*100).toFixed(1)+'%</b></div></div>'+(w.work.override?'<div class="weatherSmall"><b>'+w.work.override+'</b></div>':'')+'<div class="weatherSmall">Estimated field conditions • recent rain through current hour • updated '+new Date(w.saved).toLocaleString()+'</div>';
 }
 window.loadFieldWeather=async function(feature){if(!feature)return;try{render(await getWeather(feature))}catch(e){let el=document.getElementById('fieldWeather');if(el)el.innerHTML='<b>Weather & Field Conditions</b><p class="muted">Weather data could not be loaded. Check internet connection and try again.</p>'}};
 const original=window.showField;if(typeof original==='function'){window.showField=function(f,l){original(f,l);setTimeout(()=>window.loadFieldWeather(f),0)}}
