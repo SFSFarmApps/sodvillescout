@@ -1,7 +1,7 @@
 {
   "source": "NOAA/NWS MRMS RadarOnly QPE",
   "units": "in",
-  "updatedUtc": "2026-09-30T19:32:05.830034+00:00",
+  "updatedUtc": "2026-09-30T20:23:45.549514+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
