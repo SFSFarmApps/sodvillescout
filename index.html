@@ -201,9 +201,29 @@ function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!==
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
 function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
 let soilLayer=null,soilLoading=false,soilCache={}; const SOIL_BUILD='2026-09-30-bboxclip';
-function soilColor(key){
- let h=2166136261,s=String(key||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+function soilColor(key,name){
+ const n=String(name||'').toLowerCase();
+ if(n.includes('victoria')&&n.includes('depressional'))return '#7b2cbf';
+ if(n.includes('victoria clay'))return '#e67e22';
+ let h=2166136261,s=String(key||name||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
  return 'hsl('+(Math.abs(h)%360)+' 72% 48%)';
+}
+let soilLegend=null,soilLegendItems=new Map();
+function resetSoilLegend(){
+ soilLegendItems=new Map();
+ if(soilLegend&&map){map.removeControl(soilLegend);soilLegend=null}
+}
+function updateSoilLegend(){
+ if(!map||document.getElementById('layerMode')?.value!=='soils')return;
+ if(soilLegend)map.removeControl(soilLegend);
+ soilLegend=L.control({position:'bottomright'});
+ soilLegend.onAdd=function(){
+  const d=L.DomUtil.create('div','soilLegend');
+  d.style.cssText='background:rgba(255,255,255,.94);padding:8px 10px;border-radius:8px;box-shadow:0 1px 6px #0004;max-width:260px;max-height:38vh;overflow:auto;font-size:11px;line-height:1.25';
+  d.innerHTML='<b style="font-size:12px">USDA Soils</b>'+Array.from(soilLegendItems.values()).sort((a,b)=>a.name.localeCompare(b.name)).map(x=>'<div style="display:flex;align-items:flex-start;gap:6px;margin-top:5px"><span style="width:13px;height:13px;min-width:13px;background:'+x.color+';border:1px solid #333;margin-top:1px"></span><span><b>'+x.symbol+'</b> — '+x.name+'</span></div>').join('');
+  L.DomEvent.disableClickPropagation(d);return d;
+ };
+ soilLegend.addTo(map);
 }
 function propCI(p,name){let k=Object.keys(p||{}).find(x=>x.toLowerCase()===name.toLowerCase());return k?p[k]:''}
 async function fetchFieldSoils(f){
@@ -238,18 +258,20 @@ async function loadSoils(){
  if(soilLoading||!map)return;
  soilLoading=true;
  if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}
+ resetSoilLegend();
  soilLayer=L.layerGroup().addTo(map);
  try{
   const fs=window.SODVILLE_FIELDS?.features||[];
   for(let i=0;i<fs.length;i+=6){
    const results=await Promise.all(fs.slice(i,i+6).map(async f=>{try{return await fetchFieldSoils(f)}catch(e){console.warn('Soils failed',f.properties.FIELD_NAME,e);return[]}}));
    for(const s of results.flat()){
-    const p=s.properties||{},layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:soilColor(p.mukey),fillOpacity:.68}});
-    layer.bindTooltip((p.musym||p.nationalmusym||'Soil')+' — '+(p.muname||'USDA soil map unit'),{sticky:true});
+    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName),layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}});
+    soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
+    layer.bindTooltip(soilSymbol+' — '+soilName,{sticky:true});
     layer.addTo(soilLayer);
    }
   }
- }finally{soilLoading=false;if(geoLayer)geoLayer.bringToFront()}
+ }finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
  try{
@@ -266,6 +288,7 @@ async function refreshWorkabilityLayer(){
 function setSoilMode(on){
  if(on){loadSoils()}
  else if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
+ if(!on&&soilLegend){map.removeControl(soilLegend);soilLegend=null}
  if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
