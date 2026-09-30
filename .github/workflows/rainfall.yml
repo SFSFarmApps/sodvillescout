@@ -1,0 +1,78 @@
+name: Update Field Rainfall
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '12 * * * *'
+  push:
+    paths:
+      - '.github/workflows/rainfall.yml'
+permissions:
+  contents: write
+concurrency:
+  group: rainfall-update
+  cancel-in-progress: true
+jobs:
+  rainfall:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build rainfall.json from NOAA MRMS
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,re,urllib.parse,urllib.request,datetime
+          html=open("index.html",encoding="utf-8").read()
+          marker="window.SODVILLE_FIELDS = "
+          pos=html.index(marker)+len(marker)
+          geo,end=json.JSONDecoder().raw_decode(html[pos:])
+          fields=geo["features"]
+          def coords(obj):
+              if isinstance(obj,list) and len(obj)>=2 and all(isinstance(x,(int,float)) for x in obj[:2]):
+                  yield obj[0],obj[1]
+              elif isinstance(obj,list):
+                  for x in obj: yield from coords(x)
+          meta=[]
+          points=[]
+          for f in fields:
+              pts=list(coords(f["geometry"]["coordinates"]))
+              lon=sum(x for x,y in pts)/len(pts); lat=sum(y for x,y in pts)/len(pts)
+              p=f["properties"]
+              meta.append({"fieldId":str(p["FIELD_ID"]),"fieldName":p.get("FIELD_NAME",""),"farmName":p.get("FARM_NAME",""),"lon":lon,"lat":lat})
+              points.append([lon,lat])
+          base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
+          now=datetime.datetime.now(datetime.timezone.utc)
+          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}
+          for m in meta:
+              out["fields"][m["fieldId"]]={"fieldName":m["fieldName"],"farmName":m["farmName"],"point":{"lon":round(m["lon"],6),"lat":round(m["lat"],6)}}
+          geom=json.dumps({"points":points,"spatialReference":{"wkid":4326}},separators=(",",":"))
+          for hours in (24,48,72):
+              params={
+                "geometryType":"esriGeometryMultipoint",
+                "geometry":geom,
+                "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"idp_subset = 'conus_QPE_{hours}H'"}),
+                "returnFirstValueOnly":"true",
+                "f":"json"
+              }
+              url=base+"?"+urllib.parse.urlencode(params)
+              with urllib.request.urlopen(url,timeout=60) as r:
+                  data=json.loads(r.read().decode())
+              samples=data.get("samples",[])
+              byloc={int(s.get("locationId",-1)):s for s in samples}
+              for i,m in enumerate(meta):
+                  s=byloc.get(i)
+                  try:
+                      mm=float(s["value"])
+                      val=None if mm < 0 else round(mm/25.4,2)
+                  except Exception: val=None
+                  out["fields"][m["fieldId"]][f"rain{hours}h"]=val
+          vals=[v for v in out["fields"].values()]
+          out["validation"]={"fieldCount":len(vals),"with24h":sum(v.get("rain24h") is not None for v in vals),"with48h":sum(v.get("rain48h") is not None for v in vals),"with72h":sum(v.get("rain72h") is not None for v in vals)}
+          with open("rainfall.json","w",encoding="utf-8") as f: json.dump(out,f,indent=2)
+          PY
+      - name: Commit rainfall data
+        run: |
+          git config user.name "Sodville Rainfall Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add rainfall.json
+          git diff --cached --quiet || git commit -m "Update NOAA MRMS field rainfall"
+          git push
