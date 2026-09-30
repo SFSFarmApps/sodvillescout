@@ -285,9 +285,10 @@ function workabilityAssessment(r,soil){
  if(older72>=.5)p+=18;else if(older72>=.25)p+=11;else if(older72>=.1)p+=5;
  if(soil.key==='slow'){p+=8;reasons.push(soil.label)} else reasons.push(soil.label);
  p=Math.min(100,Math.round(p));
- let status=p>=60?'TOO WET':p>=30?'MARGINAL':'WORKABLE';
+ const score=100-p;
+ let status=score<70?'TOO WET':score<85?'MARGINAL':'WORKABLE';
  if(!reasons.length)reasons.push('Little recent rainfall');
- return {status,score:100-p,reason:reasons.join(' • ')};
+ return {status,score,reason:reasons.join(' • ')};
 }
 async function updateWorkability(f,r){
  const box=document.getElementById('workabilityBox');if(!box)return;
@@ -295,7 +296,7 @@ async function updateWorkability(f,r){
   const soils=await fetchFieldSoils(f),soil=soilDryingClass(soils),a=workabilityAssessment(r,soil);
   if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
   const status=document.getElementById('workabilityStatus'),detail=document.getElementById('workabilityDetail');
-  if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';}
+  if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';status.style.color=a.score===null?'':a.score<70?'#b42318':a.score<85?'#9a6700':'#18794e';}
   if(detail)detail.textContent=a.reason+' • V1 estimate—confirm field conditions';
  }catch(e){const s=document.getElementById('workabilityStatus');if(s)s.textContent='INSUFFICIENT DATA';}
 }
