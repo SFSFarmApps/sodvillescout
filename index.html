@@ -252,7 +252,15 @@ async function loadSoils(){
  }finally{soilLoading=false;if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
- try{await loadRainfallFeed();const fs=window.SODVILLE_FIELDS?.features||[];await Promise.all(fs.map(f=>fetchFieldSoils(f).catch(()=>[])));}catch(e){console.warn('Workability layer data',e)}
+ try{
+  await loadRainfallFeed();
+  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+  const fs=window.SODVILLE_FIELDS?.features||[];
+  for(let i=0;i<fs.length;i+=8){
+   await Promise.all(fs.slice(i,i+8).map(f=>fetchFieldSoils(f).catch(()=>[])));
+   if(document.getElementById('layerMode')?.value==='workability'&&geoLayer)geoLayer.setStyle(style);
+  }
+ }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
 function setSoilMode(on){
