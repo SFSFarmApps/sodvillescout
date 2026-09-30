@@ -27,7 +27,7 @@
 
 .dashboardView{display:none;position:absolute;inset:0;z-index:1500;background:#f3f6f3;overflow:auto;padding:18px}
 .dashboardView.open{display:block}.dashHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.dashHead h2{margin:0}.dashGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.dashCard{background:#fff;border:1px solid #dfe5df;border-radius:12px;padding:13px;box-shadow:0 1px 4px #0000000d}.dashMetric{font-size:25px;font-weight:900;margin-top:3px}.dashSections{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dashSection{background:#fff;border:1px solid #dfe5df;border-radius:12px;padding:12px;min-width:0}.dashSection h3{margin:0 0 9px}.dashList{max-height:52vh;overflow:auto}.dashRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px 5px;border-bottom:1px solid #edf0ed;align-items:center}.dashRow:last-child{border-bottom:0}.dashName{font-weight:800;font-size:13px}.dashSub{font-size:11px;color:#657066;margin-top:2px}.dashValue{font-weight:900;font-variant-numeric:tabular-nums}.dashScore{display:inline-block;min-width:38px;text-align:center;padding:5px 7px;border-radius:7px;color:#111;border:1px solid #333;font-weight:900}.dashPriority{font-size:11px;font-weight:900;padding:3px 6px;border-radius:999px;border:1px solid #bbb}.dashPriority.Urgent{background:#ffd7d7;color:#9b111e}.dashPriority.High{background:#fff2a8;color:#6d5900}.dashPriority.Normal{background:#dff3df;color:#155d27}.dashTimeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dashTime{text-align:center;background:#f7f9f7;border-radius:9px;padding:10px 5px}.dashTime b{display:block;font-size:20px}.dashboardBtn.active{background:#173b25;color:#fff;border-color:#173b25}@media(max-width:800px){.dashboardView{padding:10px}.dashGrid{grid-template-columns:1fr 1fr}.dashSections{grid-template-columns:1fr}.dashList{max-height:none}.dashHead{align-items:flex-start}.dashTimeGrid{grid-template-columns:repeat(3,1fr)}}
- .leaflet-tooltip.workScoreLabel{background:none!important;background-color:transparent!important;border:none!important;border-radius:0!important;color:#111!important;font-weight:900;font-size:14px;line-height:22px;text-align:center;box-shadow:none!important;padding:0!important;min-width:0;height:auto;pointer-events:none} .leaflet-tooltip.workScoreLabel:before,.leaflet-tooltip-top.workScoreLabel:before,.leaflet-tooltip-bottom.workScoreLabel:before,.leaflet-tooltip-left.workScoreLabel:before,.leaflet-tooltip-right.workScoreLabel:before{display:none!important;border:0!important} @media(max-width:800px){.workScoreLabel{font-size:13px;line-height:20px;height:24px;min-width:28px}}
+ .workScoreText{background:transparent!important;border:0!important;color:#111;font-weight:900;font-size:15px;line-height:22px;text-align:center;text-shadow:none;white-space:nowrap} @media(max-width:800px){.workScoreLabel{font-size:13px;line-height:20px;height:24px;min-width:28px}}
 </style><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"></head>
 <body><header><div><b>SODVILLE FIELD SCOUT</b><span id="sessionStatus">No scouting session</span></div><div class="sessionControls"><div id="timerDisplay">00:00:00</div><button id="sessionBtn" class="primary">▶ START scouting DAY</button></div></header>
 <div class="toolbar"><span id="fieldCount" style="display:none"></span><div class="userControls"><select id="scoutSelect" aria-label="Current scout"></select><button id="manageUsersBtn" class="manageUsers">+ Scouts</button></div><input id="search" placeholder="Search client, farm, field…"><select id="layerMode"><option value="status">Outstanding task urgency</option><option value="soils" selected>Soils (USDA NRCS)</option><option value="workability">Workability</option><option value="weed">Weed pressure</option><option value="insect">Insect pressure</option></select><button id="dashboardBtn" class="dashboardBtn">Dashboard</button><button id="reportBtn">Scouting Reports</button></div>
@@ -293,14 +293,17 @@ async function refreshWorkabilityLayer(){
  }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
 }
+let workScoreLayer=null;
 function updateWorkabilityLabels(){
- if(!geoLayer)return;
- const on=document.getElementById('layerMode')?.value==='workability';
+ if(!map||!geoLayer)return;
+ if(workScoreLayer){map.removeLayer(workScoreLayer);workScoreLayer=null}
+ if(document.getElementById('layerMode')?.value!=='workability')return;
+ workScoreLayer=L.layerGroup().addTo(map);
  geoLayer.eachLayer(l=>{
-  if(!on){if(l.getTooltip())l.unbindTooltip();return}
   const f=l.feature,r=rainfallFeed?.fields?.[String(f?.properties?.FIELD_ID)],soil=soilDryingClass(soilCache[String(f?.properties?.FIELD_ID)]||[]),a=workabilityAssessment(r,soil);
-  if(a.score===null){if(l.getTooltip())l.unbindTooltip();return}
-  l.bindTooltip(String(a.score),{permanent:true,direction:'center',className:'workScoreLabel',interactive:false,opacity:1});
+  if(a.score===null)return;
+  const center=l.getBounds().getCenter();
+  L.marker(center,{interactive:false,keyboard:false,icon:L.divIcon({className:'',html:'<div class="workScoreText">'+a.score+'</div>',iconSize:[34,22],iconAnchor:[17,11]})}).addTo(workScoreLayer);
  });
 }
 function setSoilMode(on){
