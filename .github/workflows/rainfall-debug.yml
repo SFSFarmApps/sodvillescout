@@ -22,13 +22,18 @@ jobs:
           for hours in (24,48,72):
               raster=f"mrms_{hours}h_co"
               renderer=f"rft_{hours}hr"
+              qbase="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/query"
+              qparams={"where":f"name = '{raster}'","outFields":"objectid,name","returnGeometry":"false","f":"json"}
+              with urllib.request.urlopen(qbase+"?"+urllib.parse.urlencode(qparams),timeout=30) as qr:
+                  catalog=json.loads(qr.read().decode())
+              feats=catalog.get("features",[])
+              oid=feats[0]["attributes"]["objectid"] if feats else None
               params={
-                "geometry":f"{lon},{lat}",
+                "geometry":json.dumps({"x":lon,"y":lat,"spatialReference":{"wkid":4326}}),
                 "geometryType":"esriGeometryPoint",
-                "sr":"4326",
                 "returnGeometry":"false",
                 "returnCatalogItems":"true",
-                "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"name = '{raster}'"}),
+                "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicLockRaster","lockRasterIds":[oid]}) if oid is not None else "",
                 "renderingRule":json.dumps({"rasterFunction":renderer}),
                 "f":"json"
               }
@@ -36,7 +41,7 @@ jobs:
               try:
                   with urllib.request.urlopen(url,timeout=30) as r:
                       raw=json.loads(r.read().decode())
-                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"response":raw}
+                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"catalog":catalog,"response":raw}
               except Exception as e:
                   out["results"][str(hours)]={"raster":raster,"renderer":renderer,"error":repr(e)}
           with open("rainfall-debug.json","w") as f: json.dump(out,f,indent=2)
