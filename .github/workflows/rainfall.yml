@@ -55,6 +55,7 @@ jobs:
                 "geometryType":"esriGeometryMultipoint",
                 "geometry":geom,
                 "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"idp_subset = 'conus_QPE_{hours}H'"}),
+                "renderingRule":json.dumps({"rasterFunction":f"rft_{hours}hr"}),
                 "returnFirstValueOnly":"true",
                 "f":"json"
               }
