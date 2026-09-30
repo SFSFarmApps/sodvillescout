@@ -1,0 +1,1333 @@
+{
+  "source": "NOAA/NWS MRMS RadarOnly QPE",
+  "units": "in",
+  "updatedUtc": "2026-09-30T19:06:14.562742+00:00",
+  "fields": {
+    "e444dbae-67b4-473b-ade6-65155e5cacb8": {
+      "fieldName": "160 3198-A",
+      "farmName": "160 10915",
+      "point": {
+        "lon": -97.493319,
+        "lat": 27.928878
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.31,
+      "rain72h": 0.31
+    },
+    "5d03b4b8-d813-44e4-95cd-aa8552b505e7": {
+      "fieldName": "45 acre's 2811-A",
+      "farmName": "45 acres 10903",
+      "point": {
+        "lon": -97.605347,
+        "lat": 27.944408
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "8dc67749-302d-4388-990c-100e28c308ae": {
+      "fieldName": "Beard 3893-B",
+      "farmName": "Beard",
+      "point": {
+        "lon": -97.397593,
+        "lat": 27.93654
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "ff6960f4-cb0c-44df-bda6-f457be1e9880": {
+      "fieldName": "Brittin 3700-G",
+      "farmName": "Brittin",
+      "point": {
+        "lon": -97.317638,
+        "lat": 28.025737
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.2,
+      "rain72h": 0.2
+    },
+    "3b93e176-5406-4795-a53e-ce3fad8a6ca5": {
+      "fieldName": "Carmody East 1107",
+      "farmName": "Carmody",
+      "point": {
+        "lon": -97.338263,
+        "lat": 28.036595
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.52,
+      "rain72h": 0.52
+    },
+    "a003fe9d-fb5b-4d36-8967-b43d86e18708": {
+      "fieldName": "Carmody West 1107",
+      "farmName": "Carmody",
+      "point": {
+        "lon": -97.345704,
+        "lat": 28.036041
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.29,
+      "rain72h": 0.29
+    },
+    "ee299f8a-821e-419d-ba72-eb0e508792a7": {
+      "fieldName": "Casa Blanca 3390",
+      "farmName": "Casa Blanca",
+      "point": {
+        "lon": -97.447075,
+        "lat": 27.904262
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.2,
+      "rain72h": 0.2
+    },
+    "61d753fb-0000-1000-4a2c-e1e1e144b228": {
+      "fieldName": "Cleveland North 2561",
+      "farmName": "Cleveland",
+      "point": {
+        "lon": -97.529464,
+        "lat": 27.920215
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "61d756cd-0000-1000-4a2e-e1e1e144b228": {
+      "fieldName": "Cleveland South 2561",
+      "farmName": "Cleveland",
+      "point": {
+        "lon": -97.530837,
+        "lat": 27.912468
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "6c934b4e-9a3d-496f-8f2c-1c038955602b": {
+      "fieldName": "Creek 3700-E",
+      "farmName": "Creek",
+      "point": {
+        "lon": -97.282028,
+        "lat": 28.07594
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "650e4bad-ff5c-4470-bc0d-30082360f81f": {
+      "fieldName": "Dubose East 4443",
+      "farmName": "Dubose",
+      "point": {
+        "lon": -97.27939,
+        "lat": 28.011794
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "08f588fe-a4f1-4d6b-a95e-b9fd40083b9a": {
+      "fieldName": "Dubose West 4443",
+      "farmName": "Dubose",
+      "point": {
+        "lon": -97.285398,
+        "lat": 28.01279
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "5d32418a-7a09-4141-ad6d-66317e3a76b5": {
+      "fieldName": "Espejo Garden 3675",
+      "farmName": "Espejo",
+      "point": {
+        "lon": -97.329914,
+        "lat": 27.988946
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.26,
+      "rain72h": 0.26
+    },
+    "ecea68fa-c8c5-4e70-ace8-f6e40e94b122": {
+      "fieldName": "Espejo North 4005-A",
+      "farmName": "Espejo",
+      "point": {
+        "lon": -97.336913,
+        "lat": 27.991554
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.09,
+      "rain72h": 0.09
+    },
+    "5c850582-47aa-4a3b-8d7d-87c40b1a398a": {
+      "fieldName": "Espejo South 4005-B",
+      "farmName": "Espejo",
+      "point": {
+        "lon": -97.336542,
+        "lat": 27.987802
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.09,
+      "rain72h": 0.09
+    },
+    "c650e2e1-7e54-41c2-a612-689c53068c14": {
+      "fieldName": "Far160 4320-C",
+      "farmName": "Far 160",
+      "point": {
+        "lon": -97.264952,
+        "lat": 28.012051
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "49153ef0-0114-4452-814d-e9845ef4bb7f": {
+      "fieldName": "Ferguson North 3893-A",
+      "farmName": "Ferguson",
+      "point": {
+        "lon": -97.301083,
+        "lat": 28.040753
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "a519af78-b64d-4a0c-87db-d7bdb382ccb4": {
+      "fieldName": "Ferguson South 3893-A",
+      "farmName": "Ferguson",
+      "point": {
+        "lon": -97.301669,
+        "lat": 28.03357
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "0d6d2e07-eb2b-4029-b7d4-e7cd87c13add": {
+      "fieldName": "Fish Farm 3700-K",
+      "farmName": "Fish Farm",
+      "point": {
+        "lon": -97.275318,
+        "lat": 28.048756
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "61ccee5c-a5e3-45f1-acdd-08078c301384": {
+      "fieldName": "Fisherman'sRoad 1104",
+      "farmName": "Fishermans Road",
+      "point": {
+        "lon": -97.339958,
+        "lat": 28.048037
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.41,
+      "rain72h": 0.41
+    },
+    "c534e16d-1420-441c-9226-cbc0c4f5aabb": {
+      "fieldName": "Havelka 3895",
+      "farmName": "Havelka",
+      "point": {
+        "lon": -97.355083,
+        "lat": 28.05241
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.38,
+      "rain72h": 0.38
+    },
+    "a3439238-416a-4708-8c1d-adb1204dc92b": {
+      "fieldName": "McClary 1005",
+      "farmName": "McClary",
+      "point": {
+        "lon": -97.272575,
+        "lat": 28.06991
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "c3a48942-bb0d-44db-aeed-87a66446e011": {
+      "fieldName": "Miller Angle Terraces 3700-D",
+      "farmName": "Miller",
+      "point": {
+        "lon": -97.279577,
+        "lat": 28.067001
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "d97899fe-0dce-41cb-aa9d-1eacc56a95ad": {
+      "fieldName": "Miller Flat North 3700-D",
+      "farmName": "Miller",
+      "point": {
+        "lon": -97.285593,
+        "lat": 28.070746
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "8c8f3ab8-21d7-441b-8895-4cfe2bb1c078": {
+      "fieldName": "MillerFlatSouth 3700-D",
+      "farmName": "Miller",
+      "point": {
+        "lon": -97.287823,
+        "lat": 28.061937
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "7a057bd4-18c6-439d-9753-39a665797bd7": {
+      "fieldName": "MillerTrraces 3700-D",
+      "farmName": "Miller",
+      "point": {
+        "lon": -97.281778,
+        "lat": 28.061581
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "d32a8d9f-60ac-4a45-9020-253b8514c957": {
+      "fieldName": "Morris 1971",
+      "farmName": "Morris",
+      "point": {
+        "lon": -97.379546,
+        "lat": 27.94116
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "91ab0edf-f692-41f5-a3a2-564132867d34": {
+      "fieldName": "Mount Homeplace 985",
+      "farmName": "Mount Homeplace",
+      "point": {
+        "lon": -97.411626,
+        "lat": 27.941786
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "e83fdbd1-9479-42ba-a2e0-c0d2f2ebe115": {
+      "fieldName": "Mudflat Barn",
+      "farmName": "Mudflat Ranch Pastures",
+      "point": {
+        "lon": -97.282086,
+        "lat": 28.019081
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "bfec6bc0-cc2d-4c6c-a336-e8b33009d29f": {
+      "fieldName": "Mudflat Fence 4320-B",
+      "farmName": "Mudflat Ranch",
+      "point": {
+        "lon": -97.289839,
+        "lat": 28.017627
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "4a7c5fbd-3ad2-406b-9cc1-34f67b8340ba": {
+      "fieldName": "Mudflat Trrces 4319",
+      "farmName": "Mudflat Ranch",
+      "point": {
+        "lon": -97.287258,
+        "lat": 28.021195
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "355e1ce4-ad4c-46c7-855e-c799fa3a8e55": {
+      "fieldName": "North Pastures",
+      "farmName": "Mudflat Ranch Pastures",
+      "point": {
+        "lon": -97.280724,
+        "lat": 28.02035
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "8778cda3-29fe-47e5-ab46-cd81f3f16c50": {
+      "fieldName": "North Soledad 3700-B",
+      "farmName": "Soledad",
+      "point": {
+        "lon": -97.264606,
+        "lat": 28.063067
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "aa9e620c-8bdc-4676-8982-2f41eae53788": {
+      "fieldName": "Nunn 4443",
+      "farmName": "Nunn",
+      "point": {
+        "lon": -97.280331,
+        "lat": 27.997244
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "13c61e4a-082d-4761-b93b-90419a100893": {
+      "fieldName": "PattersonEast 3391-B",
+      "farmName": "Patterson",
+      "point": {
+        "lon": -97.367052,
+        "lat": 28.031944
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.1,
+      "rain72h": 0.1
+    },
+    "24aeddfb-2b3d-4ceb-93da-a64e5af2f9c0": {
+      "fieldName": "PattersonWest 3391-A",
+      "farmName": "Patterson",
+      "point": {
+        "lon": -97.37238,
+        "lat": 28.031669
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.1,
+      "rain72h": 0.1
+    },
+    "ddfc015f-b139-4604-89a6-643b728cad80": {
+      "fieldName": "Sandridge 3700-J",
+      "farmName": "Sandridge",
+      "point": {
+        "lon": -97.429292,
+        "lat": 27.929082
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "aaf99a9a-2430-47ea-ac35-6e8177e0cf7c": {
+      "fieldName": "Schmidt 3018",
+      "farmName": "Schmidt",
+      "point": {
+        "lon": -97.378041,
+        "lat": 28.020174
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "f6eb3b9e-4f69-4c27-ba99-a926e760cead": {
+      "fieldName": "Silvas 4005-C",
+      "farmName": "Silvas",
+      "point": {
+        "lon": -97.290319,
+        "lat": 27.995177
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "1e363c1b-7321-4c82-b40d-54f258fdfa20": {
+      "fieldName": "Silvas Hay Pasture",
+      "farmName": "Silvas",
+      "point": {
+        "lon": -97.28949,
+        "lat": 27.990282
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "fcfc5a15-fa9f-40d8-9f43-f3695d11a836": {
+      "fieldName": "Smith Gum Hollow 1971",
+      "farmName": "Smith",
+      "point": {
+        "lon": -97.378954,
+        "lat": 27.936355
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.49,
+      "rain72h": 0.49
+    },
+    "3c9846d7-5e43-41a1-b8c2-c888d1d7acdf": {
+      "fieldName": "Smith West 1971",
+      "farmName": "Smith",
+      "point": {
+        "lon": -97.387155,
+        "lat": 27.936096
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "4a7a38ff-afea-492f-9765-1320961f195c": {
+      "fieldName": "South Pasture",
+      "farmName": "Mudflat Ranch Pastures",
+      "point": {
+        "lon": -97.283268,
+        "lat": 28.016712
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "d50c9ee4-ccaa-4356-b514-e9e5b3e47c0a": {
+      "fieldName": "South Soledad 3700-A",
+      "farmName": "Soledad",
+      "point": {
+        "lon": -97.263923,
+        "lat": 28.056034
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.07,
+      "rain72h": 0.07
+    },
+    "0e1d7444-7373-4193-bcd8-7cd7a55bab39": {
+      "fieldName": "Steele East 4320-A",
+      "farmName": "Steele",
+      "point": {
+        "lon": -97.456857,
+        "lat": 27.901157
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.34,
+      "rain72h": 0.34
+    },
+    "1c16d4cd-d7f9-46f6-a5be-8342af33ea7b": {
+      "fieldName": "Steele West 4320-A",
+      "farmName": "Steele",
+      "point": {
+        "lon": -97.468669,
+        "lat": 27.904334
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.24,
+      "rain72h": 0.24
+    },
+    "748c0207-39e6-4c7f-b642-69d2edbeb402": {
+      "fieldName": "Substation Taft 3676",
+      "farmName": "Espejo",
+      "point": {
+        "lon": -97.33217,
+        "lat": 27.987313
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.26,
+      "rain72h": 0.26
+    },
+    "ed778594-ca62-4606-b2d9-7a6cfadcc712": {
+      "fieldName": "TaftGinNorth 3700-H",
+      "farmName": "Taft Gin",
+      "point": {
+        "lon": -97.334005,
+        "lat": 28.02725
+      },
+      "rain24h": 0.0,
+      "rain48h": 1.21,
+      "rain72h": 1.21
+    },
+    "0d5168ef-ed09-4773-9d39-2966bedbfef0": {
+      "fieldName": "TaftGinSouth 3700-H",
+      "farmName": "Taft Gin",
+      "point": {
+        "lon": -97.33335,
+        "lat": 28.016939
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.35,
+      "rain72h": 0.35
+    },
+    "27100ab0-8432-4ffc-b6a2-763ec750763b": {
+      "fieldName": "WitlffCatchns 3700-F",
+      "farmName": "Witleff Catchins",
+      "point": {
+        "lon": -97.297427,
+        "lat": 28.065438
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.06,
+      "rain72h": 0.06
+    },
+    "589b8ac0-0000-1000-4031-e1e1e1478cb8": {
+      "fieldName": "1074 2999-A",
+      "farmName": "1074",
+      "point": {
+        "lon": -97.471393,
+        "lat": 27.965008
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.12,
+      "rain72h": 0.12
+    },
+    "20e494b3-ec75-455a-b26a-a9b1ee7b6c9b": {
+      "fieldName": "320 East 4026-D",
+      "farmName": "320 10913",
+      "point": {
+        "lon": -97.47747,
+        "lat": 27.928188
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.33,
+      "rain72h": 0.33
+    },
+    "b0663ae9-599f-47f4-9515-dc84ccbc70db": {
+      "fieldName": "320 West 4026-D",
+      "farmName": "320 10913",
+      "point": {
+        "lon": -97.487207,
+        "lat": 27.930712
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.22,
+      "rain72h": 0.22
+    },
+    "0c1185b1-9b84-4858-aee0-47f9abd53b7e": {
+      "fieldName": "80-90 1936-A",
+      "farmName": "Headquarters 17502",
+      "point": {
+        "lon": -97.540826,
+        "lat": 27.948478
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.08,
+      "rain72h": 0.08
+    },
+    "589b8aa3-0000-1000-402d-e1e1e1478cb8": {
+      "fieldName": "Airport North 2999-B",
+      "farmName": "Airport North",
+      "point": {
+        "lon": -97.460644,
+        "lat": 27.973425
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "589b8c2a-0000-1000-4036-e1e1e1478cb8": {
+      "fieldName": "Airport South 2999-B",
+      "farmName": "Airport South",
+      "point": {
+        "lon": -97.461249,
+        "lat": 27.971858
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.2,
+      "rain72h": 0.2
+    },
+    "8de22bd3-4521-452a-94a6-40fbee76029c": {
+      "fieldName": "Back 607",
+      "farmName": "Cecil's 10919",
+      "point": {
+        "lon": -97.700187,
+        "lat": 27.959686
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "731131f1-cd74-4631-ab0c-12be42c9fe10": {
+      "fieldName": "Beyer East 1482",
+      "farmName": "Mayo-Beyer",
+      "point": {
+        "lon": -97.495655,
+        "lat": 27.938638
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.35,
+      "rain72h": 0.35
+    },
+    "7754aa75-290a-461f-afdc-6ba885259710": {
+      "fieldName": "Beyer West 1482",
+      "farmName": "Mayo-Beyer",
+      "point": {
+        "lon": -97.503962,
+        "lat": 27.936542
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.4,
+      "rain72h": 0.4
+    },
+    "d7099f76-6726-4c39-80ae-2957032f794a": {
+      "fieldName": "Big Evans 2843-B",
+      "farmName": "Big Evans 10906",
+      "point": {
+        "lon": -97.609111,
+        "lat": 27.98261
+      },
+      "rain24h": 0.11,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "9a742a86-2270-4e43-870b-947b91984fee": {
+      "fieldName": "Brown West 152",
+      "farmName": "Brown 10702",
+      "point": {
+        "lon": -97.629286,
+        "lat": 28.096683
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.06,
+      "rain72h": 0.06
+    },
+    "66b104ff-c9c5-4854-b69b-a29c8bbc282f": {
+      "fieldName": "BrownEast 152",
+      "farmName": "Brown 10702",
+      "point": {
+        "lon": -97.623909,
+        "lat": 28.099728
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.06,
+      "rain72h": 0.06
+    },
+    "477e5c67-0000-1000-7ffd-e1e1e13874a8": {
+      "fieldName": "Carrizo 998",
+      "farmName": "Carrizo",
+      "point": {
+        "lon": -97.313615,
+        "lat": 28.057099
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.07,
+      "rain72h": 0.07
+    },
+    "182fa0a2-c907-4cd4-8da8-da1d2543c126": {
+      "fieldName": "Carson 32 Ac. 3999-A",
+      "farmName": "Carson 32 Ac. 10706",
+      "point": {
+        "lon": -97.548167,
+        "lat": 27.939227
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "037cfc83-1220-4e82-abd9-7d90f1a05214": {
+      "fieldName": "Carson Corner 3999-A",
+      "farmName": "Carson Corner 10706",
+      "point": {
+        "lon": -97.544012,
+        "lat": 27.936921
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "1c90829a-832c-403e-bc69-5458dd5aeab8": {
+      "fieldName": "Cecil's 607",
+      "farmName": "Cecil's 10919",
+      "point": {
+        "lon": -97.698243,
+        "lat": 27.971334
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "3b13b777-c45d-4968-84c9-dc5e0bc78c43": {
+      "fieldName": "Childress 343",
+      "farmName": "Childress 17509",
+      "point": {
+        "lon": -97.564015,
+        "lat": 27.939883
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "ba90cc64-e3c0-4861-b55c-1e23cf526824": {
+      "fieldName": "Chiota 3999-B",
+      "farmName": "Chiota 10707",
+      "point": {
+        "lon": -97.50058,
+        "lat": 27.957389
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.29,
+      "rain72h": 0.29
+    },
+    "c48f87c5-75af-46af-ae8d-b280d39146c6": {
+      "fieldName": "D.HartKSwannMiddle 3043/3044",
+      "farmName": "Bucks",
+      "point": {
+        "lon": -97.700114,
+        "lat": 27.943455
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "6b01632c-9ba9-4075-9b4e-bfd3bffcef28": {
+      "fieldName": "Ehlers 3198-B",
+      "farmName": "Ehlers 10916",
+      "point": {
+        "lon": -97.527346,
+        "lat": 27.952199
+      },
+      "rain24h": 0.05,
+      "rain48h": 0.05,
+      "rain72h": 0.05
+    },
+    "27408dc2-5bfe-490d-b8c1-1be85b7769cf": {
+      "fieldName": "Evans casa 2844",
+      "farmName": "Evans casa 10907",
+      "point": {
+        "lon": -97.602359,
+        "lat": 27.979856
+      },
+      "rain24h": 0.11,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "931bb697-edd2-4b6f-8671-c38f06722506": {
+      "fieldName": "Gillespie 516",
+      "farmName": "Gillespie 10918",
+      "point": {
+        "lon": -97.519211,
+        "lat": 27.968711
+      },
+      "rain24h": 0.16,
+      "rain48h": 0.37,
+      "rain72h": 0.37
+    },
+    "75c60513-6c86-49a4-bac7-2008a987a5b2": {
+      "fieldName": "Gloria east",
+      "farmName": "Gloria",
+      "point": {
+        "lon": -97.210687,
+        "lat": 28.223713
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.08,
+      "rain72h": 0.08
+    },
+    "35952187-27a8-4994-b2fd-b0d82ee4bb37": {
+      "fieldName": "Gloria west",
+      "farmName": "Gloria",
+      "point": {
+        "lon": -97.220862,
+        "lat": 28.217502
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.25,
+      "rain72h": 0.25
+    },
+    "06846e19-65d9-481d-8af9-9e79ad68e08f": {
+      "fieldName": "Hart 240 2350",
+      "farmName": "Hart 240 10703",
+      "point": {
+        "lon": -97.535563,
+        "lat": 27.979065
+      },
+      "rain24h": 0.07,
+      "rain48h": 0.17,
+      "rain72h": 0.17
+    },
+    "db25f2ff-5084-42f1-8b8d-c495af59feef": {
+      "fieldName": "Hart Barn 2350",
+      "farmName": "Hart Barn 10703",
+      "point": {
+        "lon": -97.533954,
+        "lat": 27.963719
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "3dbb922a-0973-40a1-b169-fde553323a17": {
+      "fieldName": "Hightower 1639-A",
+      "farmName": "Hightower 10901",
+      "point": {
+        "lon": -97.566775,
+        "lat": 27.970938
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "58a82437-0000-1000-7fb4-e1e1e12c21e8": {
+      "fieldName": "Janet's 978",
+      "farmName": "Janet's 10920",
+      "point": {
+        "lon": -97.694184,
+        "lat": 27.952899
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "02905cf6-fa20-4931-ad41-5f2035b9d084": {
+      "fieldName": "Little Evans 2843-A",
+      "farmName": "Little Evans 10905",
+      "point": {
+        "lon": -97.559907,
+        "lat": 27.960779
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "7e5aa689-56e3-4d77-b4be-0366209b04f8": {
+      "fieldName": "Little Gillespie 516",
+      "farmName": "Gillespie 10918",
+      "point": {
+        "lon": -97.526953,
+        "lat": 27.969921
+      },
+      "rain24h": 0.06,
+      "rain48h": 0.08,
+      "rain72h": 0.08
+    },
+    "f3c18654-6034-4784-be54-a79459f974f3": {
+      "fieldName": "McGregor 4026-C",
+      "farmName": "McGregor 10912",
+      "point": {
+        "lon": -97.424793,
+        "lat": 27.965896
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "f3a4f63a-b90f-4600-9340-cb936c0be71c": {
+      "fieldName": "Mother's 2811-A",
+      "farmName": "Mother's 10903",
+      "point": {
+        "lon": -97.61248,
+        "lat": 27.991093
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "d0490c48-c72c-4b6f-b56c-71796326e517": {
+      "fieldName": "Oak tree 1639-A",
+      "farmName": "Hightower 10901",
+      "point": {
+        "lon": -97.570064,
+        "lat": 27.967069
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "eccac7f0-1626-4dad-9312-e6c021ec0b73": {
+      "fieldName": "Owens North 372",
+      "farmName": "Owens 10917",
+      "point": {
+        "lon": -97.711448,
+        "lat": 28.013722
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "86db30c0-4b5d-47b6-a147-fcf9980a48b6": {
+      "fieldName": "Owens South 372",
+      "farmName": "Owens 10917",
+      "point": {
+        "lon": -97.708526,
+        "lat": 28.009722
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "d3136045-1e37-4427-954c-a7c736b1c2cc": {
+      "fieldName": "Palma 4026-A",
+      "farmName": "Palma 10910",
+      "point": {
+        "lon": -97.340423,
+        "lat": 27.982817
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.18,
+      "rain72h": 0.18
+    },
+    "fdd6d244-f8ae-414d-8933-2710662320e2": {
+      "fieldName": "Perdido West 4026-B",
+      "farmName": "Perdido 10911",
+      "point": {
+        "lon": -97.414314,
+        "lat": 28.027329
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "15016ded-290c-4bf0-a941-938e7359dac1": {
+      "fieldName": "PerdidoEast 4026-B",
+      "farmName": "Perdido 10911",
+      "point": {
+        "lon": -97.407951,
+        "lat": 28.025752
+      },
+      "rain24h": 0.01,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "d6d9fa35-73ac-4700-b202-2c7eeae74a93": {
+      "fieldName": "Phillips Taft 2557-B",
+      "farmName": "Phillips Taft 10705",
+      "point": {
+        "lon": -97.449462,
+        "lat": 27.965237
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "84b9a1aa-eb8b-40d4-a37b-9502440aa0c8": {
+      "fieldName": "PhllpsCsNrth 2557-A",
+      "farmName": "Phillips Casa 10704",
+      "point": {
+        "lon": -97.540888,
+        "lat": 27.968513
+      },
+      "rain24h": 0.07,
+      "rain48h": 0.1,
+      "rain72h": 0.1
+    },
+    "91e48a92-89d5-4341-9a94-7db0bf67a257": {
+      "fieldName": "PhllpsCsSouth 2557-A",
+      "farmName": "Phillips Casa 10704",
+      "point": {
+        "lon": -97.542842,
+        "lat": 27.960882
+      },
+      "rain24h": 0.08,
+      "rain48h": 0.18,
+      "rain72h": 0.18
+    },
+    "7d4d373b-e6ca-4a6c-a5b0-b51c881ffad4": {
+      "fieldName": "Poole East 1639-B",
+      "farmName": "Poole 10902",
+      "point": {
+        "lon": -97.594509,
+        "lat": 27.991988
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "4fb390ac-94f2-4987-a80e-7500e3acda0c": {
+      "fieldName": "Poole West 1639-B",
+      "farmName": "Poole 10902",
+      "point": {
+        "lon": -97.601383,
+        "lat": 27.991059
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.06,
+      "rain72h": 0.06
+    },
+    "7d71645a-76f1-4d8f-b3db-d2f62e793f4a": {
+      "fieldName": "Richardson",
+      "farmName": "Richardson",
+      "point": {
+        "lon": -97.236426,
+        "lat": 28.169712
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.07,
+      "rain72h": 0.07
+    },
+    "ae04a29a-ef52-414a-8b3a-ed6a3a12765a": {
+      "fieldName": "Ronco 4026-E",
+      "farmName": "Ronco 10914",
+      "point": {
+        "lon": -97.565555,
+        "lat": 27.954246
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "e72c9680-090e-4eef-982d-d533d94f1107": {
+      "fieldName": "Ronco South 3999-C",
+      "farmName": "Ronco 10708",
+      "point": {
+        "lon": -97.567214,
+        "lat": 27.951031
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "ac36e50e-1755-4643-a3e2-63795870827d": {
+      "fieldName": "Temple 981",
+      "farmName": "Temple 10921",
+      "point": {
+        "lon": -97.643512,
+        "lat": 27.995907
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "d95cbc39-3ef2-4606-8464-ba2dbf72f302": {
+      "fieldName": "Triangle 372",
+      "farmName": "Owens 10917",
+      "point": {
+        "lon": -97.716208,
+        "lat": 28.00943
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "3ccd4887-b06d-45fd-9ae5-5dc822939b67": {
+      "fieldName": "Weatherly 374",
+      "farmName": "Weatherly 10922",
+      "point": {
+        "lon": -97.615417,
+        "lat": 27.949712
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "7b7ce173-7346-4474-aaa8-85b9df5f50ee": {
+      "fieldName": "WestEast 3043-3044",
+      "farmName": "Bucks",
+      "point": {
+        "lon": -97.69947,
+        "lat": 27.943308
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "8e7b42d6-6422-4c3a-b155-8648cf536e39": {
+      "fieldName": "Andrews 1940",
+      "farmName": "Andrews 17601",
+      "point": {
+        "lon": -97.540553,
+        "lat": 27.917899
+      },
+      "rain24h": 0.35,
+      "rain48h": 0.35,
+      "rain72h": 0.35
+    },
+    "0bda4340-0aff-4436-8651-808bb36883ed": {
+      "fieldName": "Andrews Peach Orchard 1940",
+      "farmName": "Andrews 17601",
+      "point": {
+        "lon": -97.538296,
+        "lat": 27.914907
+      },
+      "rain24h": 0.35,
+      "rain48h": 0.35,
+      "rain72h": 0.35
+    },
+    "e41508cd-74fb-42ab-a4c5-181fb1e3d8d3": {
+      "fieldName": "Edcot Gin Pad 3316",
+      "farmName": "Edcot Gin Pad 17608",
+      "point": {
+        "lon": -97.575585,
+        "lat": 27.951792
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "3c378012-9700-4426-9540-5e98bafa6852": {
+      "fieldName": "HdqrtrsTrrce 1936-A",
+      "farmName": "Headquarters 17502",
+      "point": {
+        "lon": -97.551095,
+        "lat": 27.943487
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "8fbdfa87-8c6a-418e-add2-7ac09856336c": {
+      "fieldName": "HeadqrtrsFlat 1936-A",
+      "farmName": "Headquarters 17502",
+      "point": {
+        "lon": -97.549829,
+        "lat": 27.952503
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "04b7ecdb-2209-4a67-a45a-979b93abeb06": {
+      "fieldName": "Jacklyn 751",
+      "farmName": "Jacklyn 17611",
+      "point": {
+        "lon": -97.553747,
+        "lat": 27.961153
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "11cf1ee7-f321-4cc0-95ba-7a695fa786d6": {
+      "fieldName": "Leandros Casa 2979",
+      "farmName": "Leandros 17504",
+      "point": {
+        "lon": -97.497228,
+        "lat": 27.910475
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.24,
+      "rain72h": 0.24
+    },
+    "91a28c2f-a7df-483f-b167-3cab95f6bf6a": {
+      "fieldName": "LndrsAG/Trrces 2979",
+      "farmName": "Leandros 17504",
+      "point": {
+        "lon": -97.497646,
+        "lat": 27.907586
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.24,
+      "rain72h": 0.24
+    },
+    "fd6725cc-0d06-463f-a40e-2ca227e778d7": {
+      "fieldName": "LndrsTankPiece 2979",
+      "farmName": "LeandrosTankPiece",
+      "point": {
+        "lon": -97.510174,
+        "lat": 27.914734
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.22,
+      "rain72h": 0.22
+    },
+    "02ae6da8-075b-48dc-8ed5-11192bd06030": {
+      "fieldName": "Loco 3316",
+      "farmName": "Loco 17604",
+      "point": {
+        "lon": -97.568885,
+        "lat": 27.948085
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.0,
+      "rain72h": 0.0
+    },
+    "cbf2f30f-a67c-497c-a42b-e5e50a1969c5": {
+      "fieldName": "Lukenbach 3159/4061",
+      "farmName": "Luckenbach 17606",
+      "point": {
+        "lon": -97.554972,
+        "lat": 27.93939
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.03,
+      "rain72h": 0.03
+    },
+    "9024fded-dcf6-41a9-95a7-6eee0e85c612": {
+      "fieldName": "Morrow North 1936-B",
+      "farmName": "Morrow 240 17501",
+      "point": {
+        "lon": -97.529395,
+        "lat": 27.937892
+      },
+      "rain24h": 0.21,
+      "rain48h": 0.21,
+      "rain72h": 0.21
+    },
+    "bbfcef50-75a3-4fa7-b0bd-536c5788416c": {
+      "fieldName": "Morrow South 1936-B",
+      "farmName": "Morrow 240 17501",
+      "point": {
+        "lon": -97.529073,
+        "lat": 27.935683
+      },
+      "rain24h": 0.21,
+      "rain48h": 0.21,
+      "rain72h": 0.21
+    },
+    "daf0990e-ae19-4e1a-ae51-83d0a7b45c40": {
+      "fieldName": "Rosson North 3897",
+      "farmName": "Rosson",
+      "point": {
+        "lon": -97.442297,
+        "lat": 27.943784
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.01,
+      "rain72h": 0.01
+    },
+    "a508a41b-1d87-4fbd-afc9-90181397a6d4": {
+      "fieldName": "Rosson South 3897",
+      "farmName": "Rosson",
+      "point": {
+        "lon": -97.447774,
+        "lat": 27.937865
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "ac865345-f40e-4f6c-bf0a-c968dac5ff92": {
+      "fieldName": "Rosson South South 3897",
+      "farmName": "Rosson",
+      "point": {
+        "lon": -97.446622,
+        "lat": 27.930504
+      },
+      "rain24h": 0.0,
+      "rain48h": 0.11,
+      "rain72h": 0.11
+    },
+    "e37087d4-16a0-45c2-9fee-f81b3411823b": {
+      "fieldName": "Trust North 3282",
+      "farmName": "Trust 17507",
+      "point": {
+        "lon": -97.5314,
+        "lat": 27.932504
+      },
+      "rain24h": 0.21,
+      "rain48h": 0.21,
+      "rain72h": 0.21
+    },
+    "b5bce4c2-c5e3-42a2-9b3e-8dcf8fde21df": {
+      "fieldName": "Trust South 3282",
+      "farmName": "Trust 17507",
+      "point": {
+        "lon": -97.533423,
+        "lat": 27.92717
+      },
+      "rain24h": 0.04,
+      "rain48h": 0.04,
+      "rain72h": 0.04
+    },
+    "61946f49-2b99-4738-9e24-77a6f8c7c379": {
+      "fieldName": "Trust Terraces 3283",
+      "farmName": "Trust Terraces 17607",
+      "point": {
+        "lon": -97.542708,
+        "lat": 27.930428
+      },
+      "rain24h": 0.02,
+      "rain48h": 0.02,
+      "rain72h": 0.02
+    },
+    "a710a570-4b7b-4848-8fea-ebbc23533ade": {
+      "fieldName": "Wheat Patch 929",
+      "farmName": "Wheat Patch 17510",
+      "point": {
+        "lon": -97.494438,
+        "lat": 27.903411
+      },
+      "rain24h": 0.03,
+      "rain48h": 0.24,
+      "rain72h": 0.24
+    }
+  },
+  "validation": {
+    "fieldCount": 120,
+    "with24h": 120,
+    "with48h": 120,
+    "with72h": 120
+  }
+}
