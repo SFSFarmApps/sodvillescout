@@ -41,7 +41,16 @@ jobs:
               try:
                   with urllib.request.urlopen(url,timeout=30) as r:
                       raw=json.loads(r.read().decode())
-                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"catalog":catalog,"response":raw}
+                  samplebase="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
+                  sparams={
+                    "geometryType":"esriGeometryPoint",
+                    "geometry":json.dumps({"x":lon,"y":lat,"spatialReference":{"wkid":4326}}),
+                    "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"idp_subset = 'conus_QPE_{hours}H'"}),
+                    "f":"json"
+                  }
+                  with urllib.request.urlopen(samplebase+"?"+urllib.parse.urlencode(sparams),timeout=30) as sr:
+                      samples=json.loads(sr.read().decode())
+                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"catalog":catalog,"response":raw,"samples":samples}
               except Exception as e:
                   out["results"][str(hours)]={"raster":raster,"renderer":renderer,"error":repr(e)}
           with open("rainfall-debug.json","w") as f: json.dump(out,f,indent=2)
