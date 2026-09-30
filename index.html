@@ -201,13 +201,14 @@ function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!==
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
 function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
 let soilLayer=null,soilLoading=false,soilCache={}; const SOIL_BUILD='2026-09-30-bboxclip';
-function soilColor(key,name){
- const n=String(name||'').toLowerCase();
+function soilColor(key,name,symbol){
+ const n=String(name||'').toLowerCase().replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
+ const s=String(symbol||'').toLowerCase();
  if(n.includes('victoria')&&n.includes('depressional'))return '#7b2cbf';
- if(n.includes('victoria clay')&&n.includes('0 to 1')&&n.includes('low'))return '#00a6a6';
- if(n.includes('victoria clay')&&n.includes('0 to 1'))return '#e63946';
+ if(n.includes('victoria')&&n.includes('clay')&&(/0\s*(?:-|to)\s*1/.test(n))&&(n.includes('low')||s.includes('low')))return '#00a6a6';
+ if(n.includes('victoria')&&n.includes('clay')&&(/0\s*(?:-|to)\s*1/.test(n)))return '#e63946';
  if(n.includes('victoria clay'))return '#e67e22';
- let h=2166136261,s=String(key||name||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+ let h=2166136261,x=String(key||name||symbol||'soil');for(let i=0;i<x.length;i++){h^=x.charCodeAt(i);h=Math.imul(h,16777619)}
  return 'hsl('+(Math.abs(h)%360)+' 72% 48%)';
 }
 let soilLegend=null,soilLegendItems=new Map();
@@ -267,7 +268,7 @@ async function loadSoils(){
   for(let i=0;i<fs.length;i+=6){
    const results=await Promise.all(fs.slice(i,i+6).map(async f=>{try{return await fetchFieldSoils(f)}catch(e){console.warn('Soils failed',f.properties.FIELD_NAME,e);return[]}}));
    for(const s of results.flat()){
-    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName),layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}});
+    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName,soilSymbol),layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}});
     soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
     layer.bindTooltip(soilSymbol+' — '+soilName,{sticky:true});
     layer.addTo(soilLayer);
