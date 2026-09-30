@@ -200,37 +200,37 @@ function color(f){let o=latestObs(f.properties.FIELD_ID),m=$('#layerMode').value
 function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!=='Complete' && t.status!=='Completed' && t.status!=='Closed')}
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
 function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
-let soilLayer=null,soilLoading=false,soilCache={};
+let soilLayer=null,soilLoading=false,soilCache={}; const SOIL_BUILD='2026-09-30-bboxclip';
 function soilColor(key){
  let h=2166136261,s=String(key||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
  return 'hsl('+(Math.abs(h)%360)+' 72% 48%)';
 }
-function fieldEsriGeometry(f){
- const g=f.geometry;if(!g)return null;
- let rings=[];
- if(g.type==='Polygon')rings=g.coordinates;
- else if(g.type==='MultiPolygon')g.coordinates.forEach(p=>rings.push(...p));
- return {rings,spatialReference:{wkid:4326}};
-}
+function propCI(p,name){let k=Object.keys(p||{}).find(x=>x.toLowerCase()===name.toLowerCase());return k?p[k]:''}
 async function fetchFieldSoils(f){
  const fid=String(f.properties.FIELD_ID);
  if(soilCache[fid])return soilCache[fid];
- const geom=fieldEsriGeometry(f);if(!geom)return[];
+ const bb=turf.bbox(f);
  const body=new URLSearchParams({
-  where:'1=1',geometry:JSON.stringify(geom),geometryType:'esriGeometryPolygon',
+  where:'1=1',geometry:bb.join(','),geometryType:'esriGeometryEnvelope',
   inSR:'4326',spatialRel:'esriSpatialRelIntersects',
-  outFields:'musym,muname,mukey,nationalmusym',returnGeometry:'true',
-  outSR:'4326',f:'geojson'
+  outFields:'*',returnGeometry:'true',outSR:'4326',
+  returnExceededLimitFeatures:'true',f:'geojson'
  });
- const r=await fetch('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/0/query',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+ const r=await fetch('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/FeatureServer/0/query',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
  if(!r.ok)throw Error('USDA SSURGO request failed '+r.status);
  const j=await r.json();if(j.error)throw Error(j.error.message||'USDA SSURGO error');
  const clipped=[];
  for(const s of (j.features||[])){
   try{
    const x=turf.intersect(s,f);
-   if(x&&x.geometry){x.properties={...(s.properties||{}),FIELD_ID:fid};clipped.push(x)}
-  }catch(e){}
+   if(x&&x.geometry){
+    const p=s.properties||{};
+    x.properties={...p,FIELD_ID:fid,
+     musym:propCI(p,'musym'),muname:propCI(p,'muname'),
+     mukey:propCI(p,'mukey'),nationalmusym:propCI(p,'nationalmusym')};
+    clipped.push(x);
+   }
+  }catch(e){console.warn('Soil clip failed',fid,e)}
  }
  soilCache[fid]=clipped;return clipped;
 }
