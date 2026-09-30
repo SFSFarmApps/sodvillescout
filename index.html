@@ -412,20 +412,23 @@ function updateTimer(){let s=active(),el=$('#timerDisplay');if(!el)return;if(!s)
 setInterval(updateTimer,1000);updateTimer();
 </script><script>
 (function(){
-const WXKEY='sodvilleFieldWeatherV1', wxCache=JSON.parse(localStorage.getItem(WXKEY)||'{}');
+const WXKEY='sodvilleFieldWeatherV2', wxCache=JSON.parse(localStorage.getItem(WXKEY)||'{}');
 function centroid(feature){let b=L.geoJSON(feature).getBounds(),c=b.getCenter();return {lat:c.lat,lon:c.lng}}
 function seasonStart(){let d=new Date(),y=d.getMonth()>=6?d.getFullYear():d.getFullYear()-1;return y+'-07-01'}
 function iso(d){return d.toISOString().slice(0,10)}
 function sum(a,n){return (a||[]).slice(-n).reduce((x,y)=>x+(Number(y)||0),0)}
 function inch(mm){return (mm/25.4).toFixed(2)+'"'}
-function workability(r1,r3,r7,sm,et3){
+function workability(r24in,r7in,hoursSinceRain,sm,et3){
+ if(!Number.isFinite(r24in)||!Number.isFinite(r7in))return {label:'NO DATA',cls:'nodata',score:null};
  let wet=0;
- if(r1>=12.7)wet+=35; else if(r1>=6.35)wet+=22; else if(r1>=2.54)wet+=10;
- if(r3>=25.4)wet+=28; else if(r3>=12.7)wet+=18; else if(r3>=6.35)wet+=9;
- if(r7>=50.8)wet+=18; else if(r7>=25.4)wet+=12; else if(r7>=12.7)wet+=6;
- if(sm>=.34)wet+=30; else if(sm>=.29)wet+=20; else if(sm>=.24)wet+=10;
- wet-=Math.min(18,(et3||0)*1.8);
+ if(r24in>=.75)wet+=55; else if(r24in>=.50)wet+=42; else if(r24in>=.25)wet+=28; else if(r24in>=.10)wet+=14; else if(r24in>=.03)wet+=6;
+ if(r7in>=2)wet+=32; else if(r7in>=1.25)wet+=24; else if(r7in>=.75)wet+=16; else if(r7in>=.35)wet+=9; else if(r7in>=.15)wet+=4;
+ if(Number.isFinite(hoursSinceRain)){if(hoursSinceRain<12)wet+=18;else if(hoursSinceRain<24)wet+=12;else if(hoursSinceRain<48)wet+=7;else if(hoursSinceRain<72)wet+=3}
+ if(Number.isFinite(sm)){if(sm>=.34)wet+=24;else if(sm>=.29)wet+=16;else if(sm>=.24)wet+=8}
+ wet-=Math.min(14,(et3||0)*1.4);
  let score=Math.max(0,Math.min(100,100-wet));
+ if(r24in>=.50)return {label:'TOO WET',cls:'toowet',score,override:'Rain ≥ 0.50" in last 24 hr'};
+ if(r24in>=.25)return {label:'MARGINAL',cls:'marginal',score:Math.min(score,60),override:'Rain ≥ 0.25" in last 24 hr'};
  return score>=70?{label:'WORKABLE',cls:'workable',score}:score>=45?{label:'MARGINAL',cls:'marginal',score}:{label:'TOO WET',cls:'toowet',score};
 }
 async function getWeather(feature){
@@ -462,21 +465,36 @@ async function getWeather(feature){
    let res=qpe?.results?.[0],attrs=res?.attributes||{},candidates=[res?.value,attrs['Pixel Value'],attrs['PixelValue'],attrs['Value'],attrs['value']];
    for(let v of candidates){let n=parseFloat(String(v??'').replace(/[^0-9.+-]/g,''));if(Number.isFinite(n)&&n>=0&&n<100){radar24=n;break}}
  }catch(e){}
- let effective24=radar24!=null?radar24*25.4:rain24;
- let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),todayRain,r1:effective24,model24:rain24,radar24,radarSource,r3:sum(rain,3),r7:sum(rain,7),r14:sum(rain,14),et3:sum(et,3),sm,point:p,lastObserved};
- out.work=workability(out.r1,out.r3,out.r7,out.sm,out.et3);
- if(out.r1>=19.05||out.todayRain>=19.05)out.work={label:'TOO WET',cls:'toowet',score:Math.min(out.work.score,25),override:'Fresh rain ≥ 0.75" in last 24 hr'};
- else if(out.r1>=12.7||out.todayRain>=12.7)out.work={label:'TOO WET',cls:'toowet',score:Math.min(out.work.score,40),override:'Fresh rain ≥ 0.50" in last 24 hr'};
- else if(out.r1>=6.35||out.todayRain>=6.35)out.work={label:'MARGINAL',cls:'marginal',score:Math.min(out.work.score,60),override:'Fresh rain ≥ 0.25" in last 24 hr'}; wxCache[id]=out;localStorage.setItem(WXKEY,JSON.stringify(wxCache));return out;
+ let radar7=null;
+ try{
+   let cb7='sodvilleQpe7_'+Math.random().toString(36).slice(2);
+   let qpe7=await new Promise((resolve,reject)=>{
+     let s=document.createElement('script'),timer=setTimeout(()=>{cleanup();reject(Error('QPE 7-day timeout'))},10000);
+     function cleanup(){clearTimeout(timer);try{delete window[cb7]}catch(e){};s.remove()}
+     window[cb7]=d=>{cleanup();resolve(d)};
+     let params=new URLSearchParams({geometry:p.lon+','+p.lat,geometryType:'esriGeometryPoint',sr:'4326',layers:'all:56',tolerance:'3',mapExtent:(p.lon-.15)+','+(p.lat-.15)+','+(p.lon+.15)+','+(p.lat+.15),imageDisplay:'800,800,96',returnGeometry:'false',f:'json',callback:cb7});
+     s.src='https://mapservices.weather.noaa.gov/raster/rest/services/obs/rfc_qpe/MapServer/identify?'+params.toString();
+     s.onerror=()=>{cleanup();reject(Error('QPE 7-day request failed'))};document.head.appendChild(s);
+   });
+   let res=qpe7?.results?.[0],attrs=res?.attributes||{},candidates=[res?.value,attrs['Pixel Value'],attrs['PixelValue'],attrs['Value'],attrs['value']];
+   for(let v of candidates){let n=parseFloat(String(v??'').replace(/[^0-9.+-]/g,''));if(Number.isFinite(n)&&n>=0&&n<100){radar7=n;break}}
+ }catch(e){}
+ let model7mm=sum(rain,7),r24in=radar24!=null?radar24:(Number.isFinite(rain24)?rain24/25.4:null),r7in=radar7!=null?radar7:(rain.length?model7mm/25.4:null);
+ let lastRainMs=null;
+ hourTimes.forEach((t,i)=>{let ts=new Date(t+'-05:00').getTime(),v=Number(hourRain[i]);if(ts<=now&&Number.isFinite(v)&&v>=0.254)lastRainMs=ts});
+ let hoursSinceRain=lastRainMs==null?null:(now-lastRainMs)/3600000;
+ let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),todayRain,model24:rain24,radar24,radar7,radarSource,r24in,r7in,r3:sum(rain,3),r7:model7mm,r14:sum(rain,14),et3:sum(et,3),sm,point:p,lastObserved,hoursSinceRain,source24:radar24!=null?'NWS observed':'Open-Meteo fallback',source7:radar7!=null?'NWS observed':'Open-Meteo fallback'};
+ out.work=workability(out.r24in,out.r7in,out.hoursSinceRain,out.sm,out.et3); wxCache[id]=out;localStorage.setItem(WXKEY,JSON.stringify(wxCache));return out;
 }
 function render(w){
  let el=document.getElementById('fieldWeather');if(!el)return;
- el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">Score '+Math.round(w.work.score)+'/100</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Observed 24 hr (NWS)</span><b>'+(w.radar24!=null?w.radar24.toFixed(2)+'"':'Unavailable')+'</b></div><div class="weatherMetric"><span class="muted">Model Today</span><b>'+inch(w.todayRain||0)+'</b></div><div class="weatherMetric"><span class="muted">Model 24 hr</span><b>'+inch(w.model24||0)+'</b></div><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 3 days</span><b>'+inch(w.r3)+'</b></div><div class="weatherMetric"><span class="muted">Last 7 days</span><b>'+inch(w.r7)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days</span><b>'+inch(w.r14)+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+((w.sm||0)*100).toFixed(1)+'%</b></div></div>'+(w.work.override?'<div class="weatherSmall"><b>'+w.work.override+'</b></div>':'')+'<div class="weatherSmall">Workability uses NWS observed 24 hr when available, then model fallback • updated '+new Date(w.saved).toLocaleString()+'</div>';
+ let score=Number.isFinite(w.work.score)?'Score '+Math.round(w.work.score)+'/100':'Rainfall unavailable',last=Number.isFinite(w.hoursSinceRain)?(w.hoursSinceRain<48?Math.round(w.hoursSinceRain)+' hr ago':(w.hoursSinceRain/24).toFixed(1)+' days ago'):'Unavailable';
+ el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">'+score+'</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Rain — last 24 hr</span><b>'+(Number.isFinite(w.r24in)?w.r24in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source24+'</small></div><div class="weatherMetric"><span class="muted">Rain — last 7 days</span><b>'+(Number.isFinite(w.r7in)?w.r7in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source7+'</small></div><div class="weatherMetric"><span class="muted">Last meaningful rain</span><b>'+last+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+(Number.isFinite(w.sm)?(w.sm*100).toFixed(1)+'%':'Unavailable')+'</b></div><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days (model)</span><b>'+inch(w.r14)+'</b></div></div>'+(w.work.override?'<div class="weatherSmall"><b>'+w.work.override+'</b></div>':'')+'<div class="weatherSmall">Workability prioritizes NWS observed 24-hour and 7-day rainfall; model data is labeled fallback • updated '+new Date(w.saved).toLocaleString()+'</div>';
 }
 window.loadFieldWeather=async function(feature){if(!feature)return;try{render(await getWeather(feature))}catch(e){let el=document.getElementById('fieldWeather');if(el)el.innerHTML='<b>Weather & Field Conditions</b><p class="muted">Weather data could not be loaded. Check internet connection and try again.</p>'}};
 const original=window.showField;if(typeof original==='function'){window.showField=function(f,l){original(f,l);setTimeout(()=>window.loadFieldWeather(f),0)}}
 window.fieldWorkability=function(fid){return wxCache[String(fid)]?.work||null};
-function workStyle(f){let w=window.fieldWorkability(f.properties.FIELD_ID),fill=w?(w.label==='WORKABLE'?'#00ff00':w.label==='MARGINAL'?'#ffff00':'#ff0000'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:w?.58:0}}
+function workStyle(f){let w=window.fieldWorkability(f.properties.FIELD_ID),fill=!w||w.label==='NO DATA'?'#777777':w.label==='WORKABLE'?'#00ff00':w.label==='MARGINAL'?'#ffff00':'#ff0000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:w?.58:0.35}}
 async function preloadWorkability(){
  const sel=document.getElementById('layerMode'); if(sel)sel.value='workability';
  if(window.geoLayer)window.geoLayer.setStyle(workStyle);
