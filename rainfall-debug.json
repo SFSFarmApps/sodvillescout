@@ -1,0 +1,79 @@
+{
+  "field": "TaftGinSouth 3700-H",
+  "point": {
+    "lon": -97.33,
+    "lat": 28.019
+  },
+  "queried_utc": "2026-09-30T19:04:08.100329+00:00",
+  "results": {
+    "24": {
+      "raster": "mrms_24h_co",
+      "renderer": "rft_24hr",
+      "response": {
+        "objectId": 0,
+        "name": "Pixel",
+        "value": "NoData",
+        "location": {
+          "x": -97.33,
+          "y": 28.019,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "properties": {},
+        "catalogItems": {
+          "objectIdFieldName": "objectid",
+          "features": []
+        },
+        "catalogItemVisibilities": []
+      }
+    },
+    "48": {
+      "raster": "mrms_48h_co",
+      "renderer": "rft_48hr",
+      "response": {
+        "objectId": 0,
+        "name": "Pixel",
+        "value": "NoData",
+        "location": {
+          "x": -97.33,
+          "y": 28.019,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "properties": {},
+        "catalogItems": {
+          "objectIdFieldName": "objectid",
+          "features": []
+        },
+        "catalogItemVisibilities": []
+      }
+    },
+    "72": {
+      "raster": "mrms_72h_co",
+      "renderer": "rft_72hr",
+      "response": {
+        "objectId": 0,
+        "name": "Pixel",
+        "value": "NoData",
+        "location": {
+          "x": -97.33,
+          "y": 28.019,
+          "spatialReference": {
+            "wkid": 102100,
+            "latestWkid": 3857
+          }
+        },
+        "properties": {},
+        "catalogItems": {
+          "objectIdFieldName": "objectid",
+          "features": []
+        },
+        "catalogItemVisibilities": []
+      }
+    }
+  }
+}
