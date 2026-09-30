@@ -293,19 +293,10 @@ async function refreshWorkabilityLayer(){
  }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
 }
-let workScoreLayer=null;
 function updateWorkabilityLabels(){
- if(!map||!geoLayer)return;
- if(workScoreLayer){map.removeLayer(workScoreLayer);workScoreLayer=null}
- if(document.getElementById('layerMode')?.value!=='workability')return;
- workScoreLayer=L.layerGroup().addTo(map);
- geoLayer.eachLayer(l=>{
-  const f=l.feature,r=rainfallFeed?.fields?.[String(f?.properties?.FIELD_ID)],soil=soilDryingClass(soilCache[String(f?.properties?.FIELD_ID)]||[]),a=workabilityAssessment(r,soil);
-  if(a.score===null)return;
-  const center=l.getBounds().getCenter();
-  L.marker(center,{interactive:false,keyboard:false,icon:L.divIcon({className:'',html:'<div class="workScoreText">'+a.score+'</div>',iconSize:[24,16],iconAnchor:[12,8]})}).addTo(workScoreLayer);
- });
+ if(workScoreLayer&&map){map.removeLayer(workScoreLayer);workScoreLayer=null}
 }
+let workScoreLayer=null;
 function setSoilMode(on){
  if(on){loadSoils()}
  else if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
