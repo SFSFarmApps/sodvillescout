@@ -42,7 +42,7 @@ jobs:
               points.append([lon,lat])
           base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
           now=datetime.datetime.now(datetime.timezone.utc)
-          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}
+          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","sourceUnits":"mm","conversion":"mm/25.4","updatedUtc":now.isoformat(),"fields":{}}
           try:
               history=json.load(open("rainfall-history.json",encoding="utf-8"))
           except Exception:
@@ -68,7 +68,7 @@ jobs:
                   s=byloc.get(i)
                   try:
                       mm=float(s["value"])
-                      val=None if mm < 0 else round(mm,2)
+                      val=None if mm < 0 else round(mm/25.4,2)
                   except Exception: val=None
                   out["fields"][m["fieldId"]][f"rain{hours}h"]=val
           stamp=now.replace(minute=0,second=0,microsecond=0).isoformat()
