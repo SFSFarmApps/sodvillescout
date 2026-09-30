@@ -310,13 +310,14 @@ function setSoilMode(on){
  if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
 }
+let rainfallFeed=null,rainfallFeedPromise=null;
 fields=window.SODVILLE_FIELDS; if(fields && map){geoLayer=L.geoJSON(fields,{style,onEachFeature:(f,l)=>l.on('click',()=>showField(f,l))}).addTo(map);window.geoLayer=geoLayer;window.map=map;map.fitBounds(geoLayer.getBounds(),{padding:[18,18]});document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded';} else if(fields){document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded — map waiting for internet';} else {document.getElementById('fieldCount').textContent='Boundary data failed to load';}
 document.getElementById('layerMode')?.addEventListener('change',function(){setSoilMode(this.value==='soils');});
 if(document.getElementById('layerMode'))document.getElementById('layerMode').value='workability';
 setSoilMode(false);
 function refresh(){updateTimer();if(geoLayer)geoLayer.setStyle(style);let s=active();$('#sessionBtn').textContent=s?'End Scouting Day':'Start Scouting Day';$('#sessionStatus').textContent=s?`${s.userName||'Scout'} • Started ${fmt(s.start)} • timer running`:`Ready • ${currentUser()?.name||'Select scout'}`;renderOutstandingTasks();if(selected)showField(selected.feature,selected.layer)}
 $('#sessionBtn').onclick=()=>{let s=active();if(s){s.end=new Date().toISOString()}else{let u=currentUser();db.sessions.push({id:crypto.randomUUID(),start:new Date().toISOString(),end:null,userId:u.id,userName:u.name});}save();refresh()};
-let rainfallFeed=null,rainfallFeedPromise=null;
+
 async function loadRainfallFeed(){
  if(rainfallFeed)return rainfallFeed;
  if(!rainfallFeedPromise)rainfallFeedPromise=fetch('rainfall.json?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('rainfall feed '+r.status);return r.json()}).then(j=>rainfallFeed=j);
