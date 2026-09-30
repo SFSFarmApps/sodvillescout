@@ -5,7 +5,8 @@ on:
     - cron: '12 * * * *'
   push:
     paths:
-      - '.github/workflows/rainfall.yml'\n      - 'rainfall-trigger.txt'
+      - '.github/workflows/rainfall.yml'
+      - 'rainfall-trigger.txt'
 permissions:
   contents: write
 concurrency:
@@ -41,7 +42,11 @@ jobs:
               points.append([lon,lat])
           base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
           now=datetime.datetime.now(datetime.timezone.utc)
-          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}\n          try:\n              history=json.load(open("rainfall-history.json",encoding="utf-8"))\n          except Exception:\n              history={"fields":{}}
+          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}
+          try:
+              history=json.load(open("rainfall-history.json",encoding="utf-8"))
+          except Exception:
+              history={"fields":{}}
           for m in meta:
               out["fields"][m["fieldId"]]={"fieldName":m["fieldName"],"farmName":m["farmName"],"point":{"lon":round(m["lon"],6),"lat":round(m["lat"],6)}}
           geom=json.dumps({"points":points,"spatialReference":{"wkid":4326}},separators=(",",":"))
