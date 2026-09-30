@@ -280,14 +280,14 @@ async function loadSoils(){
 async function refreshWorkabilityLayer(){
  try{
   await loadRainfallFeed();
-  if(geoLayer){geoLayer.setStyle(style);updateWorkabilityLabels();geoLayer.bringToFront()}
+  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
   const fs=window.SODVILLE_FIELDS?.features||[];
   for(let i=0;i<fs.length;i+=8){
    await Promise.all(fs.slice(i,i+8).map(f=>fetchFieldSoils(f).catch(()=>[])));
-   if(document.getElementById('layerMode')?.value==='workability'&&geoLayer)geoLayer.setStyle(style);
+   if(document.getElementById('layerMode')?.value==='workability'&&geoLayer){geoLayer.setStyle(style);try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
   }
  }catch(e){console.warn('Workability layer data',e)}
- if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+ if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
 }
 function updateWorkabilityLabels(){
  if(!geoLayer)return;
@@ -304,7 +304,7 @@ function setSoilMode(on){
  else if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
  if(!on&&soilLegend){map.removeControl(soilLegend);soilLegend=null}
  if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
- if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+ if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront();try{updateWorkabilityLabels()}catch(e){console.warn('Workability labels',e)}}
 }
 fields=window.SODVILLE_FIELDS; if(fields && map){geoLayer=L.geoJSON(fields,{style,onEachFeature:(f,l)=>l.on('click',()=>showField(f,l))}).addTo(map);window.geoLayer=geoLayer;window.map=map;map.fitBounds(geoLayer.getBounds(),{padding:[18,18]});document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded';} else if(fields){document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded — map waiting for internet';} else {document.getElementById('fieldCount').textContent='Boundary data failed to load';}
 document.getElementById('layerMode')?.addEventListener('change',function(){setSoilMode(this.value==='soils');});
