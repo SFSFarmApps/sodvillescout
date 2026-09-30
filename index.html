@@ -24,6 +24,7 @@
 #completeSelectedTasks{background:#17823b;color:#fff;border:1px solid #11652d;font-weight:800}
 #completeSelectedTasks:hover:not(:disabled){background:#116f31}
 #completeSelectedTasks:disabled{background:#aebbb2;color:#eef2ef;border-color:#9ba89f;opacity:.75}
+ .workScoreLabel{background:rgba(255,255,255,.92);border:2px solid #111;border-radius:7px;color:#111;font-weight:900;font-size:14px;line-height:22px;text-align:center;box-shadow:0 1px 3px #0008;padding:0 4px;min-width:30px;height:26px} .workScoreLabel:before{display:none} @media(max-width:800px){.workScoreLabel{font-size:13px;line-height:20px;height:24px;min-width:28px}}
 </style><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"></head>
 <body><header><div><b>SODVILLE FIELD SCOUT</b><span id="sessionStatus">No scouting session</span></div><div class="sessionControls"><div id="timerDisplay">00:00:00</div><button id="sessionBtn" class="primary">▶ START scouting DAY</button></div></header>
 <div class="toolbar"><span id="fieldCount" style="display:none"></span><div class="userControls"><select id="scoutSelect" aria-label="Current scout"></select><button id="manageUsersBtn" class="manageUsers">+ Scouts</button></div><input id="search" placeholder="Search client, farm, field…"><select id="layerMode"><option value="status">Outstanding task urgency</option><option value="soils" selected>Soils (USDA NRCS)</option><option value="workability">Workability</option><option value="weed">Weed pressure</option><option value="insect">Insect pressure</option></select><button id="reportBtn">Scouting Reports</button></div>
@@ -279,7 +280,7 @@ async function loadSoils(){
 async function refreshWorkabilityLayer(){
  try{
   await loadRainfallFeed();
-  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+  if(geoLayer){geoLayer.setStyle(style);updateWorkabilityLabels();geoLayer.bringToFront()}
   const fs=window.SODVILLE_FIELDS?.features||[];
   for(let i=0;i<fs.length;i+=8){
    await Promise.all(fs.slice(i,i+8).map(f=>fetchFieldSoils(f).catch(()=>[])));
@@ -287,6 +288,16 @@ async function refreshWorkabilityLayer(){
   }
  }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+}
+function updateWorkabilityLabels(){
+ if(!geoLayer)return;
+ const on=document.getElementById('layerMode')?.value==='workability';
+ geoLayer.eachLayer(l=>{
+  if(!on){if(l.getTooltip())l.unbindTooltip();return}
+  const f=l.feature,r=rainfallFeed?.fields?.[String(f?.properties?.FIELD_ID)],soil=soilDryingClass(soilCache[String(f?.properties?.FIELD_ID)]||[]),a=workabilityAssessment(r,soil);
+  if(a.score===null){if(l.getTooltip())l.unbindTooltip();return}
+  l.bindTooltip(String(a.score),{permanent:true,direction:'center',className:'workScoreLabel',interactive:false,opacity:1});
+ });
 }
 function setSoilMode(on){
  if(on){loadSoils()}
