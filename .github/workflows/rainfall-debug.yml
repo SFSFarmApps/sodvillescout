@@ -1,0 +1,50 @@
+name: Rainfall MRMS Diagnostic
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/rainfall-debug.yml'
+permissions:
+  contents: write
+jobs:
+  test-mrms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Query NOAA MRMS at Taft Gin South
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request, datetime
+          base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/identify"
+          lon,lat=-97.330,28.019
+          out={"field":"TaftGinSouth 3700-H","point":{"lon":lon,"lat":lat},"queried_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"results":{}}
+          for hours in (24,48,72):
+              raster=f"mrms_{hours}h_co"
+              renderer=f"rft_{hours}hr"
+              params={
+                "geometry":f"{lon},{lat}",
+                "geometryType":"esriGeometryPoint",
+                "sr":"4326",
+                "returnGeometry":"false",
+                "returnCatalogItems":"true",
+                "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"name = '{raster}'"}),
+                "renderingRule":json.dumps({"rasterFunction":renderer}),
+                "f":"json"
+              }
+              url=base+"?"+urllib.parse.urlencode(params)
+              try:
+                  with urllib.request.urlopen(url,timeout=30) as r:
+                      raw=json.loads(r.read().decode())
+                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"response":raw}
+              except Exception as e:
+                  out["results"][str(hours)]={"raster":raster,"renderer":renderer,"error":repr(e)}
+          with open("rainfall-debug.json","w") as f: json.dump(out,f,indent=2)
+          PY
+      - name: Commit diagnostic response
+        run: |
+          git config user.name "Sodville Rainfall Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add rainfall-debug.json
+          git diff --cached --quiet || git commit -m "Update MRMS rainfall diagnostic"
+          git push
