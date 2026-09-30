@@ -263,30 +263,32 @@ setSoilMode(true);
 function refresh(){updateTimer();if(geoLayer)geoLayer.setStyle(style);let s=active();$('#sessionBtn').textContent=s?'End Scouting Day':'Start Scouting Day';$('#sessionStatus').textContent=s?`${s.userName||'Scout'} • Started ${fmt(s.start)} • timer running`:`Ready • ${currentUser()?.name||'Select scout'}`;renderOutstandingTasks();if(selected)showField(selected.feature,selected.layer)}
 $('#sessionBtn').onclick=()=>{let s=active();if(s){s.end=new Date().toISOString()}else{let u=currentUser();db.sessions.push({id:crypto.randomUUID(),start:new Date().toISOString(),end:null,userId:u.id,userName:u.name});}save();refresh()};
 const mrmsCache={};
-async function getMrmsRainSet(f){
- const fid=String(f.properties.FIELD_ID);
- if(mrmsCache[fid]&&Date.now()-mrmsCache[fid].time<15*60*1000)return mrmsCache[fid].values;
+async function getMrmsRain(f,hours){
+ const fid=String(f.properties.FIELD_ID),key=fid+'|'+hours;
+ if(mrmsCache[key]&&Date.now()-mrmsCache[key].time<15*60*1000)return mrmsCache[key].value;
  const pt=turf.centroid(f).geometry.coordinates,lon=pt[0],lat=pt[1];
- const rules=encodeURIComponent(JSON.stringify([24,48,72].map(h=>({rasterFunction:'rft_'+h+'hr'}))));
  const geom=encodeURIComponent(JSON.stringify({x:lon,y:lat,spatialReference:{wkid:4326}}));
- const u='https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/identify?geometry='+geom+'&geometryType=esriGeometryPoint&returnGeometry=false&returnCatalogItems=false&returnPixelValues=false&renderingRules='+rules+'&f=json';
+ const rasterName='mrms_'+hours+'h_co';
+ const mosaic=encodeURIComponent(JSON.stringify({mosaicMethod:'esriMosaicLockRaster',lockRasterIds:[],where:"name='"+rasterName+"'"}));
+ const render=encodeURIComponent(JSON.stringify({rasterFunction:'rft_'+hours+'hr'}));
+ const u='https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/identify?geometry='+geom+'&geometryType=esriGeometryPoint&mosaicRule='+mosaic+'&renderingRule='+render+'&returnGeometry=false&returnCatalogItems=true&f=json';
  const r=await fetch(u);if(!r.ok)throw Error('NOAA MRMS request failed '+r.status);
  const j=await r.json();if(j.error)throw Error(j.error.message||'NOAA MRMS error');
- const raw=j.processedValues;
- if(!Array.isArray(raw)||raw.length!==3)throw Error('NOAA MRMS processed pixel values unavailable');
- const values=raw.map(x=>Number(String(x).split(/[ ,]+/)[0]));
- if(values.some(v=>!Number.isFinite(v)||v<0||v>100))throw Error('Invalid NOAA MRMS precipitation pixel');
- mrmsCache[fid]={time:Date.now(),values};return values;
+ let v=Number(j.value);
+ const names=(j.catalogItems?.features||[]).map(x=>x.attributes?.name).filter(Boolean);
+ if(!names.some(n=>String(n).toLowerCase()===rasterName))throw Error('NOAA returned wrong MRMS raster');
+ if(!Number.isFinite(v)||v<0||v>100)throw Error('Invalid NOAA MRMS precipitation value');
+ mrmsCache[key]={time:Date.now(),value:v};return v;
 }
 async function updateFieldMrms(f){
- const ids=['fieldRain24','fieldRain48','fieldRain72'];
+ const ids={24:'fieldRain24',48:'fieldRain48',72:'fieldRain72'};
  try{
-  const vals=await getMrmsRainSet(f);
+  const vals=await Promise.all([24,48,72].map(h=>getMrmsRain(f,h)));
   if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
-  ids.forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=vals[i].toFixed(2)+' in';});
+  [24,48,72].forEach((h,i)=>{const el=document.getElementById(ids[h]);if(el)el.textContent=vals[i].toFixed(2)+' in';});
  }catch(e){
   if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
-  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Unavailable';});
+  Object.values(ids).forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Unavailable';});
  }
 }
 const rainCache={};
