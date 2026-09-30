@@ -412,7 +412,7 @@ function updateTimer(){let s=active(),el=$('#timerDisplay');if(!el)return;if(!s)
 setInterval(updateTimer,1000);updateTimer();
 </script><script>
 (function(){
-const WXKEY='sodvilleFieldWeatherV2', wxCache=JSON.parse(localStorage.getItem(WXKEY)||'{}');
+const WXKEY='sodvilleFieldWeatherV3', wxCache=JSON.parse(localStorage.getItem(WXKEY)||'{}');
 function centroid(feature){let b=L.geoJSON(feature).getBounds(),c=b.getCenter();return {lat:c.lat,lon:c.lng}}
 function seasonStart(){let d=new Date(),y=d.getMonth()>=6?d.getFullYear():d.getFullYear()-1;return y+'-07-01'}
 function iso(d){return d.toISOString().slice(0,10)}
@@ -479,17 +479,25 @@ async function getWeather(feature){
    let res=qpe7?.results?.[0],attrs=res?.attributes||{},candidates=[res?.value,attrs['Pixel Value'],attrs['PixelValue'],attrs['Value'],attrs['value']];
    for(let v of candidates){let n=parseFloat(String(v??'').replace(/[^0-9.+-]/g,''));if(Number.isFinite(n)&&n>=0&&n<100){radar7=n;break}}
  }catch(e){}
- let model7mm=sum(rain,7),r24in=radar24!=null?radar24:(Number.isFinite(rain24)?rain24/25.4:null),r7in=radar7!=null?radar7:(rain.length?model7mm/25.4:null);
+ let mrms24=null;
+ try{
+   let mosaicRule={mosaicMethod:'esriMosaicAttribute',where:"name='mrms_24h_co'",sortField:'name',mosaicOperation:'MT_FIRST'};
+   let renderingRule={rasterFunction:'rft_24hr'};
+   let params=new URLSearchParams({geometry:JSON.stringify({x:p.lon,y:p.lat,spatialReference:{wkid:4326}}),geometryType:'esriGeometryPoint',mosaicRule:JSON.stringify(mosaicRule),renderingRule:JSON.stringify(renderingRule),returnGeometry:'false',returnCatalogItems:'false',returnPixelValues:'false',f:'json'});
+   let mr=await fetch('https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/identify?'+params.toString());
+   if(mr.ok){let mj=await mr.json(),n=parseFloat(mj?.value);if(Number.isFinite(n)&&n>=0&&n<100)mrms24=n}
+ }catch(e){}
+ let model7mm=sum(rain,7),r24in=mrms24!=null?mrms24:(radar24!=null?radar24:null),r7in=radar7!=null?radar7:null;
  let lastRainMs=null;
  hourTimes.forEach((t,i)=>{let ts=new Date(t+'-05:00').getTime(),v=Number(hourRain[i]);if(ts<=now&&Number.isFinite(v)&&v>=0.254)lastRainMs=ts});
  let hoursSinceRain=lastRainMs==null?null:(now-lastRainMs)/3600000;
- let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),todayRain,model24:rain24,radar24,radar7,radarSource,r24in,r7in,r3:sum(rain,3),r7:model7mm,r14:sum(rain,14),et3:sum(et,3),sm,point:p,lastObserved,hoursSinceRain,source24:radar24!=null?'NWS observed':'Open-Meteo fallback',source7:radar7!=null?'NWS observed':'Open-Meteo fallback'};
+ let out={saved:Date.now(),season:start.slice(0,4),total:sum(rain,rain.length),todayRain,model24:rain24,mrms24,radar24,radar7,radarSource,r24in,r7in,r3:sum(rain,3),r7:model7mm,r14:sum(rain,14),et3:sum(et,3),sm,point:p,lastObserved,hoursSinceRain,source24:mrms24!=null?'NWS MRMS 1-km':(radar24!=null?'NWS RFC 4-km':'Unavailable'),source7:radar7!=null?'NWS RFC observed':'Unavailable'};
  out.work=workability(out.r24in,out.r7in,out.hoursSinceRain,out.sm,out.et3); wxCache[id]=out;localStorage.setItem(WXKEY,JSON.stringify(wxCache));return out;
 }
 function render(w){
  let el=document.getElementById('fieldWeather');if(!el)return;
  let score=Number.isFinite(w.work.score)?'Score '+Math.round(w.work.score)+'/100':'Rainfall unavailable',last=Number.isFinite(w.hoursSinceRain)?(w.hoursSinceRain<48?Math.round(w.hoursSinceRain)+' hr ago':(w.hoursSinceRain/24).toFixed(1)+' days ago'):'Unavailable';
- el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">'+score+'</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Rain — last 24 hr</span><b>'+(Number.isFinite(w.r24in)?w.r24in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source24+'</small></div><div class="weatherMetric"><span class="muted">Rain — last 7 days</span><b>'+(Number.isFinite(w.r7in)?w.r7in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source7+'</small></div><div class="weatherMetric"><span class="muted">Last meaningful rain</span><b>'+last+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+(Number.isFinite(w.sm)?(w.sm*100).toFixed(1)+'%':'Unavailable')+'</b></div><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days (model)</span><b>'+inch(w.r14)+'</b></div></div>'+(w.work.override?'<div class="weatherSmall"><b>'+w.work.override+'</b></div>':'')+'<div class="weatherSmall">Workability prioritizes NWS observed 24-hour and 7-day rainfall; model data is labeled fallback • updated '+new Date(w.saved).toLocaleString()+'</div>';
+ el.innerHTML='<b>Weather & Field Conditions</b><div style="margin-top:8px"><span class="workBadge '+w.work.cls+'">'+w.work.label+'</span> <span class="muted">'+score+'</span></div><div class="weatherGrid"><div class="weatherMetric"><span class="muted">Rain — last 24 hr</span><b>'+(Number.isFinite(w.r24in)?w.r24in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source24+'</small></div><div class="weatherMetric"><span class="muted">Rain — last 7 days</span><b>'+(Number.isFinite(w.r7in)?w.r7in.toFixed(2)+'"':'Unavailable')+'</b><small>'+w.source7+'</small></div><div class="weatherMetric"><span class="muted">Last meaningful rain</span><b>'+last+'</b></div><div class="weatherMetric"><span class="muted">Modeled soil moisture</span><b>'+(Number.isFinite(w.sm)?(w.sm*100).toFixed(1)+'%':'Unavailable')+'</b></div><div class="weatherMetric"><span class="muted">Rain since July 1</span><b>'+inch(w.total)+'</b></div><div class="weatherMetric"><span class="muted">Last 14 days (model)</span><b>'+inch(w.r14)+'</b></div></div>'+(w.work.override?'<div class="weatherSmall"><b>'+w.work.override+'</b></div>':'')+'<div class="weatherSmall">Workability prioritizes NWS MRMS 1-km 24-hour rainfall and NWS observed 7-day rainfall; unavailable observed rainfall is not treated as zero • updated '+new Date(w.saved).toLocaleString()+'</div>';
 }
 window.loadFieldWeather=async function(feature){if(!feature)return;try{render(await getWeather(feature))}catch(e){let el=document.getElementById('fieldWeather');if(el)el.innerHTML='<b>Weather & Field Conditions</b><p class="muted">Weather data could not be loaded. Check internet connection and try again.</p>'}};
 const original=window.showField;if(typeof original==='function'){window.showField=function(f,l){original(f,l);setTimeout(()=>window.loadFieldWeather(f),0)}}
