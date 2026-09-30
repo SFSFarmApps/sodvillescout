@@ -204,6 +204,8 @@ let soilLayer=null,soilLoading=false,soilCache={}; const SOIL_BUILD='2026-09-30-
 function soilColor(key,name){
  const n=String(name||'').toLowerCase();
  if(n.includes('victoria')&&n.includes('depressional'))return '#7b2cbf';
+ if(n.includes('victoria clay')&&n.includes('0 to 1')&&n.includes('low'))return '#00a6a6';
+ if(n.includes('victoria clay')&&n.includes('0 to 1'))return '#e63946';
  if(n.includes('victoria clay'))return '#e67e22';
  let h=2166136261,s=String(key||name||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
  return 'hsl('+(Math.abs(h)%360)+' 72% 48%)';
