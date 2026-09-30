@@ -4,7 +4,7 @@
     "lon": -97.33,
     "lat": 28.019
   },
-  "queried_utc": "2026-09-30T19:04:50.437755+00:00",
+  "queried_utc": "2026-09-30T19:05:33.693525+00:00",
   "results": {
     "24": {
       "raster": "mrms_24h_co",
@@ -65,6 +65,24 @@
         },
         "catalogItemVisibilities": [
           1
+        ]
+      },
+      "samples": {
+        "samples": [
+          {
+            "location": {
+              "x": -97.33,
+              "y": 28.019,
+              "spatialReference": {
+                "wkid": 4326,
+                "latestWkid": 4326
+              }
+            },
+            "locationId": 0,
+            "value": "0.000000000",
+            "rasterId": 146848038,
+            "resolution": 1189.1837785492494
+          }
         ]
       }
     },
@@ -128,6 +146,24 @@
         "catalogItemVisibilities": [
           1
         ]
+      },
+      "samples": {
+        "samples": [
+          {
+            "location": {
+              "x": -97.33,
+              "y": 28.019,
+              "spatialReference": {
+                "wkid": 4326,
+                "latestWkid": 4326
+              }
+            },
+            "locationId": 0,
+            "value": "11.199999809",
+            "rasterId": 146849638,
+            "resolution": 1189.1837785492494
+          }
+        ]
       }
     },
     "72": {
@@ -189,6 +225,24 @@
         },
         "catalogItemVisibilities": [
           1
+        ]
+      },
+      "samples": {
+        "samples": [
+          {
+            "location": {
+              "x": -97.33,
+              "y": 28.019,
+              "spatialReference": {
+                "wkid": 4326,
+                "latestWkid": 4326
+              }
+            },
+            "locationId": 0,
+            "value": "11.199999809",
+            "rasterId": 146851238,
+            "resolution": 1189.1837785492494
+          }
         ]
       }
     }
