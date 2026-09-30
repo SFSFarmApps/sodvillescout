@@ -41,11 +41,11 @@ jobs:
               points.append([lon,lat])
           base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
           now=datetime.datetime.now(datetime.timezone.utc)
-          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}
+          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","updatedUtc":now.isoformat(),"fields":{}}\n          try:\n              history=json.load(open("rainfall-history.json",encoding="utf-8"))\n          except Exception:\n              history={"fields":{}}
           for m in meta:
               out["fields"][m["fieldId"]]={"fieldName":m["fieldName"],"farmName":m["farmName"],"point":{"lon":round(m["lon"],6),"lat":round(m["lat"],6)}}
           geom=json.dumps({"points":points,"spatialReference":{"wkid":4326}},separators=(",",":"))
-          for hours in (24,48,72):
+          for hours in (1,24,48,72):
               params={
                 "geometryType":"esriGeometryMultipoint",
                 "geometry":geom,
@@ -62,9 +62,27 @@ jobs:
                   s=byloc.get(i)
                   try:
                       mm=float(s["value"])
-                      val=None if mm < 0 else round(mm/25.4,2)
+                      val=None if mm < 0 else round(mm,2)
                   except Exception: val=None
                   out["fields"][m["fieldId"]][f"rain{hours}h"]=val
+          stamp=now.replace(minute=0,second=0,microsecond=0).isoformat()
+          cutoff=now-datetime.timedelta(days=8)
+          for m in meta:
+              fid=m["fieldId"]
+              v=out["fields"][fid]
+              arr=history.setdefault("fields",{}).setdefault(fid,[])
+              arr=[x for x in arr if datetime.datetime.fromisoformat(x["time"])>=cutoff]
+              if not arr or arr[-1]["time"]!=stamp:
+                  arr.append({"time":stamp,"rain1h":v.get("rain1h")})
+              history["fields"][fid]=arr
+              valid=[x for x in arr if isinstance(x.get("rain1h"),(int,float))]
+              v["rain7d"]=round(sum(x["rain1h"] for x in valid[-168:]),2) if len(valid)>=168 else None
+              for threshold,key in ((0.10,"daysSince010"),(0.50,"daysSince050")):
+                  hit=next((x for x in reversed(valid) if x["rain1h"]>=threshold),None)
+                  v[key]=round((now-datetime.datetime.fromisoformat(hit["time"])).total_seconds()/86400,1) if hit else None
+          history["updatedUtc"]=now.isoformat()
+          with open("rainfall-history.json","w",encoding="utf-8") as hf:
+              json.dump(history,hf,separators=(",",":"))
           vals=[v for v in out["fields"].values()]
           out["validation"]={"fieldCount":len(vals),"with24h":sum(v.get("rain24h") is not None for v in vals),"with48h":sum(v.get("rain48h") is not None for v in vals),"with72h":sum(v.get("rain72h") is not None for v in vals)}
           with open("rainfall.json","w",encoding="utf-8") as f: json.dump(out,f,indent=2)
@@ -73,6 +91,6 @@ jobs:
         run: |
           git config user.name "Sodville Rainfall Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add rainfall.json
+          git add rainfall.json rainfall-history.json
           git diff --cached --quiet || git commit -m "Update NOAA MRMS field rainfall"
           git push
