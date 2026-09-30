@@ -262,35 +262,6 @@ if(document.getElementById('layerMode'))document.getElementById('layerMode').val
 setSoilMode(true);
 function refresh(){updateTimer();if(geoLayer)geoLayer.setStyle(style);let s=active();$('#sessionBtn').textContent=s?'End Scouting Day':'Start Scouting Day';$('#sessionStatus').textContent=s?`${s.userName||'Scout'} • Started ${fmt(s.start)} • timer running`:`Ready • ${currentUser()?.name||'Select scout'}`;renderOutstandingTasks();if(selected)showField(selected.feature,selected.layer)}
 $('#sessionBtn').onclick=()=>{let s=active();if(s){s.end=new Date().toISOString()}else{let u=currentUser();db.sessions.push({id:crypto.randomUUID(),start:new Date().toISOString(),end:null,userId:u.id,userName:u.name});}save();refresh()};
-const mrmsCache={};
-async function getMrmsRain(f,hours){
- const fid=String(f.properties.FIELD_ID),key=fid+'|'+hours;
- if(mrmsCache[key]&&Date.now()-mrmsCache[key].time<15*60*1000)return mrmsCache[key].value;
- const pt=turf.centroid(f).geometry.coordinates,lon=pt[0],lat=pt[1];
- const geom=encodeURIComponent(JSON.stringify({x:lon,y:lat,spatialReference:{wkid:4326}}));
- const rasterName='mrms_'+hours+'h_co';
- const mosaic=encodeURIComponent(JSON.stringify({mosaicMethod:'esriMosaicLockRaster',lockRasterIds:[],where:"name='"+rasterName+"'"}));
- const render=encodeURIComponent(JSON.stringify({rasterFunction:'rft_'+hours+'hr'}));
- const u='https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/identify?geometry='+geom+'&geometryType=esriGeometryPoint&mosaicRule='+mosaic+'&renderingRule='+render+'&returnGeometry=false&returnCatalogItems=true&f=json';
- const r=await fetch(u);if(!r.ok)throw Error('NOAA MRMS request failed '+r.status);
- const j=await r.json();if(j.error)throw Error(j.error.message||'NOAA MRMS error');
- let v=Number(j.value);
- const names=(j.catalogItems?.features||[]).map(x=>x.attributes?.name).filter(Boolean);
- if(!names.some(n=>String(n).toLowerCase()===rasterName))throw Error('NOAA returned wrong MRMS raster');
- if(!Number.isFinite(v)||v<0||v>100)throw Error('Invalid NOAA MRMS precipitation value');
- mrmsCache[key]={time:Date.now(),value:v};return v;
-}
-async function updateFieldMrms(f){
- const ids={24:'fieldRain24',48:'fieldRain48',72:'fieldRain72'};
- try{
-  const vals=await Promise.all([24,48,72].map(h=>getMrmsRain(f,h)));
-  if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
-  [24,48,72].forEach((h,i)=>{const el=document.getElementById(ids[h]);if(el)el.textContent=vals[i].toFixed(2)+' in';});
- }catch(e){
-  if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
-  Object.values(ids).forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Unavailable';});
- }
-}
 const rainCache={};
 function rainStartDate(){return new Date().getFullYear()+'-07-01'}
 function rainEndDate(){return new Date().toISOString().slice(0,10)}
@@ -309,7 +280,7 @@ async function updateFieldRain(f){
  try{const total=await getRainSinceJuly1(f);if(selected?.feature?.properties?.FIELD_ID===f.properties.FIELD_ID)el.textContent=total.toFixed(2)+' in';}
  catch(e){if(selected?.feature?.properties?.FIELD_ID===f.properties.FIELD_ID)el.textContent='Unavailable';}
 }
-function showField(f,l){selected={feature:f,layer:l};const sb=document.getElementById('taskSidebar');if(sb&&window.matchMedia('(max-width:800px)').matches)sb.classList.remove('collapsed');let p=f.properties,o=latestObs(p.FIELD_ID),tasks=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)),open=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)&&!['Complete','Completed','Closed'].includes(t.status));$('#panel').innerHTML=`<h2 class="fieldTitle">${p.FIELD_NAME}</h2><div class="meta">${p.CLIENT_NAM} • ${p.FARM_NAME}</div><div class="chips"><span class="chip">${p.ACRES||'?'} ac</span><span class="chip">Rain since July 1: <b id="fieldRainTotal">Loading…</b></span><span class="chip">NOAA 24h: <b id="fieldRain24">Loading…</b></span><span class="chip">48h: <b id="fieldRain48">Loading…</b></span><span class="chip">72h: <b id="fieldRain72">Loading…</b></span><span class="chip">JD Field ID retained</span></div><div class="actions"><button onclick="observation()">+ Observation</button><button onclick="task()">+ Task</button></div><div class="section"><b>Latest scouting</b>${o?`<p>${fmt(o.time)} — Weed <b>${o.weed}</b>, Insect <b>${o.insect}</b></p><p>${o.notes||''}</p>`:'<p class="muted">No observations yet.</p>'}</div><div class="section"><b>Outstanding Tasks (${open.length})</b>${open.map(t=>`<label class="fieldTask"><input type="checkbox" class="fieldTaskCheck" value="${t.id}" data-task-id="${t.id}" onchange="updateFieldDeleteButton()"><span><span class="priorityDot ${t.priority||'Normal'}"></span><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.priority||'Normal'} • ${fmt(t.time)}</span></span></label>`).join('')||'<p class="muted">No outstanding tasks.</p>'}${open.length?'<div class="fieldTaskActions"><button id="fieldDeleteBtn" class="taskDelete" disabled onclick="deleteFieldSelectedTasks()">Delete selected</button></div>':''}</div><div class="section"><b>Task history (${tasks.length})</b>${tasks.filter(t=>!open.some(o=>o.id===t.id)).map(t=>`<p><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.status} • ${fmt(t.time)}</span></p>`).join('')||'<p class="muted">No completed/closed tasks.</p>'}</div>`;updateFieldRain(f);updateFieldMrms(f)}
+function showField(f,l){selected={feature:f,layer:l};const sb=document.getElementById('taskSidebar');if(sb&&window.matchMedia('(max-width:800px)').matches)sb.classList.remove('collapsed');let p=f.properties,o=latestObs(p.FIELD_ID),tasks=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)),open=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)&&!['Complete','Completed','Closed'].includes(t.status));$('#panel').innerHTML=`<h2 class="fieldTitle">${p.FIELD_NAME}</h2><div class="meta">${p.CLIENT_NAM} • ${p.FARM_NAME}</div><div class="chips"><span class="chip">${p.ACRES||'?'} ac</span><span class="chip">Rain since July 1: <b id="fieldRainTotal">Loading…</b></span><span class="chip">JD Field ID retained</span></div><div class="actions"><button onclick="observation()">+ Observation</button><button onclick="task()">+ Task</button></div><div class="section"><b>Latest scouting</b>${o?`<p>${fmt(o.time)} — Weed <b>${o.weed}</b>, Insect <b>${o.insect}</b></p><p>${o.notes||''}</p>`:'<p class="muted">No observations yet.</p>'}</div><div class="section"><b>Outstanding Tasks (${open.length})</b>${open.map(t=>`<label class="fieldTask"><input type="checkbox" class="fieldTaskCheck" value="${t.id}" data-task-id="${t.id}" onchange="updateFieldDeleteButton()"><span><span class="priorityDot ${t.priority||'Normal'}"></span><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.priority||'Normal'} • ${fmt(t.time)}</span></span></label>`).join('')||'<p class="muted">No outstanding tasks.</p>'}${open.length?'<div class="fieldTaskActions"><button id="fieldDeleteBtn" class="taskDelete" disabled onclick="deleteFieldSelectedTasks()">Delete selected</button></div>':''}</div><div class="section"><b>Task history (${tasks.length})</b>${tasks.filter(t=>!open.some(o=>o.id===t.id)).map(t=>`<p><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.status} • ${fmt(t.time)}</span></p>`).join('')||'<p class="muted">No completed/closed tasks.</p>'}</div>`;updateFieldRain(f)}
 function taskFieldProps(t){return fields?.features.find(f=>f.properties.FIELD_ID===t.fieldId)?.properties||{}}
 function showToast(msg){
   let t=$('#toast'); if(!t)return;
