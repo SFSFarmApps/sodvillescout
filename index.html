@@ -268,6 +268,37 @@ async function loadRainfallFeed(){
  if(!rainfallFeedPromise)rainfallFeedPromise=fetch('rainfall.json?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('rainfall feed '+r.status);return r.json()}).then(j=>rainfallFeed=j);
  return rainfallFeedPromise;
 }
+function soilDryingClass(soils){
+ const names=(soils||[]).map(s=>String(s.properties?.muname||'').toLowerCase()).join(' ');
+ if(/clay|victoria|raymondville|lomalta|orelia/.test(names))return {key:'slow',label:'Slow-drying clay',factor:1.25};
+ if(/sand|sandy|loamy sand/.test(names))return {key:'fast',label:'Fast-drying sandy soil',factor:.75};
+ return {key:'normal',label:'Moderate-drying soil',factor:1};
+}
+function workabilityAssessment(r,soil){
+ if(!r||typeof r.rain24h!=='number'||typeof r.rain48h!=='number'||typeof r.rain72h!=='number')return {status:'INSUFFICIENT DATA',score:null,reason:'Waiting for complete rainfall data'};
+ let p=0,reasons=[];
+ const f=soil.factor||1;
+ const a=r.rain24h*f,b=r.rain48h*f,d=r.rain72h*f;
+ if(a>=1){p+=70;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.5){p+=52;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.25){p+=34;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.1){p+=18}
+ const older48=Math.max(0,r.rain48h-r.rain24h)*f,older72=Math.max(0,r.rain72h-r.rain48h)*f;
+ if(older48>=.5)p+=28;else if(older48>=.25)p+=18;else if(older48>=.1)p+=8;
+ if(older72>=.5)p+=18;else if(older72>=.25)p+=11;else if(older72>=.1)p+=5;
+ if(soil.key==='slow'){p+=8;reasons.push(soil.label)} else reasons.push(soil.label);
+ p=Math.min(100,Math.round(p));
+ let status=p>=60?'TOO WET':p>=30?'MARGINAL':'WORKABLE';
+ if(!reasons.length)reasons.push('Little recent rainfall');
+ return {status,score:100-p,reason:reasons.join(' • ')};
+}
+async function updateWorkability(f,r){
+ const box=document.getElementById('workabilityBox');if(!box)return;
+ try{
+  const soils=await fetchFieldSoils(f),soil=soilDryingClass(soils),a=workabilityAssessment(r,soil);
+  if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
+  const status=document.getElementById('workabilityStatus'),detail=document.getElementById('workabilityDetail');
+  if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';}
+  if(detail)detail.textContent=a.reason+' • V1 estimate—confirm field conditions';
+ }catch(e){const s=document.getElementById('workabilityStatus');if(s)s.textContent='INSUFFICIENT DATA';}
+}
 async function updateFieldRainfall(f){
  const ids=['rain24h','rain48h','rain72h'];
  try{
@@ -276,10 +307,10 @@ async function updateFieldRainfall(f){
   ids.forEach(id=>{const el=document.getElementById(id);if(el){const v=r?.[id];el.textContent=(typeof v==='number'&&isFinite(v))?v.toFixed(2)+'"':'—';}});
   const r7=document.getElementById('rain7d');if(r7)r7.textContent=(typeof r?.rain7d==='number')?r.rain7d.toFixed(2)+'"':'Building history';
   const u=document.getElementById('rainUpdated');
-  if(u&&feed?.updatedUtc){const d=new Date(feed.updatedUtc);u.textContent='NOAA MRMS • '+d.toLocaleString([],{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});}
+  if(u&&feed?.updatedUtc){const d=new Date(feed.updatedUtc);u.textContent='NOAA MRMS • '+d.toLocaleString([],{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});} updateWorkability(f,r);
  }catch(e){console.warn('Rainfall feed unavailable',e);ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});}
 }
-function showField(f,l){selected={feature:f,layer:l};const sb=document.getElementById('taskSidebar');if(sb&&window.matchMedia('(max-width:800px)').matches)sb.classList.remove('collapsed');let p=f.properties,o=latestObs(p.FIELD_ID),tasks=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)),open=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)&&!['Complete','Completed','Closed'].includes(t.status));$('#panel').innerHTML=`<h2 class="fieldTitle">${p.FIELD_NAME}</h2><div class="meta">${p.CLIENT_NAM} • ${p.FARM_NAME}</div><div class="chips"><span class="chip">${p.ACRES||'?'} ac</span><span class="chip">24h rain: <b id="rain24h">…</b></span><span class="chip">48h: <b id="rain48h">…</b></span><span class="chip">72h: <b id="rain72h">…</b></span><span class="chip">7d: <b id="rain7d">Building history</b></span><span class="chip">JD Field ID retained</span></div><div class="muted" id="rainUpdated">NOAA MRMS rainfall loading…</div><div class="actions"><button onclick="observation()">+ Observation</button><button onclick="task()">+ Task</button></div><div class="section"><b>Latest scouting</b>${o?`<p>${fmt(o.time)} — Weed <b>${o.weed}</b>, Insect <b>${o.insect}</b></p><p>${o.notes||''}</p>`:'<p class="muted">No observations yet.</p>'}</div><div class="section"><b>Outstanding Tasks (${open.length})</b>${open.map(t=>`<label class="fieldTask"><input type="checkbox" class="fieldTaskCheck" value="${t.id}" data-task-id="${t.id}" onchange="updateFieldDeleteButton()"><span><span class="priorityDot ${t.priority||'Normal'}"></span><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.priority||'Normal'} • ${fmt(t.time)}</span></span></label>`).join('')||'<p class="muted">No outstanding tasks.</p>'}${open.length?'<div class="fieldTaskActions"><button id="fieldDeleteBtn" class="taskDelete" disabled onclick="deleteFieldSelectedTasks()">Delete selected</button></div>':''}</div><div class="section"><b>Task history (${tasks.length})</b>${tasks.filter(t=>!open.some(o=>o.id===t.id)).map(t=>`<p><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.status} • ${fmt(t.time)}</span></p>`).join('')||'<p class="muted">No completed/closed tasks.</p>'}</div>`;updateFieldRainfall(f)}
+function showField(f,l){selected={feature:f,layer:l};const sb=document.getElementById('taskSidebar');if(sb&&window.matchMedia('(max-width:800px)').matches)sb.classList.remove('collapsed');let p=f.properties,o=latestObs(p.FIELD_ID),tasks=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)),open=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)&&!['Complete','Completed','Closed'].includes(t.status));$('#panel').innerHTML=`<h2 class="fieldTitle">${p.FIELD_NAME}</h2><div class="meta">${p.CLIENT_NAM} • ${p.FARM_NAME}</div><div class="chips"><span class="chip">${p.ACRES||'?'} ac</span><span class="chip">24h rain: <b id="rain24h">…</b></span><span class="chip">48h: <b id="rain48h">…</b></span><span class="chip">72h: <b id="rain72h">…</b></span><span class="chip">7d: <b id="rain7d">Building history</b></span><span class="chip">JD Field ID retained</span></div><div class="muted" id="rainUpdated">NOAA MRMS rainfall loading…</div><div id="workabilityBox" class="section" style="margin-top:10px"><b>Can I Work It?</b><div id="workabilityStatus" style="font-size:20px;margin-top:4px">CALCULATING…</div><div class="muted" id="workabilityDetail">Rainfall + USDA soil estimate</div></div><div class="actions"><button onclick="observation()">+ Observation</button><button onclick="task()">+ Task</button></div><div class="section"><b>Latest scouting</b>${o?`<p>${fmt(o.time)} — Weed <b>${o.weed}</b>, Insect <b>${o.insect}</b></p><p>${o.notes||''}</p>`:'<p class="muted">No observations yet.</p>'}</div><div class="section"><b>Outstanding Tasks (${open.length})</b>${open.map(t=>`<label class="fieldTask"><input type="checkbox" class="fieldTaskCheck" value="${t.id}" data-task-id="${t.id}" onchange="updateFieldDeleteButton()"><span><span class="priorityDot ${t.priority||'Normal'}"></span><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.priority||'Normal'} • ${fmt(t.time)}</span></span></label>`).join('')||'<p class="muted">No outstanding tasks.</p>'}${open.length?'<div class="fieldTaskActions"><button id="fieldDeleteBtn" class="taskDelete" disabled onclick="deleteFieldSelectedTasks()">Delete selected</button></div>':''}</div><div class="section"><b>Task history (${tasks.length})</b>${tasks.filter(t=>!open.some(o=>o.id===t.id)).map(t=>`<p><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.status} • ${fmt(t.time)}</span></p>`).join('')||'<p class="muted">No completed/closed tasks.</p>'}</div>`;updateFieldRainfall(f)}
 function taskFieldProps(t){return fields?.features.find(f=>f.properties.FIELD_ID===t.fieldId)?.properties||{}}
 function showToast(msg){
   let t=$('#toast'); if(!t)return;
