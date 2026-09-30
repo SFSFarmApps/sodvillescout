@@ -26,7 +26,7 @@
 #completeSelectedTasks:disabled{background:#aebbb2;color:#eef2ef;border-color:#9ba89f;opacity:.75}
 .weatherCard{margin:12px 0;padding:12px;border:1px solid #d9dfda;border-radius:10px;background:#f7faf7}.weatherGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.weatherMetric{background:white;border:1px solid #e0e5e0;border-radius:8px;padding:8px}.weatherMetric b{display:block;font-size:17px}.workBadge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:800}.workable{background:#d9f7df;color:#12652b}.marginal{background:#fff2b8;color:#705600}.toowet{background:#ffd7d4;color:#8c1d18}.weatherSmall{font-size:11px;color:#657066;margin-top:8px}</style><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></head>
 <body><header><div><b>SODVILLE FIELD SCOUT</b><span id="sessionStatus">No scouting session</span></div><div class="sessionControls"><div id="timerDisplay">00:00:00</div><button id="sessionBtn" class="primary">▶ START scouting DAY</button></div></header>
-<div class="toolbar"><span id="fieldCount" style="display:none"></span><div class="userControls"><select id="scoutSelect" aria-label="Current scout"></select><button id="manageUsersBtn" class="manageUsers">+ Scouts</button></div><input id="search" placeholder="Search client, farm, field…"><select id="layerMode"><option value="status">Field status</option><option value="weed">Weed pressure</option><option value="insect">Insect pressure</option><option value="workability">Soil workability</option></select><button id="reportBtn">Scouting Reports</button></div>
+<div class="toolbar"><span id="fieldCount" style="display:none"></span><div class="userControls"><select id="scoutSelect" aria-label="Current scout"></select><button id="manageUsersBtn" class="manageUsers">+ Scouts</button></div><input id="search" placeholder="Search client, farm, field…"><select id="layerMode"><option value="workability" selected>Soil workability</option><option value="status">Outstanding task urgency</option><option value="weed">Weed pressure</option><option value="insect">Insect pressure</option></select><button id="reportBtn">Scouting Reports</button></div>
 <main><button id="sidebarToggle" class="sidebarToggle" type="button">☰ Tasks</button><section class="taskSidebar" id="taskSidebar"><div class="fieldControlsHeader"><strong>Field & Task Controls</strong><button id="sidebarClose" type="button" style="padding:6px 10px">×</button></div><aside id="panel"><div class="empty"><h2>Crop Scouting</h2><p>Tap a field boundary to record an observation or create a task.</p><p class="muted">Scouting timer runs from leaving the office until scouting is complete—not per field.</p></div></aside><div class="taskTop"><div><h3>Outstanding Tasks</h3><div class="muted" id="openTaskCount">0 open</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="taskFilterBtn">Filter</button><button id="completeSelectedTasks" disabled>Complete</button><button id="deleteSelectedTasks" class="taskDelete" disabled>Delete</button></div></div>
 <div id="taskFilters" style="display:none;padding:10px;border-bottom:1px solid #d9dfda;background:#f7f9f7">
   <div style="display:grid;gap:7px">
@@ -451,6 +451,18 @@ function render(w){
 window.loadFieldWeather=async function(feature){if(!feature)return;try{render(await getWeather(feature))}catch(e){let el=document.getElementById('fieldWeather');if(el)el.innerHTML='<b>Weather & Field Conditions</b><p class="muted">Weather data could not be loaded. Check internet connection and try again.</p>'}};
 const original=window.showField;if(typeof original==='function'){window.showField=function(f,l){original(f,l);setTimeout(()=>window.loadFieldWeather(f),0)}}
 window.fieldWorkability=function(fid){return wxCache[String(fid)]?.work||null};
-document.getElementById('layerMode')?.addEventListener('change',function(){if(this.value==='workability'&&window.geoLayer){window.geoLayer.setStyle(function(f){let w=window.fieldWorkability(f.properties.FIELD_ID),fill=w?(w.label==='WORKABLE'?'#00ff00':w.label==='MARGINAL'?'#ffff00':'#ff0000'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:w?.58:0}})}else if(window.geoLayer&&window.style)window.geoLayer.setStyle(window.style)});
+function workStyle(f){let w=window.fieldWorkability(f.properties.FIELD_ID),fill=w?(w.label==='WORKABLE'?'#00ff00':w.label==='MARGINAL'?'#ffff00':'#ff0000'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:w?.58:0}}
+async function preloadWorkability(){
+ const sel=document.getElementById('layerMode'); if(sel)sel.value='workability';
+ if(window.geoLayer)window.geoLayer.setStyle(workStyle);
+ const fs=(window.SODVILLE_FIELDS?.features||[]);
+ const batch=6;
+ for(let i=0;i<fs.length;i+=batch){
+   await Promise.all(fs.slice(i,i+batch).map(x=>getWeather(x).catch(()=>null)));
+   if(window.geoLayer&&document.getElementById('layerMode')?.value==='workability')window.geoLayer.setStyle(workStyle);
+ }
+}
+document.getElementById('layerMode')?.addEventListener('change',function(){if(this.value==='workability'&&window.geoLayer){window.geoLayer.setStyle(workStyle)}else if(window.geoLayer&&window.style)window.geoLayer.setStyle(window.style)});
+setTimeout(preloadWorkability,250);
 })();
 </script></body></html>
