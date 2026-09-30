@@ -199,7 +199,7 @@ function latestObs(fid){return db.observations.filter(o=>o.fieldId===fid).sort((
 function color(f){let o=latestObs(f.properties.FIELD_ID),m=$('#layerMode').value;if(!o)return '#777';let v=m==='weed'?o.weed:m==='insect'?o.insect:o.status;return v==='red'?'#d62828':v==='yellow'?'#f6bd00':'#2b9348'}
 function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!=='Complete' && t.status!=='Completed' && t.status!=='Closed')}
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
-function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<70?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
+function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
 let soilLayer=null,soilLoading=false,soilCache={}; const SOIL_BUILD='2026-09-30-bboxclip';
 function soilColor(key){
  let h=2166136261,s=String(key||'soil');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
@@ -299,7 +299,7 @@ function workabilityAssessment(r,soil){
  if(soil.key==='slow'){p+=8;reasons.push(soil.label)} else reasons.push(soil.label);
  p=Math.min(100,Math.round(p));
  const score=100-p;
- let status=score<70?'TOO WET':score<85?'MARGINAL':'WORKABLE';
+ let status=score<50?'TOO WET':score<85?'MARGINAL':'WORKABLE';
  if(!reasons.length)reasons.push('Little recent rainfall');
  return {status,score,reason:reasons.join(' • ')};
 }
@@ -309,7 +309,7 @@ async function updateWorkability(f,r){
   const soils=await fetchFieldSoils(f),soil=soilDryingClass(soils),a=workabilityAssessment(r,soil);
   if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
   const status=document.getElementById('workabilityStatus'),detail=document.getElementById('workabilityDetail');
-  if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';status.style.color=a.score===null?'':a.score<70?'#b42318':a.score<85?'#9a6700':'#18794e';}
+  if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';status.style.color=a.score===null?'':a.score<50?'#b42318':a.score<85?'#9a6700':'#18794e';}
   if(detail)detail.textContent=a.reason+' • V1 estimate—confirm field conditions';
  }catch(e){const s=document.getElementById('workabilityStatus');if(s)s.textContent='INSUFFICIENT DATA';}
 }
