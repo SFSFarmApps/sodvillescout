@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-18</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-19</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -313,30 +313,31 @@ async function fetchFieldSoils(f){const fid=String(f.properties.FIELD_ID);if(soi
 async function loadSoils(){
  if(soilLoading||!map)return;soilLoading=true;
  if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}
- resetSoilLegend();
+ resetSoilLegend();soilLayer=L.layerGroup().addTo(map);
  try{
-  soilLayer=L.layerGroup().addTo(map);
   const fs=window.SODVILLE_FIELDS?.features||[];
-  for(const f of fs){
-   try{
-    const bb=turf.bbox(f),w=512,h=512,bbox=bb.join(',');
-    const url='https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export?bbox='+bbox+'&bboxSR=4326&imageSR=4326&size='+w+','+h+'&format=png32&transparent=true&layers=show%3A0&f=image';
-    const img=new Image();img.crossOrigin='anonymous';
-    img.onload=()=>{
-     try{
-      const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.save();x.beginPath();
-      const g=f.geometry||{},polys=g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];
-      for(const poly of polys){for(const ring of poly){ring.forEach((q,k)=>{const px=(q[0]-bb[0])/(bb[2]-bb[0])*w,py=(bb[3]-q[1])/(bb[3]-bb[1])*h;k?x.lineTo(px,py):x.moveTo(px,py)});x.closePath()}}
-      x.clip('evenodd');x.drawImage(img,0,0,w,h);x.restore();
-      const ov=L.imageOverlay(cv.toDataURL('image/png'),[[bb[1],bb[0]],[bb[3],bb[2]]],{opacity:.8,interactive:false}).addTo(soilLayer);
-      if(geoLayer)geoLayer.bringToFront();
-     }catch(e){console.warn('Soil canvas clip failed',e)}
-    };
-    img.onerror=()=>console.warn('USDA soil image failed',f.properties?.FIELD_NAME);
-    img.src=url;
-   }catch(e){console.warn('Soil field failed',e)}
+  for(let i=0;i<fs.length;i+=4){
+   const batch=fs.slice(i,i+4);
+   const results=await Promise.all(batch.map(async f=>{
+    try{
+     const bb=turf.bbox(f),body=new URLSearchParams({where:'1=1',geometry:bb.join(','),geometryType:'esriGeometryEnvelope',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'musym,muname,mukey,nationalmusym',returnGeometry:'true',outSR:'4326',f:'geojson'});
+     const r=await fetch('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/FeatureServer/0/query',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+     if(!r.ok)throw Error('USDA '+r.status);const j=await r.json();if(j.error)throw Error(j.error.message||'USDA error');
+     const out=[];
+     for(const s of (j.features||[])){try{
+      const x=turf.intersect(turf.featureCollection([s,f]));
+      if(x){const p=s.properties||{};x.properties={FIELD_ID:String(f.properties.FIELD_ID),musym:propCI(p,'musym'),muname:propCI(p,'muname'),mukey:propCI(p,'mukey'),nationalmusym:propCI(p,'nationalmusym')};out.push(x)}
+     }catch(e){console.warn('Soil intersection failed',e)}}
+     return out;
+    }catch(e){console.warn('Soils failed',f.properties?.FIELD_NAME,e);return[]}
+   }));
+   for(const s of results.flat()){
+    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName,soilSymbol);
+    soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
+    L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}}).bindTooltip(soilSymbol+' — '+soilName,{sticky:true}).addTo(soilLayer);
+   }
   }
- }finally{soilLoading=false;if(geoLayer)geoLayer.bringToFront()}
+ }finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
  try{
