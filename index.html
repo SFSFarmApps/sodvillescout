@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-13</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-14</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -311,24 +311,25 @@ async function buildStaticSoilCache(){
 }
 async function fetchFieldSoils(f){const fid=String(f.properties.FIELD_ID);if(soilCache[fid])return soilCache[fid];await buildStaticSoilCache();return soilCache[fid]||[];}
 async function loadSoils(){
- if(soilLoading||!map)return;
- if(!Object.keys(soilCache).length){try{await buildStaticSoilCache()}catch(e){console.warn('Static soils build failed',e)}}
- soilLoading=true;
+ if(soilLoading||!map)return;soilLoading=true;
  if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}
  resetSoilLegend();
- soilLayer=L.layerGroup().addTo(map);
  try{
-  const fs=window.SODVILLE_FIELDS?.features||[];
-  for(let i=0;i<fs.length;i+=6){
-   const results=await Promise.all(fs.slice(i,i+6).map(async f=>{try{return await fetchFieldSoils(f)}catch(e){console.warn('Soils failed',f.properties.FIELD_NAME,e);return[]}}));
-   for(const s of results.flat()){
-    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName,soilSymbol),layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}});
-    soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
-    layer.bindTooltip(soilSymbol+' — '+soilName,{sticky:true});
-    layer.addTo(soilLayer);
-   }
-  }
- }finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
+  soilLayer=L.tileLayer.wms('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export',{
+   layers:'show:0',format:'png32',transparent:true,f:'image',opacity:.72
+  });
+  // ArcGIS export service is not true WMS; use a dynamic image overlay refreshed to map bounds.
+  map.removeLayer(soilLayer);
+  const refreshImage=()=>{
+   if(document.getElementById('layerMode')?.value!=='soils')return;
+   const b=map.getBounds(),size=map.getSize(),bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
+   const url='https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export?bbox='+encodeURIComponent(bbox)+'&bboxSR=4326&imageSR=4326&size='+size.x+','+size.y+'&format=png32&transparent=true&layers=show%3A0&f=image';
+   if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
+   soilLayer=L.imageOverlay(url,b,{opacity:.72,interactive:false}).addTo(map);
+   if(geoLayer)geoLayer.bringToFront();
+  };
+  refreshImage();map.off('moveend',window._soilRefreshImage);window._soilRefreshImage=refreshImage;map.on('moveend',refreshImage);
+ }finally{soilLoading=false;if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
  try{
@@ -344,7 +345,7 @@ async function refreshWorkabilityLayer(){
 }
 function setSoilMode(on){
  if(on){loadSoils()}
- else if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
+ else {if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);if(window._soilRefreshImage)map.off('moveend',window._soilRefreshImage);}
  if(!on&&soilLegend){map.removeControl(soilLegend);soilLegend=null}
  if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
