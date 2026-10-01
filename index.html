@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-22</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-23</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -324,6 +324,11 @@ async function loadSoils(){
     soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
     layer.bindTooltip(soilSymbol+' — '+soilName,{sticky:true});
     layer.addTo(soilLayer);
+    try{
+     const pt=turf.pointOnFeature(s),xy=pt.geometry.coordinates;
+     const shortName=soilName.replace(/,.*$/,'').replace(/\bcomplex\b/ig,'').replace(/\s+/g,' ').trim();
+     L.marker([xy[1],xy[0]],{interactive:false,icon:L.divIcon({className:'',iconSize:null,html:'<div style="font-size:8px;line-height:1.05;font-weight:800;color:#111;background:rgba(255,255,255,.62);border-radius:2px;padding:1px 2px;white-space:nowrap;text-align:center;transform:translate(-50%,-50%);text-shadow:0 0 1px #fff">'+esc(soilSymbol)+' · '+esc(shortName)+'</div>'})}).addTo(soilLayer);
+    }catch(e){}
    }
   }
  }finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
