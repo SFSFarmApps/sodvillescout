@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-15</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-16</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -315,20 +315,26 @@ async function loadSoils(){
  if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}
  resetSoilLegend();
  try{
-  soilLayer=L.tileLayer.wms('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export',{
-   layers:'show:0',format:'png32',transparent:true,f:'image',opacity:.72
-  });
-  // ArcGIS export service is not true WMS; use a dynamic image overlay refreshed to map bounds.
-  map.removeLayer(soilLayer);
+  soilLayer=L.layerGroup().addTo(map);
   const refreshImage=()=>{
    if(document.getElementById('layerMode')?.value!=='soils')return;
-   const b=map.getBounds(),size=map.getSize(),bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',');
-   const url='https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export?bbox='+bbox+'&bboxSR=4326&imageSR=4326&size='+size.x+','+size.y+'&format=png32&transparent=true&layers=show%3A0&f=image';
-   if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);
-   soilLayer=L.imageOverlay(url,b,{opacity:.72,interactive:false}).addTo(map);
+   soilLayer.clearLayers();
+   const fs=window.SODVILLE_FIELDS?.features||[];
+   for(const f of fs){
+    try{
+     const bb=turf.bbox(f),w=Math.max(180,Math.round(map.getSize().x*.32)),h=Math.max(180,Math.round(map.getSize().y*.32));
+     const bbox=bb.join(',');
+     const url='https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/MapServer/export?bbox='+bbox+'&bboxSR=4326&imageSR=4326&size='+w+','+h+'&format=png32&transparent=true&layers=show%3A0&f=image';
+     const paneName='soilPane_'+String(f.properties.FIELD_ID).replace(/[^a-zA-Z0-9]/g,'').slice(0,20);
+     let pane=map.getPane(paneName);if(!pane){pane=map.createPane(paneName);pane.style.zIndex=350;pane.style.overflow='hidden';}
+     const mask=L.geoJSON(f,{style:{opacity:0,fillOpacity:0},interactive:false}).addTo(soilLayer);
+     const ov=L.imageOverlay(url,[[bb[1],bb[0]],[bb[3],bb[2]]],{opacity:.78,interactive:false,pane:paneName}).addTo(soilLayer);
+     ov.on('load',()=>{});
+    }catch(e){console.warn('Soil field image failed',e)}
+   }
    if(geoLayer)geoLayer.bringToFront();
   };
-  refreshImage();map.off('moveend',window._soilRefreshImage);window._soilRefreshImage=refreshImage;map.on('moveend',refreshImage);
+  refreshImage();
  }finally{soilLoading=false;if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
