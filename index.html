@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-21</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-22</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -250,10 +250,9 @@ function color(f){let o=latestObs(f.properties.FIELD_ID),m=$('#layerMode').value
 function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!=='Complete' && t.status!=='Completed' && t.status!=='Closed')}
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
 function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
-let soilLayer=null,soilLoading=false;
-const SOIL_BUILD='2026-10-01-ssurgo-static-v1',SOIL_CACHE_KEY='sodvilleSSURGOStaticV1';
-let soilCache={};
-try{const saved=JSON.parse(localStorage.getItem(SOIL_CACHE_KEY)||'null');if(saved?.build===SOIL_BUILD&&saved?.fields)soilCache=saved.fields;}catch(e){soilCache={}}
+let soilLayer=null,soilLoading=false; const SOIL_BUILD='2026-10-01-original-ssurgo-static-v1',SOIL_CACHE_KEY='sodvilleOriginalSSURGOStaticV1';
+let soilCache={};try{const z=JSON.parse(localStorage.getItem(SOIL_CACHE_KEY)||'null');if(z?.build===SOIL_BUILD&&z?.fields)soilCache=z.fields}catch(e){soilCache={}}
+function persistSoilCache(){try{localStorage.setItem(SOIL_CACHE_KEY,JSON.stringify({build:SOIL_BUILD,fields:soilCache,savedAt:new Date().toISOString()}))}catch(e){console.warn('Soil cache persist failed',e)}}
 function soilColor(key,name,symbol){
  const n=String(name||'').toLowerCase().replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
  const s=String(symbol||'').toLowerCase();
@@ -282,23 +281,52 @@ function updateSoilLegend(){
  soilLegend.addTo(map);
 }
 function propCI(p,name){let k=Object.keys(p||{}).find(x=>x.toLowerCase()===name.toLowerCase());return k?p[k]:''}
-
-
-function persistSoils(){try{localStorage.setItem(SOIL_CACHE_KEY,JSON.stringify({build:SOIL_BUILD,savedAt:new Date().toISOString(),fields:soilCache}));}catch(e){console.warn('SSURGO cache save failed',e)}}
 async function fetchFieldSoils(f){
- const fid=String(f.properties.FIELD_ID);if(Object.prototype.hasOwnProperty.call(soilCache,fid))return soilCache[fid];
- const bb=turf.bbox(f),body=new URLSearchParams({where:'1=1',geometry:bb.join(','),geometryType:'esriGeometryEnvelope',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'musym,muname,mukey,nationalmusym',returnGeometry:'true',outSR:'4326',f:'geojson'});
- const r=await fetch('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/FeatureServer/0/query',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
- if(!r.ok)throw Error('USDA SSURGO '+r.status);const j=await r.json();if(j.error)throw Error(j.error.message||'USDA SSURGO error');
+ const fid=String(f.properties.FIELD_ID);
+ if(soilCache[fid])return soilCache[fid];
+ const bb=turf.bbox(f);
+ const body=new URLSearchParams({
+  where:'1=1',geometry:bb.join(','),geometryType:'esriGeometryEnvelope',
+  inSR:'4326',spatialRel:'esriSpatialRelIntersects',
+  outFields:'*',returnGeometry:'true',outSR:'4326',
+  returnExceededLimitFeatures:'true',f:'geojson'
+ });
+ const r=await fetch('https://apps.geo.fpac.usda.gov/nrcs-geodata/rest/services/soils/cg_soils/FeatureServer/0/query',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+ if(!r.ok)throw Error('USDA SSURGO request failed '+r.status);
+ const j=await r.json();if(j.error)throw Error(j.error.message||'USDA SSURGO error');
  const clipped=[];
- for(const s of (j.features||[])){try{const x=turf.intersect(s,f);if(x&&x.geometry){const p=s.properties||{};x.properties={FIELD_ID:fid,musym:propCI(p,'musym'),muname:propCI(p,'muname'),mukey:propCI(p,'mukey'),nationalmusym:propCI(p,'nationalmusym')};clipped.push(x)}}catch(e){console.warn('SSURGO clip failed',f.properties?.FIELD_NAME,e)}}
- if(!clipped.length)throw Error('No clipped SSURGO polygons for '+(f.properties?.FIELD_NAME||fid));
- soilCache[fid]=clipped;persistSoils();return clipped;
+ for(const s of (j.features||[])){
+  try{
+   const x=turf.intersect(s,f);
+   if(x&&x.geometry){
+    const p=s.properties||{};
+    x.properties={...p,FIELD_ID:fid,
+     musym:propCI(p,'musym'),muname:propCI(p,'muname'),
+     mukey:propCI(p,'mukey'),nationalmusym:propCI(p,'nationalmusym')};
+    clipped.push(x);
+   }
+  }catch(e){console.warn('Soil clip failed',fid,e)}
+ }
+ soilCache[fid]=clipped;if(clipped.length)persistSoilCache();return clipped;
 }
 async function loadSoils(){
- if(soilLoading||!map)return;soilLoading=true;if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}resetSoilLegend();soilLayer=L.layerGroup().addTo(map);
- try{const fs=window.SODVILLE_FIELDS?.features||[];for(let i=0;i<fs.length;i+=6){const results=await Promise.all(fs.slice(i,i+6).map(async f=>{try{return await fetchFieldSoils(f)}catch(e){console.warn('Soils failed',f.properties?.FIELD_NAME,e);return[]}}));for(const s of results.flat()){const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName,soilSymbol);soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}}).bindTooltip(soilSymbol+' — '+soilName,{sticky:true}).addTo(soilLayer)}}}
- finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
+ if(soilLoading||!map)return;
+ soilLoading=true;
+ if(soilLayer){map.removeLayer(soilLayer);soilLayer=null}
+ resetSoilLegend();
+ soilLayer=L.layerGroup().addTo(map);
+ try{
+  const fs=window.SODVILLE_FIELDS?.features||[];
+  for(let i=0;i<fs.length;i+=6){
+   const results=await Promise.all(fs.slice(i,i+6).map(async f=>{try{return await fetchFieldSoils(f)}catch(e){console.warn('Soils failed',f.properties.FIELD_NAME,e);return[]}}));
+   for(const s of results.flat()){
+    const p=s.properties||{},soilName=p.muname||'USDA soil map unit',soilSymbol=p.musym||p.nationalmusym||'Soil',fill=soilColor(p.mukey,soilName,soilSymbol),layer=L.geoJSON(s,{style:{color:'#2b2b2b',weight:1,fillColor:fill,fillOpacity:.68}});
+    soilLegendItems.set(String(p.mukey||soilSymbol),{name:soilName,symbol:soilSymbol,color:fill});
+    layer.bindTooltip(soilSymbol+' — '+soilName,{sticky:true});
+    layer.addTo(soilLayer);
+   }
+  }
+ }finally{soilLoading=false;updateSoilLegend();if(geoLayer)geoLayer.bringToFront()}
 }
 async function refreshWorkabilityLayer(){
  try{
