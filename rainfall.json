@@ -3,7 +3,7 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-10-01T19:23:49.881771+00:00",
+  "updatedUtc": "2026-10-01T20:25:11.050381+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
@@ -28,9 +28,9 @@
         "lat": 27.944408
       },
       "rain1h": null,
-      "rain24h": 0.06,
-      "rain48h": 0.09,
-      "rain72h": 0.04,
+      "rain24h": 0.11,
+      "rain48h": 0.15,
+      "rain72h": 0.15,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -855,7 +855,7 @@
       "rain1h": null,
       "rain24h": 0.2,
       "rain48h": 0.2,
-      "rain72h": 0.0,
+      "rain72h": 0.2,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -898,9 +898,9 @@
         "lat": 27.98261
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.11,
-      "rain72h": 0.11,
+      "rain24h": 0.08,
+      "rain48h": 0.19,
+      "rain72h": 0.19,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -990,7 +990,7 @@
       "rain1h": null,
       "rain24h": 0.21,
       "rain48h": 0.21,
-      "rain72h": 0.0,
+      "rain72h": 0.21,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1003,9 +1003,9 @@
         "lat": 27.939883
       },
       "rain1h": null,
-      "rain24h": 0.02,
-      "rain48h": 0.02,
-      "rain72h": 0.02,
+      "rain24h": 0.1,
+      "rain48h": 0.1,
+      "rain72h": 0.12,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1035,7 +1035,7 @@
       "rain1h": null,
       "rain24h": 0.27,
       "rain48h": 0.27,
-      "rain72h": 0.0,
+      "rain72h": 0.27,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1063,9 +1063,9 @@
         "lat": 27.979856
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.11,
-      "rain72h": 0.11,
+      "rain24h": 0.08,
+      "rain48h": 0.19,
+      "rain72h": 0.19,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1123,9 +1123,9 @@
         "lat": 27.979065
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.07,
-      "rain72h": 0.17,
+      "rain24h": 0.11,
+      "rain48h": 0.17,
+      "rain72h": 0.28,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1138,9 +1138,9 @@
         "lat": 27.963719
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.04,
-      "rain72h": 0.04,
+      "rain24h": 0.02,
+      "rain48h": 0.06,
+      "rain72h": 0.06,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1153,9 +1153,9 @@
         "lat": 27.970938
       },
       "rain1h": null,
-      "rain24h": 0.01,
-      "rain48h": 0.01,
-      "rain72h": 0.04,
+      "rain24h": 0.13,
+      "rain48h": 0.13,
+      "rain72h": 0.17,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1170,7 +1170,7 @@
       "rain1h": null,
       "rain24h": 0.31,
       "rain48h": 0.31,
-      "rain72h": 0.0,
+      "rain72h": 0.31,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1183,9 +1183,9 @@
         "lat": 27.960779
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.0,
-      "rain72h": 0.02,
+      "rain24h": 0.2,
+      "rain48h": 0.2,
+      "rain72h": 0.23,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1198,9 +1198,9 @@
         "lat": 27.969921
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.06,
-      "rain72h": 0.08,
+      "rain24h": 0.04,
+      "rain48h": 0.1,
+      "rain72h": 0.12,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1228,9 +1228,9 @@
         "lat": 27.991093
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.01,
-      "rain72h": 0.01,
+      "rain24h": 0.01,
+      "rain48h": 0.02,
+      "rain72h": 0.02,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1243,9 +1243,9 @@
         "lat": 27.967069
       },
       "rain1h": null,
-      "rain24h": 0.06,
-      "rain48h": 0.06,
-      "rain72h": 0.02,
+      "rain24h": 0.38,
+      "rain48h": 0.38,
+      "rain72h": 0.39,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1260,7 +1260,7 @@
       "rain1h": null,
       "rain24h": 0.25,
       "rain48h": 0.25,
-      "rain72h": 0.0,
+      "rain72h": 0.25,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1275,7 +1275,7 @@
       "rain1h": null,
       "rain24h": 0.25,
       "rain48h": 0.25,
-      "rain72h": 0.0,
+      "rain72h": 0.25,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1348,9 +1348,9 @@
         "lat": 27.968513
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.07,
-      "rain72h": 0.1,
+      "rain24h": 0.09,
+      "rain48h": 0.16,
+      "rain72h": 0.19,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1363,9 +1363,9 @@
         "lat": 27.960882
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.08,
-      "rain72h": 0.18,
+      "rain24h": 0.02,
+      "rain48h": 0.1,
+      "rain72h": 0.2,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1378,9 +1378,9 @@
         "lat": 27.991988
       },
       "rain1h": null,
-      "rain24h": 0.01,
-      "rain48h": 0.04,
-      "rain72h": 0.04,
+      "rain24h": 0.24,
+      "rain48h": 0.27,
+      "rain72h": 0.28,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1393,9 +1393,9 @@
         "lat": 27.991059
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.05,
-      "rain72h": 0.06,
+      "rain24h": 0.06,
+      "rain48h": 0.1,
+      "rain72h": 0.12,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1423,9 +1423,9 @@
         "lat": 27.954246
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.0,
-      "rain72h": 0.0,
+      "rain24h": 0.25,
+      "rain48h": 0.25,
+      "rain72h": 0.25,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1438,9 +1438,9 @@
         "lat": 27.951031
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.0,
-      "rain72h": 0.0,
+      "rain24h": 0.25,
+      "rain48h": 0.25,
+      "rain72h": 0.25,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1453,9 +1453,9 @@
         "lat": 27.995907
       },
       "rain1h": null,
-      "rain24h": 0.05,
-      "rain48h": 0.09,
-      "rain72h": 0.07,
+      "rain24h": 0.07,
+      "rain48h": 0.11,
+      "rain72h": 0.11,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1470,7 +1470,7 @@
       "rain1h": null,
       "rain24h": 0.25,
       "rain48h": 0.25,
-      "rain72h": 0.0,
+      "rain72h": 0.25,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1483,9 +1483,9 @@
         "lat": 27.949712
       },
       "rain1h": null,
-      "rain24h": 0.04,
-      "rain48h": 0.04,
-      "rain72h": 0.02,
+      "rain24h": 0.05,
+      "rain48h": 0.05,
+      "rain72h": 0.05,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1500,7 +1500,7 @@
       "rain1h": null,
       "rain24h": 0.27,
       "rain48h": 0.27,
-      "rain72h": 0.0,
+      "rain72h": 0.27,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1543,9 +1543,9 @@
         "lat": 27.951792
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.0,
-      "rain72h": 0.02,
+      "rain24h": 0.11,
+      "rain48h": 0.11,
+      "rain72h": 0.12,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1558,9 +1558,9 @@
         "lat": 27.943487
       },
       "rain1h": null,
-      "rain24h": 0.0,
-      "rain48h": 0.03,
-      "rain72h": 0.03,
+      "rain24h": 0.02,
+      "rain48h": 0.04,
+      "rain72h": 0.04,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1573,9 +1573,9 @@
         "lat": 27.952503
       },
       "rain1h": null,
-      "rain24h": 0.01,
-      "rain48h": 0.05,
-      "rain72h": 0.11,
+      "rain24h": 0.03,
+      "rain48h": 0.07,
+      "rain72h": 0.14,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1588,9 +1588,9 @@
         "lat": 27.961153
       },
       "rain1h": null,
-      "rain24h": 0.01,
-      "rain48h": 0.03,
-      "rain72h": 0.02,
+      "rain24h": 0.04,
+      "rain48h": 0.06,
+      "rain72h": 0.06,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1648,9 +1648,9 @@
         "lat": 27.948085
       },
       "rain1h": null,
-      "rain24h": 0.01,
-      "rain48h": 0.01,
-      "rain72h": 0.0,
+      "rain24h": 0.21,
+      "rain48h": 0.21,
+      "rain72h": 0.21,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
