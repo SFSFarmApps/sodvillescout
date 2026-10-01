@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-26</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-27</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -271,12 +271,12 @@ function resetSoilLegend(){
 function updateSoilLegend(){
  if(!map||document.getElementById('layerMode')?.value!=='soils')return;
  if(soilLegend)map.removeControl(soilLegend);
- soilLegend=L.control({position:'bottomright'});
+ soilLegend=L.control({position:'topright'});
  soilLegend.onAdd=function(){
   const d=L.DomUtil.create('div','soilLegend');
-  d.style.cssText='background:rgba(255,255,255,.94);border-radius:8px;box-shadow:0 1px 6px #0004;font-size:14px;line-height:1.35;overflow:hidden';
+  d.style.cssText='background:rgba(255,255,255,.96);border-radius:8px;box-shadow:0 1px 6px #0005;font-size:14px;line-height:1.35;overflow:hidden;margin-top:52px';
   const rows=Array.from(soilLegendItems.values()).sort((a,b)=>a.name.localeCompare(b.name)).map(x=>'<div style="display:flex;align-items:flex-start;gap:7px;margin-top:7px"><span style="width:20px;height:20px;min-width:20px;background:'+x.color+';border:1px solid #333;margin-top:1px"></span><span><b>'+x.symbol+'</b> — '+x.name+'</span></div>').join('');
-  d.innerHTML='<button type="button" class="soilLegendToggle" style="width:100%;border:0;background:transparent;padding:9px 12px;font-size:14px;font-weight:800;text-align:left;white-space:nowrap">▸ Soil Legend</button><div class="soilLegendBody" style="display:none;max-width:380px;max-height:58vh;overflow:auto;padding:0 12px 12px">'+rows+'</div>';
+  d.innerHTML='<button type="button" class="soilLegendToggle" style="border:0;background:transparent;padding:10px 13px;font-size:14px;font-weight:800;text-align:left;white-space:nowrap">▸ Soil Legend</button><div class="soilLegendBody" style="display:none;width:min(360px,78vw);max-height:55vh;overflow:auto;padding:0 12px 12px">'+rows+'</div>';
   const btn=d.querySelector('.soilLegendToggle'),body=d.querySelector('.soilLegendBody');
   btn.onclick=function(){const open=body.style.display==='none';body.style.display=open?'block':'none';btn.textContent=(open?'▾ ':'▸ ')+'Soil Legend'};
   L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);return d;
