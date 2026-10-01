@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-5</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-6</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -196,14 +196,27 @@ let gpsPositionLayer=null,geoMarkLayer=null;
 function fieldAtLatLng(lat,lng){if(!fields?.features||!window.turf)return null;const pt=turf.point([lng,lat]);return fields.features.find(f=>{try{return turf.booleanPointInPolygon(pt,f)}catch(e){return false}})||null;}
 function renderGeoMarks(){if(!map||!window.L)return;if(geoMarkLayer)map.removeLayer(geoMarkLayer);geoMarkLayer=null;if(!db.locationVisible)return;geoMarkLayer=L.layerGroup().addTo(map);(db.geoMarks||[]).forEach(m=>{const marker=L.circleMarker([m.lat,m.lng],{radius:7,weight:2,color:'#fff',fillColor:'#ff3b30',fillOpacity:1}).addTo(geoMarkLayer);marker.bindPopup('<b>'+esc(m.category||'Scout Point')+'</b><br>'+(m.fieldName?esc(m.fieldName)+'<br>':'')+esc(m.notes||'')+'<br><span class="muted">'+new Date(m.time).toLocaleString()+'</span>');});}
 function saveGeoMark(lat,lng,accuracy){const f=fieldAtLatLng(lat,lng),p=f?.properties||{};openModal('<h2>Save GPS Scout Point</h2><p class="muted">'+(p.FIELD_NAME?'Field: <b>'+esc(p.FIELD_NAME)+'</b><br>':'')+'GPS accuracy: about '+Math.round(accuracy||0)+' ft</p><form id="geoMarkForm"><div class="formgrid"><label>Category<select name="category"><option>General Scout Point</option><option>Weed</option><option>Insect</option><option>Disease</option><option>Drainage / Wet Spot</option><option>Equipment / Repair</option><option>Other</option></select></label><label class="wide">Notes<textarea name="notes" placeholder="What did you find at this location?"></textarea></label><button class="primary wide">Save Geo-Mark</button></div></form>');$('#geoMarkForm').onsubmit=e=>{e.preventDefault();const x=Object.fromEntries(new FormData(e.target));db.geoMarks.push({id:crypto.randomUUID(),lat,lng,accuracy:accuracy||null,time:new Date().toISOString(),category:x.category,notes:x.notes||'',fieldId:p.FIELD_ID||null,fieldName:p.FIELD_NAME||'',farmName:p.FARM_NAME||'',clientName:p.CLIENT_NAM||'',userId:currentUser()?.id||null,userName:currentUser()?.name||''});save();closeModal();renderGeoMarks();showToast('GPS scout point saved');};}
-function requestScoutLocation(){if(!navigator.geolocation){showToast('Location services are not available in this browser.');return;}const b=document.querySelector('.gpsControl');if(b)b.classList.add('locating');navigator.geolocation.getCurrentPosition(pos=>{if(b)b.classList.remove('locating');const lat=pos.coords.latitude,lng=pos.coords.longitude,accuracy=pos.coords.accuracy;if(gpsPositionLayer)map.removeLayer(gpsPositionLayer);gpsPositionLayer=L.layerGroup().addTo(map);L.circle([lat,lng],{radius:accuracy,color:'#1677ff',weight:1,fillOpacity:.08}).addTo(gpsPositionLayer);L.circleMarker([lat,lng],{radius:8,color:'#fff',weight:3,fillColor:'#f0b429',fillOpacity:1}).addTo(gpsPositionLayer);map.setView([lat,lng],Math.max(map.getZoom(),16));saveGeoMark(lat,lng,accuracy*3.28084);},err=>{if(b)b.classList.remove('locating');showToast(err.code===1?'Location permission was denied. Enable Location for Safari and try again.':'Could not get GPS location. Try again outside with a clear sky.');},{enableHighAccuracy:true,timeout:15000,maximumAge:0});}
+function showCurrentLocation(openSave){
+ if(!navigator.geolocation){showToast('Location services are not available in this browser.');return;}
+ const b=document.querySelector('.gpsControl');if(b)b.classList.add('locating');
+ navigator.geolocation.getCurrentPosition(pos=>{
+  if(b)b.classList.remove('locating');if(!db.locationVisible)return;
+  const lat=pos.coords.latitude,lng=pos.coords.longitude,accuracy=pos.coords.accuracy;
+  if(gpsPositionLayer)map.removeLayer(gpsPositionLayer);gpsPositionLayer=L.layerGroup().addTo(map);
+  L.circle([lat,lng],{radius:accuracy,color:'#1677ff',weight:1,fillColor:'#1677ff',fillOpacity:.08}).addTo(gpsPositionLayer);
+  L.circleMarker([lat,lng],{radius:9,color:'#fff',weight:3,fillColor:'#1677ff',fillOpacity:1}).bindTooltip('My Location',{permanent:false,direction:'top'}).addTo(gpsPositionLayer);
+  map.setView([lat,lng],Math.max(map.getZoom(),16));
+  if(openSave)saveGeoMark(lat,lng,accuracy*3.28084);
+ },err=>{if(b)b.classList.remove('locating');showToast(err.code===1?'Location permission was denied. Enable Location for Safari and try again.':'Could not get GPS location. Try again outside with a clear sky.');},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function requestScoutLocation(){showCurrentLocation(true);}
 function setLocationVisible(on){
  db.locationVisible=!!on;save();
  if(!db.locationVisible&&gpsPositionLayer){map.removeLayer(gpsPositionLayer);gpsPositionLayer=null;}
  renderGeoMarks();
  const mark=document.getElementById('gpsMarkBtn');if(mark)mark.style.display=db.locationVisible?'block':'none';
  const tog=document.getElementById('locationToggleBtn');if(tog){tog.textContent=db.locationVisible?'📍 Location: ON':'📍 Location: OFF';tog.setAttribute('aria-pressed',db.locationVisible?'true':'false');tog.style.background=db.locationVisible?'#e7f2e9':'#f2f2f2';}
- showToast(db.locationVisible?'Location layer on':'Location layer off');
+ if(db.locationVisible){showToast('Finding your location…');showCurrentLocation(false);}else showToast('Location layer off');
 }
 function addGpsControl(){
  if(!map||!window.L)return;
