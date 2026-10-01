@@ -300,7 +300,7 @@ function setSoilMode(on){
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
 let rainfallFeed=null,rainfallFeedPromise=null;
-fields=window.SODVILLE_FIELDS; if(fields && map){geoLayer=L.geoJSON(fields,{style,onEachFeature:(f,l)=>l.on('click',()=>showField(f,l))}).addTo(map);window.geoLayer=geoLayer;window.map=map;(()=>{const anchor=fields.features.find(f=>String(f.properties.FIELD_NAME||'').toLowerCase().includes('rosson north'));if(anchor){const a=L.geoJSON(anchor).getBounds().getCenter();map.setView(a,13)}else{map.setView(geoLayer.getBounds().getCenter(),13)}})();document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded';} else if(fields){document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded — map waiting for internet';} else {document.getElementById('fieldCount').textContent='Boundary data failed to load';}
+fields=window.SODVILLE_FIELDS; if(fields && map){geoLayer=L.geoJSON(fields,{style,onEachFeature:(f,l)=>l.on('click',()=>showField(f,l))}).addTo(map);window.geoLayer=geoLayer;window.map=map;map.setView([27.9430,-97.4428],13);document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded';} else if(fields){document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded — map waiting for internet';} else {document.getElementById('fieldCount').textContent='Boundary data failed to load';}
 document.getElementById('layerMode')?.addEventListener('change',function(){setSoilMode(this.value==='soils');});
 if(document.getElementById('layerMode'))document.getElementById('layerMode').value='workability';
 setSoilMode(false);
