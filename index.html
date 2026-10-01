@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-16</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-17</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -329,7 +329,17 @@ async function loadSoils(){
      let pane=map.getPane(paneName);if(!pane){pane=map.createPane(paneName);pane.style.zIndex=350;pane.style.overflow='hidden';}
      const mask=L.geoJSON(f,{style:{opacity:0,fillOpacity:0},interactive:false}).addTo(soilLayer);
      const ov=L.imageOverlay(url,[[bb[1],bb[0]],[bb[3],bb[2]]],{opacity:.78,interactive:false,pane:paneName}).addTo(soilLayer);
-     ov.on('load',()=>{});
+     ov.on('load',()=>{
+      const img=ov.getElement();if(!img)return;
+      const g=f.geometry||{},rings=g.type==='Polygon'?[g.coordinates[0]]:g.type==='MultiPolygon'?g.coordinates.map(p=>p[0]):[];
+      if(rings.length===1){
+       const pts=rings[0].map(q=>(((q[0]-bb[0])/(bb[2]-bb[0])*100).toFixed(3))+'% '+((bb[3]-q[1])/(bb[3]-bb[1])*100).toFixed(3)+'%').join(',');
+       img.style.clipPath='polygon('+pts+')';img.style.webkitClipPath='polygon('+pts+')';
+      }else if(rings.length>1){
+       const paths=rings.map(r=>'M '+r.map(q=>(((q[0]-bb[0])/(bb[2]-bb[0])*1000).toFixed(1))+' '+((bb[3]-q[1])/(bb[3]-bb[1])*1000).toFixed(1)).join(' L ')+' Z').join(' ');
+       img.style.clipPath='path("'+paths+'")';
+      }
+     });
     }catch(e){console.warn('Soil field image failed',e)}
    }
    if(geoLayer)geoLayer.bringToFront();
