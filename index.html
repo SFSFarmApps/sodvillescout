@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1001-30</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1002-31</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -355,7 +355,7 @@ function setSoilMode(on){
  if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
-let rainfallFeed=null,rainfallFeedPromise=null;
+let rainfallFeed=null,rainfallFeedPromise=null,rainfallFeedFetchedAt=0;
 fields=window.SODVILLE_FIELDS; if(fields && map){geoLayer=L.geoJSON(fields,{style,onEachFeature:(f,l)=>l.on('click',()=>showField(f,l))}).addTo(map);window.geoLayer=geoLayer;window.map=map;map.setView([27.9430,-97.4428],13);document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded';} else if(fields){document.getElementById('fieldCount').textContent=fields.features.length+' JD fields loaded — map waiting for internet';} else {document.getElementById('fieldCount').textContent='Boundary data failed to load';}
 document.getElementById('layerMode')?.addEventListener('change',function(){setSoilMode(this.value==='soils');});
 if(document.getElementById('layerMode'))document.getElementById('layerMode').value='workability';
@@ -363,10 +363,28 @@ setSoilMode(false);addGpsControl();renderGeoMarks();
 function refresh(){updateTimer();if(geoLayer)geoLayer.setStyle(style);let s=active();$('#sessionBtn').textContent=s?'End Scouting Day':'Start Scouting Day';$('#sessionStatus').textContent=s?`${s.userName||'Scout'} • Started ${fmt(s.start)} • timer running`:`Ready • ${currentUser()?.name||'Select scout'}`;renderOutstandingTasks();if(selected)showField(selected.feature,selected.layer)}
 $('#sessionBtn').onclick=()=>{let s=active();if(s){s.end=new Date().toISOString()}else{let u=currentUser();db.sessions.push({id:crypto.randomUUID(),start:new Date().toISOString(),end:null,userId:u.id,userName:u.name});}save();refresh()};
 
-async function loadRainfallFeed(){
- if(rainfallFeed)return rainfallFeed;
- if(!rainfallFeedPromise)rainfallFeedPromise=fetch('rainfall.json?v='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('rainfall feed '+r.status);return r.json()}).then(j=>rainfallFeed=j);
- return rainfallFeedPromise;
+async function loadRainfallFeed(force=false){
+ if(rainfallFeedPromise)return rainfallFeedPromise;
+ if(!force&&rainfallFeed&&Date.now()-rainfallFeedFetchedAt<5*60*1000)return rainfallFeed;
+ rainfallFeedPromise=(async()=>{
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+  try{
+   const r=await fetch('rainfall.json?v='+Date.now(),{cache:'no-store',signal:controller.signal});
+   if(!r.ok)throw Error('rainfall feed '+r.status);
+   const j=await r.json();
+   if(!j.fields||!j.updatedUtc)throw Error('Invalid rainfall feed');
+   rainfallFeed=j;rainfallFeedFetchedAt=Date.now();return j;
+  }finally{clearTimeout(timeout)}
+ })();
+ try{return await rainfallFeedPromise}finally{rainfallFeedPromise=null}
+}
+async function refreshLiveRainfall(){
+ try{
+  await loadRainfallFeed(true);
+  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
+  if(selected?.feature)updateFieldRainfall(selected.feature);
+  if(document.getElementById('dashboardView')?.classList.contains('open'))renderDashboard();
+ }catch(e){console.warn('Rainfall refresh failed; keeping last available data',e)}
 }
 function soilDryingClass(soils){
  const names=(soils||[]).map(s=>String(s.properties?.muname||'').toLowerCase()).join(' ');
@@ -659,4 +677,7 @@ renderUsers();refresh();
 
 function updateTimer(){let s=active(),el=$('#timerDisplay');if(!el)return;if(!s){el.textContent='00:00:00';return;}let ms=(s.end?new Date(s.end):new Date())-new Date(s.start),sec=Math.max(0,Math.floor(ms/1000)),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;el.textContent=[h,m,ss].map(x=>String(x).padStart(2,'0')).join(':');}
 setInterval(updateTimer,1000);updateTimer();
+setInterval(()=>{if(document.visibilityState==='visible')refreshLiveRainfall()},5*60*1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshLiveRainfall()});
+window.addEventListener('pageshow',()=>refreshLiveRainfall());
 </script></body></html>
