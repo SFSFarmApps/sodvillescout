@@ -3,7 +3,7 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-10-05T10:26:55.051785+00:00",
+  "updatedUtc": "2026-10-05T11:24:46.136658+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
@@ -855,7 +855,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.61,
-      "rain72h": 2.2,
+      "rain72h": 2.13,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -990,7 +990,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.33,
-      "rain72h": 1.83,
+      "rain72h": 1.79,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1035,7 +1035,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.04,
-      "rain72h": 1.56,
+      "rain72h": 1.49,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1170,7 +1170,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.2,
-      "rain72h": 1.77,
+      "rain72h": 1.72,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1260,7 +1260,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.19,
-      "rain72h": 2.06,
+      "rain72h": 2.04,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1275,7 +1275,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.19,
-      "rain72h": 2.06,
+      "rain72h": 2.04,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1470,7 +1470,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.19,
-      "rain72h": 2.06,
+      "rain72h": 2.04,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1500,7 +1500,7 @@
       "rain1h": null,
       "rain24h": 0.0,
       "rain48h": 1.04,
-      "rain72h": 1.56,
+      "rain72h": 1.49,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
