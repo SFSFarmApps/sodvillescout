@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1002-31</title><link rel="manifest" href="manifest.webmanifest?v=11">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1002-32</title><link rel="manifest" href="manifest.webmanifest?v=11">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -664,7 +664,43 @@ window.deleteFieldSelectedTasks=function(){
   deleteTaskIds(ids);
 };
 window.observation=()=>{if(!selected)return;let p=selected.feature.properties;openModal(`<h2>Scout ${p.FIELD_NAME}</h2><form id="obs"><div class="formgrid"><div><b>Weed pressure</b><div class="pressure"><label class="green"><input type="radio" name="weed" value="green" checked> Green</label><label class="yellow"><input type="radio" name="weed" value="yellow"> Yellow</label><label class="red"><input type="radio" name="weed" value="red"> Red</label></div></div><div><b>Insect pressure</b><div class="pressure"><label class="green"><input type="radio" name="insect" value="green" checked> Green</label><label class="yellow"><input type="radio" name="insect" value="yellow"> Yellow</label><label class="red"><input type="radio" name="insect" value="red"> Red</label></div></div><div class="wide"><label>Notes / observations</label><textarea name="notes" placeholder="Crop condition, weeds, insects, disease, moisture, field conditions…"></textarea></div><button class="primary wide">Save Observation</button></div></form>`);$('#obs').onsubmit=e=>{e.preventDefault();let x=new FormData(e.target),weed=x.get('weed'),insect=x.get('insect');db.observations.push({id:crypto.randomUUID(),sessionId:active()?.id||null,fieldId:p.FIELD_ID,time:new Date().toISOString(),weed,insect,status:(weed==='red'||insect==='red')?'red':(weed==='yellow'||insect==='yellow')?'yellow':'green',notes:x.get('notes'),userId:currentUser()?.id,userName:currentUser()?.name});save();closeModal();refresh()}}
-window.task=()=>{if(!selected)return;let p=selected.feature.properties;openModal(`<h2>Create task — ${p.FIELD_NAME}</h2><form id="tsk"><div class="formgrid"><label>Task type<select name="type"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Task / operation<input name="name" required placeholder="e.g. Hooded spray, ProTill, cultivate…"></label><label class="wide">Products / tank mix<input name="mix" placeholder="Product + rate; Product + rate…"></label><label class="wide">Notes<textarea name="notes"></textarea></label><button class="primary wide">Create Task</button></div></form>`);$('#tsk').onsubmit=e=>{e.preventDefault();let x=Object.fromEntries(new FormData(e.target));db.tasks.push({...x,id:crypto.randomUUID(),sessionId:active()?.id||null,fieldId:p.FIELD_ID,time:new Date().toISOString(),status:'Open',userId:currentUser()?.id,userName:currentUser()?.name});save();closeModal();refresh()}}
+const COMMAND_TANK_MIX_URL='https://iwzeagzbrzrvaehkuyby.supabase.co/functions/v1/tank-mixes';
+let commandTankMixes=null;
+async function loadCommandTankMixes(){
+  if(Array.isArray(commandTankMixes))return commandTankMixes;
+  const res=await fetch(COMMAND_TANK_MIX_URL,{headers:{Accept:'application/json'},cache:'no-store'});
+  if(!res.ok)throw new Error('Tank mixes unavailable ('+res.status+')');
+  const data=await res.json();
+  commandTankMixes=Array.isArray(data)?data:(data.tankMixes||[]);
+  return commandTankMixes;
+}
+function tankMixRecipeText(m){
+  const parts=(m.components||[]).map(x=>[x.product_name||x.name||'Product',x.rate,x.rate_unit||x.unit].filter(v=>v!==null&&v!==undefined&&v!=='').join(' '));
+  return parts.join(' + ');
+}
+window.task=async()=>{if(!selected)return;let p=selected.feature.properties;
+  openModal(`<h2>Create task — ${p.FIELD_NAME}</h2><form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Task / operation<input name="name" required placeholder="e.g. Hooded spray, ProTill, cultivate…"></label><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><label class="wide">Notes<textarea name="notes"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
+  const type=$('#taskType'),wrap=$('#tankMixWrap'),sel=$('#tankMixSelect'),detail=$('#tankMixDetail');
+  const syncVisibility=()=>{wrap.style.display=type.value==='Application'?'block':'none'}; type.onchange=syncVisibility;syncVisibility();
+  try{
+    const mixes=(await loadCommandTankMixes()).filter(m=>!m.archived).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+    sel.innerHTML='<option value="">Select tank mix…</option>'+mixes.map(m=>`<option value="${esc(m.id||m.deere_tank_mix_id)}">${esc(m.name)}</option>`).join('');
+    sel.onchange=()=>{
+      const m=mixes.find(x=>String(x.id||x.deere_tank_mix_id)===String(sel.value));
+      detail.textContent=m?[m.solution_rate&&m.solution_rate_unit?`${m.solution_rate} ${m.solution_rate_unit}`:'',tankMixRecipeText(m)].filter(Boolean).join(' • '):'';
+    };
+  }catch(err){
+    sel.innerHTML='<option value="">Tank mixes could not be loaded</option>';
+    detail.textContent='Sodville Command tank-mix service is unavailable.';
+  }
+  $('#tsk').onsubmit=e=>{e.preventDefault();let x=Object.fromEntries(new FormData(e.target));
+    if(x.type==='Application'&&!x.tankMixId){showToast('Select a tank mix.');return;}
+    const m=(commandTankMixes||[]).find(v=>String(v.id||v.deere_tank_mix_id)===String(x.tankMixId));
+    if(m){x.tankMix={id:m.id||null,deereTankMixId:m.deere_tank_mix_id||null,name:m.name,solutionRate:m.solution_rate||null,solutionRateUnit:m.solution_rate_unit||null,components:m.components||[]};x.mix=m.name;}
+    delete x.tankMixId;
+    db.tasks.push({...x,id:crypto.randomUUID(),sessionId:active()?.id||null,fieldId:p.FIELD_ID,time:new Date().toISOString(),status:'Open',userId:currentUser()?.id,userName:currentUser()?.name});save();closeModal();refresh();
+  };
+}
 function openModal(h){$('#modalBody').innerHTML=h;$('#modal').classList.remove('hidden')}function closeModal(){$('#modal').classList.add('hidden')}$('#closeModal').onclick=closeModal;
 $('#layerMode').onchange=refresh;$('#search').oninput=e=>{let q=e.target.value.toLowerCase();if(!fields)return;let f=fields.features.find(x=>[x.properties.CLIENT_NAM,x.properties.FARM_NAME,x.properties.FIELD_NAME].some(v=>(v||'').toLowerCase().includes(q)));if(f){let l;geoLayer.eachLayer(x=>{if(x.feature.properties.FIELD_ID===f.properties.FIELD_ID)l=x});if(l){map.fitBounds(l.getBounds(),{maxZoom:16});showField(f,l)}}};
 $('#completeSelectedTasks').onclick=completeSidebarSelection;
