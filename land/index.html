@@ -1,64 +1,56 @@
 <!doctype html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sodville Land</title>
+<title>Sodville Land • Build 1006-02</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--green:#163c2b;--green2:#24583e;--cream:#f5f3ec;--card:#fff;--line:#deddd6;--muted:#68736d;--ink:#17201c;--amber:#b56a14}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--cream);color:var(--ink)}
-header{background:var(--green);color:#fff;padding:18px 22px;position:sticky;top:0;z-index:5}.top{max-width:1450px;margin:auto;display:flex;gap:18px;align-items:center;justify-content:space-between}
-.brand b{font-size:22px;letter-spacing:.3px}.brand span{opacity:.72;margin-left:9px;font-size:13px}.search{width:min(520px,48vw);background:#fff;border:0;border-radius:10px;padding:11px 14px;font-size:14px}
-main{max-width:1450px;margin:auto;padding:22px}.hero{display:flex;justify-content:space-between;gap:20px;align-items:end}.hero h1{margin:0;font-size:30px}.hero p{margin:5px 0 0;color:var(--muted)}
-.sync{font-size:12px;background:#e4efe8;color:var(--green);padding:8px 11px;border-radius:20px;font-weight:700}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:0 1px 2px #00000008}.label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}.metric{font-size:26px;font-weight:800;margin-top:6px}.sub{font-size:12px;color:var(--muted);margin-top:3px}
-.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.ph{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.ph h2{font-size:16px;margin:0}.filters button,.tabs button{border:1px solid var(--line);background:#fff;padding:7px 10px;border-radius:8px;margin-left:5px;cursor:pointer}.filters .active,.tabs .active{background:var(--green);color:#fff;border-color:var(--green)}
-.map{height:430px;position:relative;overflow:hidden;background:linear-gradient(30deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%),linear-gradient(150deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%),linear-gradient(30deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%);background-size:90px 155px;background-position:0 0,0 0,45px 78px;background-color:#e9e5d4}
-.field{position:absolute;border:2px solid #fff8;background:#356f4dca;color:white;font-size:11px;font-weight:700;padding:8px;border-radius:5px;cursor:pointer;box-shadow:0 1px 4px #0003}.f1{left:8%;top:15%;width:24%;height:25%}.f2{left:35%;top:10%;width:19%;height:33%;background:#6b7f45cc}.f3{left:57%;top:19%;width:32%;height:22%;background:#446f64cc}.f4{left:12%;top:48%;width:31%;height:35%;background:#9a793ecc}.f5{left:47%;top:49%;width:22%;height:30%;background:#356f4dcc}.f6{left:72%;top:47%;width:20%;height:38%;background:#6b7f45cc}
-.list{max-height:430px;overflow:auto}.row{padding:13px 15px;border-bottom:1px solid #eee;cursor:pointer}.row:hover{background:#f7f8f5}.row b{display:block;font-size:14px}.row span{font-size:12px;color:var(--muted)}.badge{float:right;font-size:10px;padding:4px 7px;border-radius:12px;background:#e7efe9;color:var(--green)}
-.record{margin-top:14px}.recordHead{padding:18px;display:flex;justify-content:space-between;gap:15px}.recordHead h2{margin:0 0 4px}.recordHead p{margin:0;color:var(--muted);font-size:13px}.tabs{padding:0 13px 12px;border-bottom:1px solid var(--line);overflow:auto;white-space:nowrap}.tabbody{padding:18px}.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.fact{padding:13px;background:#f7f7f3;border-radius:10px}.fact b{display:block;margin-top:4px}.alerts{margin-top:15px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.alert{border:1px solid #ead7bd;background:#fff8ed;border-radius:9px;padding:11px;font-size:12px}.ok{background:#eef6f0;border-color:#cde1d2}.actions button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 12px;font-weight:700}
-@media(max-width:850px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.facts,.alerts{grid-template-columns:1fr 1fr}.search{width:45vw}.map{height:350px}}@media(max-width:520px){header{padding:13px}.brand span{display:none}.search{width:54vw}.cards{grid-template-columns:1fr 1fr}.metric{font-size:21px}.hero{display:block}.sync{display:inline-block;margin-top:10px}.facts,.alerts{grid-template-columns:1fr}.filters{display:none}main{padding:12px}}
-</style>
-</head>
-<body>
-<header><div class="top"><div class="brand"><b>SODVILLE COMMAND</b><span>LAND</span></div><input class="search" placeholder="Search farm, field, landowner, FSA farm or tract…" oninput="filterList(this.value)"></div></header>
+:root{--g:#173b25;--g2:#285b3b;--bg:#f3f5f1;--card:#fff;--line:#dfe4dc;--muted:#69736c;--ink:#172019;--gold:#d7a429}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--g);color:#fff;padding:14px 18px;position:sticky;top:0;z-index:1001}.top{max-width:1500px;margin:auto;display:flex;align-items:center;gap:16px}.brand{min-width:220px}.brand b{font-size:20px;letter-spacing:.4px}.brand span{font-size:11px;opacity:.75;margin-left:8px}.search{flex:1;max-width:620px;padding:10px 13px;border:0;border-radius:9px;font:inherit}.build{margin-left:auto;font-size:11px;opacity:.7}
+main{max-width:1500px;margin:auto;padding:18px}.hero{display:flex;justify-content:space-between;align-items:end;gap:12px}.hero h1{margin:0;font-size:29px}.hero p{margin:4px 0;color:var(--muted)}.sync{background:#e4efe7;color:var(--g);font-size:12px;font-weight:800;padding:8px 11px;border-radius:20px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 1px 3px #0000000a}.card{padding:15px}.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.55px}.metric{font-size:25px;font-weight:900;margin-top:5px}.sub{font-size:11px;color:var(--muted);margin-top:2px}
+.grid{display:grid;grid-template-columns:1.65fr 1fr;gap:12px}.panel{overflow:hidden}.ph{height:49px;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.ph h2{font-size:15px;margin:0}.note{font-size:11px;color:var(--muted)}
+#map{height:510px;background:#e8ece5}.list{height:510px;overflow:auto}.clientHead{padding:9px 12px;background:#edf2ed;color:var(--g);font-size:12px;font-weight:900;position:sticky;top:0}.row{padding:10px 13px;border-bottom:1px solid #edf0ec;cursor:pointer}.row:hover,.row.active{background:#f1f6f1}.row b{font-size:13px;display:block;padding-right:55px}.row span{font-size:11px;color:var(--muted)}.acre{float:right;font-size:11px;font-weight:800;color:var(--g)}
+.record{margin-top:12px}.recordHead{padding:16px;display:flex;justify-content:space-between;gap:10px}.recordHead h2{margin:3px 0}.recordHead p{font-size:12px;color:var(--muted);margin:0}.badge{font-size:11px;background:#e4efe7;color:var(--g);font-weight:800;padding:7px 9px;border-radius:15px;height:max-content}
+.tabs{padding:0 12px 11px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:auto}.tabs button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;margin-right:4px}.tabs button.active{background:var(--g);color:#fff;border-color:var(--g)}.tabbody{padding:16px}.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.fact{background:#f6f7f4;border-radius:9px;padding:12px}.fact b{display:block;margin-top:4px;font-size:14px}.empty{color:var(--muted);font-size:13px;line-height:1.5}.warning{margin-top:12px;border:1px solid #ead8b5;background:#fff9eb;padding:11px;border-radius:9px;font-size:12px}
+.leaflet-popup-content{margin:12px}.popTitle{font-weight:900;font-size:14px}.popMeta{font-size:11px;color:#68736d;margin-top:3px}.popBtn{width:100%;margin-top:9px;padding:7px;background:var(--g);color:#fff;border:0;border-radius:7px;font-weight:800}
+@media(max-width:850px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.list{height:320px}#map{height:430px}.facts{grid-template-columns:1fr 1fr}.brand{min-width:auto}.build{display:none}}@media(max-width:520px){main{padding:10px}.brand span{display:none}.brand b{font-size:16px}.search{min-width:0}.hero{display:block}.sync{display:inline-block;margin-top:8px}.metric{font-size:21px}.facts{grid-template-columns:1fr}}
+</style></head><body>
+<header><div class="top"><div class="brand"><b>SODVILLE COMMAND</b><span>LAND</span></div><input id="search" class="search" placeholder="Search client, farm or field…"><div class="build">Build 1006-02</div></div></header>
 <main>
-<section class="hero"><div><h1>Land</h1><p>The permanent record for every acre Sodville manages.</p></div><div class="sync">● Deere master data connected</div></section>
-<section class="cards">
-<div class="card"><div class="label">Managed land</div><div class="metric">—</div><div class="sub">Acreage will populate from Command</div></div>
-<div class="card"><div class="label">Active fields</div><div class="metric">118</div><div class="sub">John Deere master</div></div>
-<div class="card"><div class="label">Active farms</div><div class="metric">78</div><div class="sub">With active Deere fields</div></div>
-<div class="card"><div class="label">Clients</div><div class="metric">6</div><div class="sub">John Deere master</div></div>
-</section>
-<section class="grid">
-<div class="panel"><div class="ph"><h2>Land Map</h2><div class="filters"><button class="active">Farm</button><button>Lease</button><button>FSA</button><button>Crop</button></div></div>
-<div class="map"><div class="field f1" onclick="selectDemo('North 80')">North 80</div><div class="field f2" onclick="selectDemo('Home')">Home</div><div class="field f3" onclick="selectDemo('East')">East</div><div class="field f4" onclick="selectDemo('South')">South</div><div class="field f5" onclick="selectDemo('West')">West</div><div class="field f6" onclick="selectDemo('Ranch')">Ranch</div></div></div>
-<div class="panel"><div class="ph"><h2>Farms & Fields</h2><span style="font-size:12px;color:var(--muted)">Client → Farm → Field</span></div><div class="list" id="landList">
-<div class="row" onclick="selectDemo('North 80')"><span class="badge">Deere ✓</span><b>North 80</b><span>Sample Farm · Sample Client</span></div>
-<div class="row" onclick="selectDemo('Home')"><span class="badge">Deere ✓</span><b>Home</b><span>Sample Farm · Sample Client</span></div>
-<div class="row" onclick="selectDemo('East')"><span class="badge">Deere ✓</span><b>East</b><span>Sample Farm · Sample Client</span></div>
-<div class="row" onclick="selectDemo('South')"><span class="badge">Deere ✓</span><b>South</b><span>Sample Farm · Sample Client</span></div>
-<div class="row" onclick="selectDemo('West')"><span class="badge">Deere ✓</span><b>West</b><span>Sample Farm · Sample Client</span></div>
-<div class="row" onclick="selectDemo('Ranch')"><span class="badge">Deere ✓</span><b>Ranch</b><span>Sample Farm · Sample Client</span></div>
-</div></div>
-</section>
-<section class="panel record">
-<div class="recordHead"><div><div class="label">Land Record</div><h2 id="recordName">North 80</h2><p>Sample Client → Sample Farm → <span id="crumb">North 80</span></p></div><div class="actions"><button>Edit Land Record</button></div></div>
-<div class="tabs"><button class="active" onclick="tab(this,'overview')">Overview</button><button onclick="tab(this,'ownership')">Ownership</button><button onclick="tab(this,'lease')">Lease</button><button onclick="tab(this,'fsa')">FSA</button><button onclick="tab(this,'documents')">Documents</button><button onclick="tab(this,'history')">History</button></div>
-<div class="tabbody" id="tabbody"></div>
-</section>
+<div class="hero"><div><h1>Sodville Land</h1><p>Land records built on the same field boundaries used by Field Scout.</p></div><div class="sync">● Deere master sync healthy</div></div>
+<div class="cards">
+<div class="card"><div class="label">Mapped acres</div><div class="metric" id="acreMetric">—</div><div class="sub">Field Scout boundary acreage</div></div>
+<div class="card"><div class="label">Deere active fields</div><div class="metric">118</div><div class="sub">Current Command master</div></div>
+<div class="card"><div class="label">Deere active farms</div><div class="metric">78</div><div class="sub">Current Command master</div></div>
+<div class="card"><div class="label">Clients</div><div class="metric">6</div><div class="sub">Current Command master</div></div>
+</div>
+<div class="grid">
+<div class="panel"><div class="ph"><h2>Land Map</h2><span class="note" id="mapStatus">Loading real Sodville boundaries…</span></div><div id="map"></div></div>
+<div class="panel"><div class="ph"><h2>Farms & Fields</h2><span class="note" id="listCount"></span></div><div class="list" id="landList"></div></div>
+</div>
+<div class="panel record" id="record">
+<div class="recordHead"><div><div class="label">Land Record</div><h2 id="recordName">Select a field</h2><p id="recordPath">Choose a field from the map or list.</p></div><div class="badge" id="deereBadge">Command field</div></div>
+<div class="tabs"><button class="active" data-tab="overview">Overview</button><button data-tab="ownership">Ownership</button><button data-tab="lease">Lease</button><button data-tab="fsa">FSA</button><button data-tab="documents">Documents</button><button data-tab="history">History</button></div>
+<div class="tabbody" id="tabbody"><div class="empty">Select a field to open its permanent Land record.</div></div>
+</div>
 </main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const bodies={
-overview:`<div class="facts"><div class="fact"><span class="label">Command acreage</span><b>Not entered</b></div><div class="fact"><span class="label">Land arrangement</span><b>Not classified</b></div><div class="fact"><span class="label">Landowner</span><b>Not assigned</b></div><div class="fact"><span class="label">FSA record</span><b>Not linked</b></div></div><div class="alerts"><div class="alert">Land profile needs ownership / lease classification.</div><div class="alert">FSA Farm / Tract / Field can be linked here.</div><div class="alert ok">John Deere master field connected ✓</div></div>`,
-ownership:`<h3>Ownership</h3><p>Landowner, ownership entity, mailing information, parcels and ownership documents will live here. Deere Client is intentionally kept separate from legal land ownership.</p>`,
-lease:`<h3>Lease & Control</h3><p>Classify this land as Owned, Cash Rent, Share Rent, Custom Farmed or Other. Store effective dates, expiration, rent/share terms, payment schedule and signed agreement.</p>`,
-fsa:`<h3>FSA</h3><div class="facts"><div class="fact"><span class="label">FSA Farm</span><b>—</b></div><div class="fact"><span class="label">Tract</span><b>—</b></div><div class="fact"><span class="label">FSA Field</span><b>—</b></div><div class="fact"><span class="label">FSA Acres</span><b>—</b></div></div><p>FSA identifiers remain separate from Deere IDs and link to the permanent Command field UUID.</p>`,
-documents:`<h3>Documents</h3><p>Leases, deeds, surveys, 578s, insurance acreage reports, rent correspondence and other land records will attach to the farm/field and crop year here.</p>`,
-history:`<h3>History & Audit Trail</h3><p>Important changes, approvals, acreage reconciliations and document events will be retained chronologically instead of overwriting history.</p>`
-};
-function tab(btn,key){document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('tabbody').innerHTML=bodies[key]}
-function selectDemo(name){document.getElementById('recordName').textContent=name;document.getElementById('crumb').textContent=name;document.querySelector('.record').scrollIntoView({behavior:'smooth',block:'start'})}
-function filterList(q){q=q.toLowerCase();document.querySelectorAll('#landList .row').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'block':'none')}
-document.getElementById('tabbody').innerHTML=bodies.overview;
-</script>
-</body></html>
+let features=[], selected=null, layerById=new Map(), geoLayer;
+const map=L.map('map',{zoomControl:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function p(f){return f.properties||{}}
+function fieldId(f){return p(f).FIELD_ID||p(f).FIELD_NAME}
+function normalizeClient(n){return String(n||'').replace(/~1$/,'')}
+function overview(f){const x=p(f);return '<div class="facts"><div class="fact"><span class="label">Boundary acres</span><b>'+esc(Number(x.ACRES||0).toFixed(1))+'</b></div><div class="fact"><span class="label">Client</span><b>'+esc(normalizeClient(x.CLIENT_NAM))+'</b></div><div class="fact"><span class="label">Farm</span><b>'+esc(x.FARM_NAME)+'</b></div><div class="fact"><span class="label">Deere field ID</span><b style="font-size:11px;word-break:break-all">'+esc(x.FIELD_ID||'—')+'</b></div></div><div class="warning">Ownership, lease and FSA data have not been entered into Sodville Land yet. Those records will be layered onto this permanent Command field without changing the Deere master record.</div>'}
+function body(key,f){if(!f)return '<div class="empty">Select a field first.</div>';if(key==='overview')return overview(f);const labels={ownership:['Ownership','No legal landowner record has been assigned to this field yet.'],lease:['Lease & Control','No Owned / Cash Rent / Share Rent / Custom Farmed classification has been entered yet.'],fsa:['FSA','No FSA Farm / Tract / Field identifiers have been linked yet.'],documents:['Documents','No Land documents are attached yet.'],history:['History & Audit Trail','Land-specific history will appear here as records are added or changed.']};const a=labels[key];return '<h3>'+a[0]+'</h3><div class="empty">'+a[1]+'<br><br>Client: <b>'+esc(normalizeClient(p(f).CLIENT_NAM))+'</b><br>Farm: <b>'+esc(p(f).FARM_NAME)+'</b><br>Field: <b>'+esc(p(f).FIELD_NAME)+'</b></div>'}
+function selectField(f,zoom=false){selected=f;const x=p(f);document.getElementById('recordName').textContent=x.FIELD_NAME||'Field';document.getElementById('recordPath').textContent=normalizeClient(x.CLIENT_NAM)+' → '+x.FARM_NAME+' → '+x.FIELD_NAME;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab==='overview'));document.getElementById('tabbody').innerHTML=overview(f);document.querySelectorAll('.row').forEach(r=>r.classList.toggle('active',r.dataset.id===String(fieldId(f))));const lyr=layerById.get(String(fieldId(f)));if(lyr){lyr.openPopup();if(zoom)map.fitBounds(lyr.getBounds(),{padding:[35,35],maxZoom:15})}}
+function renderList(list){const root=document.getElementById('landList');root.innerHTML='';const groups={};list.forEach(f=>{const c=normalizeClient(p(f).CLIENT_NAM)||'Unassigned';(groups[c]??=[]).push(f)});Object.keys(groups).sort().forEach(c=>{const h=document.createElement('div');h.className='clientHead';h.textContent=c;root.appendChild(h);groups[c].sort((a,b)=>(p(a).FARM_NAME+' '+p(a).FIELD_NAME).localeCompare(p(b).FARM_NAME+' '+p(b).FIELD_NAME)).forEach(f=>{const x=p(f),r=document.createElement('div');r.className='row';r.dataset.id=String(fieldId(f));r.innerHTML='<span class="acre">'+Number(x.ACRES||0).toFixed(1)+' ac</span><b>'+esc(x.FIELD_NAME)+'</b><span>'+esc(x.FARM_NAME)+'</span>';r.onclick=()=>selectField(f,true);root.appendChild(r)})});document.getElementById('listCount').textContent=list.length+' mapped fields'}
+function loadGeo(fc){features=fc.features||[];const acres=features.reduce((a,f)=>a+(Number(p(f).ACRES)||0),0);document.getElementById('acreMetric').textContent=acres.toLocaleString(undefined,{maximumFractionDigits:1});renderList(features);geoLayer=L.geoJSON(fc,{style:()=>({color:'#fff',weight:1.3,fillColor:'#2d6b43',fillOpacity:.58}),onEachFeature:(f,l)=>{layerById.set(String(fieldId(f)),l);const x=p(f);l.bindPopup('<div class="popTitle">'+esc(x.FIELD_NAME)+'</div><div class="popMeta">'+esc(normalizeClient(x.CLIENT_NAM))+' → '+esc(x.FARM_NAME)+'<br>'+Number(x.ACRES||0).toFixed(1)+' acres</div><button class="popBtn">Open Land Record</button>');l.on('popupopen',e=>{const b=e.popup.getElement()?.querySelector('.popBtn');if(b)b.onclick=()=>{selectField(f,false);document.getElementById('record').scrollIntoView({behavior:'smooth'})}});l.on('click',()=>selectField(f,false))}}).addTo(map);map.fitBounds(geoLayer.getBounds(),{padding:[15,15]});document.getElementById('mapStatus').textContent=features.length+' Field Scout boundary polygons'}
+async function init(){try{const txt=await fetch('../index.html?landdata='+Date.now(),{cache:'no-store'}).then(r=>r.text());const marker='window.SODVILLE_FIELDS = ';const a=txt.indexOf(marker);if(a<0)throw Error('boundary marker not found');const b=txt.indexOf(';\n',a);const fc=JSON.parse(txt.slice(a+marker.length,b));loadGeo(fc)}catch(e){document.getElementById('mapStatus').textContent='Boundary load failed';document.getElementById('landList').innerHTML='<div class="empty" style="padding:18px">Could not load the Field Scout boundary layer. Refresh the page.</div>';console.error(e)}}
+document.getElementById('search').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();renderList(!q?features:features.filter(f=>{const x=p(f);return [normalizeClient(x.CLIENT_NAM),x.FARM_NAME,x.FIELD_NAME].join(' ').toLowerCase().includes(q)}))});
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('tabbody').innerHTML=body(b.dataset.tab,selected)});
+init();
+</script></body></html>
