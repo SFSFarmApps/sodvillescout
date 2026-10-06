@@ -2,7 +2,7 @@
   "name": "Sodville Field Scout",
   "short_name": "Field Scout",
   "description": "Sodville field scouting, tasks, observations, and reports",
-  "start_url": "./?app=fieldscout-v11",
+  "start_url": "./?app=fieldscout-v11&v=1002-32-final",
   "scope": "./",
   "display": "standalone",
   "background_color": "#173b25",
