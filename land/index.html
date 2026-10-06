@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sodville Land • Build 1006-02</title>
+<title>Sodville Land • Build 1006-03</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--g:#173b25;--g2:#285b3b;--bg:#f3f5f1;--card:#fff;--line:#dfe4dc;--muted:#69736c;--ink:#172019;--gold:#d7a429}
@@ -16,7 +16,7 @@ main{max-width:1500px;margin:auto;padding:18px}.hero{display:flex;justify-conten
 .leaflet-popup-content{margin:12px}.popTitle{font-weight:900;font-size:14px}.popMeta{font-size:11px;color:#68736d;margin-top:3px}.popBtn{width:100%;margin-top:9px;padding:7px;background:var(--g);color:#fff;border:0;border-radius:7px;font-weight:800}
 @media(max-width:850px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.list{height:320px}#map{height:430px}.facts{grid-template-columns:1fr 1fr}.brand{min-width:auto}.build{display:none}}@media(max-width:520px){main{padding:10px}.brand span{display:none}.brand b{font-size:16px}.search{min-width:0}.hero{display:block}.sync{display:inline-block;margin-top:8px}.metric{font-size:21px}.facts{grid-template-columns:1fr}}
 </style></head><body>
-<header><div class="top"><div class="brand"><b>SODVILLE COMMAND</b><span>LAND</span></div><input id="search" class="search" placeholder="Search client, farm or field…"><div class="build">Build 1006-02</div></div></header>
+<header><div class="top"><div class="brand"><b>SODVILLE COMMAND</b><span>LAND</span></div><input id="search" class="search" placeholder="Search client, farm or field…"><div class="build">Build 1006-03</div></div></header>
 <main>
 <div class="hero"><div><h1>Sodville Land</h1><p>Land records built on the same field boundaries used by Field Scout.</p></div><div class="sync">● Deere master sync healthy</div></div>
 <div class="cards">
@@ -36,6 +36,7 @@ main{max-width:1500px;margin:auto;padding:18px}.hero{display:flex;justify-conten
 </div>
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./fields.js?build=1006-03"></script>
 <script>
 let features=[], selected=null, layerById=new Map(), geoLayer;
 const map=L.map('map',{zoomControl:true});
@@ -49,7 +50,7 @@ function body(key,f){if(!f)return '<div class="empty">Select a field first.</div
 function selectField(f,zoom=false){selected=f;const x=p(f);document.getElementById('recordName').textContent=x.FIELD_NAME||'Field';document.getElementById('recordPath').textContent=normalizeClient(x.CLIENT_NAM)+' → '+x.FARM_NAME+' → '+x.FIELD_NAME;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab==='overview'));document.getElementById('tabbody').innerHTML=overview(f);document.querySelectorAll('.row').forEach(r=>r.classList.toggle('active',r.dataset.id===String(fieldId(f))));const lyr=layerById.get(String(fieldId(f)));if(lyr){lyr.openPopup();if(zoom)map.fitBounds(lyr.getBounds(),{padding:[35,35],maxZoom:15})}}
 function renderList(list){const root=document.getElementById('landList');root.innerHTML='';const groups={};list.forEach(f=>{const c=normalizeClient(p(f).CLIENT_NAM)||'Unassigned';(groups[c]??=[]).push(f)});Object.keys(groups).sort().forEach(c=>{const h=document.createElement('div');h.className='clientHead';h.textContent=c;root.appendChild(h);groups[c].sort((a,b)=>(p(a).FARM_NAME+' '+p(a).FIELD_NAME).localeCompare(p(b).FARM_NAME+' '+p(b).FIELD_NAME)).forEach(f=>{const x=p(f),r=document.createElement('div');r.className='row';r.dataset.id=String(fieldId(f));r.innerHTML='<span class="acre">'+Number(x.ACRES||0).toFixed(1)+' ac</span><b>'+esc(x.FIELD_NAME)+'</b><span>'+esc(x.FARM_NAME)+'</span>';r.onclick=()=>selectField(f,true);root.appendChild(r)})});document.getElementById('listCount').textContent=list.length+' mapped fields'}
 function loadGeo(fc){features=fc.features||[];const acres=features.reduce((a,f)=>a+(Number(p(f).ACRES)||0),0);document.getElementById('acreMetric').textContent=acres.toLocaleString(undefined,{maximumFractionDigits:1});renderList(features);geoLayer=L.geoJSON(fc,{style:()=>({color:'#fff',weight:1.3,fillColor:'#2d6b43',fillOpacity:.58}),onEachFeature:(f,l)=>{layerById.set(String(fieldId(f)),l);const x=p(f);l.bindPopup('<div class="popTitle">'+esc(x.FIELD_NAME)+'</div><div class="popMeta">'+esc(normalizeClient(x.CLIENT_NAM))+' → '+esc(x.FARM_NAME)+'<br>'+Number(x.ACRES||0).toFixed(1)+' acres</div><button class="popBtn">Open Land Record</button>');l.on('popupopen',e=>{const b=e.popup.getElement()?.querySelector('.popBtn');if(b)b.onclick=()=>{selectField(f,false);document.getElementById('record').scrollIntoView({behavior:'smooth'})}});l.on('click',()=>selectField(f,false))}}).addTo(map);map.fitBounds(geoLayer.getBounds(),{padding:[15,15]});document.getElementById('mapStatus').textContent=features.length+' Field Scout boundary polygons'}
-async function init(){try{const txt=await fetch('../index.html?landdata='+Date.now(),{cache:'no-store'}).then(r=>r.text());const marker='window.SODVILLE_FIELDS = ';const a=txt.indexOf(marker);if(a<0)throw Error('boundary marker not found');const b=txt.indexOf(';\n',a);const fc=JSON.parse(txt.slice(a+marker.length,b));loadGeo(fc)}catch(e){document.getElementById('mapStatus').textContent='Boundary load failed';document.getElementById('landList').innerHTML='<div class="empty" style="padding:18px">Could not load the Field Scout boundary layer. Refresh the page.</div>';console.error(e)}}
+function init(){try{if(!window.SODVILLE_LAND_FIELDS)throw Error('Land boundary data not loaded');loadGeo(window.SODVILLE_LAND_FIELDS)}catch(e){document.getElementById('mapStatus').textContent='Boundary load failed';document.getElementById('landList').innerHTML='<div class="empty" style="padding:18px">Could not load the Sodville Land boundary layer. Refresh the page.</div>';console.error(e)}}
 document.getElementById('search').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();renderList(!q?features:features.filter(f=>{const x=p(f);return [normalizeClient(x.CLIENT_NAM),x.FARM_NAME,x.FIELD_NAME].join(' ').toLowerCase().includes(q)}))});
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('tabbody').innerHTML=body(b.dataset.tab,selected)});
 init();
