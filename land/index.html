@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sodville Land</title>
+<style>
+:root{--green:#163c2b;--green2:#24583e;--cream:#f5f3ec;--card:#fff;--line:#deddd6;--muted:#68736d;--ink:#17201c;--amber:#b56a14}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--cream);color:var(--ink)}
+header{background:var(--green);color:#fff;padding:18px 22px;position:sticky;top:0;z-index:5}.top{max-width:1450px;margin:auto;display:flex;gap:18px;align-items:center;justify-content:space-between}
+.brand b{font-size:22px;letter-spacing:.3px}.brand span{opacity:.72;margin-left:9px;font-size:13px}.search{width:min(520px,48vw);background:#fff;border:0;border-radius:10px;padding:11px 14px;font-size:14px}
+main{max-width:1450px;margin:auto;padding:22px}.hero{display:flex;justify-content:space-between;gap:20px;align-items:end}.hero h1{margin:0;font-size:30px}.hero p{margin:5px 0 0;color:var(--muted)}
+.sync{font-size:12px;background:#e4efe8;color:var(--green);padding:8px 11px;border-radius:20px;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:0 1px 2px #00000008}.label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}.metric{font-size:26px;font-weight:800;margin-top:6px}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.ph{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.ph h2{font-size:16px;margin:0}.filters button,.tabs button{border:1px solid var(--line);background:#fff;padding:7px 10px;border-radius:8px;margin-left:5px;cursor:pointer}.filters .active,.tabs .active{background:var(--green);color:#fff;border-color:var(--green)}
+.map{height:430px;position:relative;overflow:hidden;background:linear-gradient(30deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%),linear-gradient(150deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%),linear-gradient(30deg,#d6dfcf 12%,transparent 12.5%,transparent 87%,#d6dfcf 87.5%);background-size:90px 155px;background-position:0 0,0 0,45px 78px;background-color:#e9e5d4}
+.field{position:absolute;border:2px solid #fff8;background:#356f4dca;color:white;font-size:11px;font-weight:700;padding:8px;border-radius:5px;cursor:pointer;box-shadow:0 1px 4px #0003}.f1{left:8%;top:15%;width:24%;height:25%}.f2{left:35%;top:10%;width:19%;height:33%;background:#6b7f45cc}.f3{left:57%;top:19%;width:32%;height:22%;background:#446f64cc}.f4{left:12%;top:48%;width:31%;height:35%;background:#9a793ecc}.f5{left:47%;top:49%;width:22%;height:30%;background:#356f4dcc}.f6{left:72%;top:47%;width:20%;height:38%;background:#6b7f45cc}
+.list{max-height:430px;overflow:auto}.row{padding:13px 15px;border-bottom:1px solid #eee;cursor:pointer}.row:hover{background:#f7f8f5}.row b{display:block;font-size:14px}.row span{font-size:12px;color:var(--muted)}.badge{float:right;font-size:10px;padding:4px 7px;border-radius:12px;background:#e7efe9;color:var(--green)}
+.record{margin-top:14px}.recordHead{padding:18px;display:flex;justify-content:space-between;gap:15px}.recordHead h2{margin:0 0 4px}.recordHead p{margin:0;color:var(--muted);font-size:13px}.tabs{padding:0 13px 12px;border-bottom:1px solid var(--line);overflow:auto;white-space:nowrap}.tabbody{padding:18px}.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.fact{padding:13px;background:#f7f7f3;border-radius:10px}.fact b{display:block;margin-top:4px}.alerts{margin-top:15px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.alert{border:1px solid #ead7bd;background:#fff8ed;border-radius:9px;padding:11px;font-size:12px}.ok{background:#eef6f0;border-color:#cde1d2}.actions button{background:var(--green);color:#fff;border:0;border-radius:9px;padding:9px 12px;font-weight:700}
+@media(max-width:850px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.facts,.alerts{grid-template-columns:1fr 1fr}.search{width:45vw}.map{height:350px}}@media(max-width:520px){header{padding:13px}.brand span{display:none}.search{width:54vw}.cards{grid-template-columns:1fr 1fr}.metric{font-size:21px}.hero{display:block}.sync{display:inline-block;margin-top:10px}.facts,.alerts{grid-template-columns:1fr}.filters{display:none}main{padding:12px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div class="brand"><b>SODVILLE COMMAND</b><span>LAND</span></div><input class="search" placeholder="Search farm, field, landowner, FSA farm or tract…" oninput="filterList(this.value)"></div></header>
+<main>
+<section class="hero"><div><h1>Land</h1><p>The permanent record for every acre Sodville manages.</p></div><div class="sync">● Deere master data connected</div></section>
+<section class="cards">
+<div class="card"><div class="label">Managed land</div><div class="metric">—</div><div class="sub">Acreage will populate from Command</div></div>
+<div class="card"><div class="label">Active fields</div><div class="metric">118</div><div class="sub">John Deere master</div></div>
+<div class="card"><div class="label">Active farms</div><div class="metric">78</div><div class="sub">With active Deere fields</div></div>
+<div class="card"><div class="label">Clients</div><div class="metric">6</div><div class="sub">John Deere master</div></div>
+</section>
+<section class="grid">
+<div class="panel"><div class="ph"><h2>Land Map</h2><div class="filters"><button class="active">Farm</button><button>Lease</button><button>FSA</button><button>Crop</button></div></div>
+<div class="map"><div class="field f1" onclick="selectDemo('North 80')">North 80</div><div class="field f2" onclick="selectDemo('Home')">Home</div><div class="field f3" onclick="selectDemo('East')">East</div><div class="field f4" onclick="selectDemo('South')">South</div><div class="field f5" onclick="selectDemo('West')">West</div><div class="field f6" onclick="selectDemo('Ranch')">Ranch</div></div></div>
+<div class="panel"><div class="ph"><h2>Farms & Fields</h2><span style="font-size:12px;color:var(--muted)">Client → Farm → Field</span></div><div class="list" id="landList">
+<div class="row" onclick="selectDemo('North 80')"><span class="badge">Deere ✓</span><b>North 80</b><span>Sample Farm · Sample Client</span></div>
+<div class="row" onclick="selectDemo('Home')"><span class="badge">Deere ✓</span><b>Home</b><span>Sample Farm · Sample Client</span></div>
+<div class="row" onclick="selectDemo('East')"><span class="badge">Deere ✓</span><b>East</b><span>Sample Farm · Sample Client</span></div>
+<div class="row" onclick="selectDemo('South')"><span class="badge">Deere ✓</span><b>South</b><span>Sample Farm · Sample Client</span></div>
+<div class="row" onclick="selectDemo('West')"><span class="badge">Deere ✓</span><b>West</b><span>Sample Farm · Sample Client</span></div>
+<div class="row" onclick="selectDemo('Ranch')"><span class="badge">Deere ✓</span><b>Ranch</b><span>Sample Farm · Sample Client</span></div>
+</div></div>
+</section>
+<section class="panel record">
+<div class="recordHead"><div><div class="label">Land Record</div><h2 id="recordName">North 80</h2><p>Sample Client → Sample Farm → <span id="crumb">North 80</span></p></div><div class="actions"><button>Edit Land Record</button></div></div>
+<div class="tabs"><button class="active" onclick="tab(this,'overview')">Overview</button><button onclick="tab(this,'ownership')">Ownership</button><button onclick="tab(this,'lease')">Lease</button><button onclick="tab(this,'fsa')">FSA</button><button onclick="tab(this,'documents')">Documents</button><button onclick="tab(this,'history')">History</button></div>
+<div class="tabbody" id="tabbody"></div>
+</section>
+</main>
+<script>
+const bodies={
+overview:`<div class="facts"><div class="fact"><span class="label">Command acreage</span><b>Not entered</b></div><div class="fact"><span class="label">Land arrangement</span><b>Not classified</b></div><div class="fact"><span class="label">Landowner</span><b>Not assigned</b></div><div class="fact"><span class="label">FSA record</span><b>Not linked</b></div></div><div class="alerts"><div class="alert">Land profile needs ownership / lease classification.</div><div class="alert">FSA Farm / Tract / Field can be linked here.</div><div class="alert ok">John Deere master field connected ✓</div></div>`,
+ownership:`<h3>Ownership</h3><p>Landowner, ownership entity, mailing information, parcels and ownership documents will live here. Deere Client is intentionally kept separate from legal land ownership.</p>`,
+lease:`<h3>Lease & Control</h3><p>Classify this land as Owned, Cash Rent, Share Rent, Custom Farmed or Other. Store effective dates, expiration, rent/share terms, payment schedule and signed agreement.</p>`,
+fsa:`<h3>FSA</h3><div class="facts"><div class="fact"><span class="label">FSA Farm</span><b>—</b></div><div class="fact"><span class="label">Tract</span><b>—</b></div><div class="fact"><span class="label">FSA Field</span><b>—</b></div><div class="fact"><span class="label">FSA Acres</span><b>—</b></div></div><p>FSA identifiers remain separate from Deere IDs and link to the permanent Command field UUID.</p>`,
+documents:`<h3>Documents</h3><p>Leases, deeds, surveys, 578s, insurance acreage reports, rent correspondence and other land records will attach to the farm/field and crop year here.</p>`,
+history:`<h3>History & Audit Trail</h3><p>Important changes, approvals, acreage reconciliations and document events will be retained chronologically instead of overwriting history.</p>`
+};
+function tab(btn,key){document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('tabbody').innerHTML=bodies[key]}
+function selectDemo(name){document.getElementById('recordName').textContent=name;document.getElementById('crumb').textContent=name;document.querySelector('.record').scrollIntoView({behavior:'smooth',block:'start'})}
+function filterList(q){q=q.toLowerCase();document.querySelectorAll('#landList .row').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'block':'none')}
+document.getElementById('tabbody').innerHTML=bodies.overview;
+</script>
+</body></html>
