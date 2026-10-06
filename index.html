@@ -679,9 +679,9 @@ function tankMixRecipeText(m){
   return parts.join(' + ');
 }
 window.task=async()=>{if(!selected)return;let p=selected.feature.properties;
-  openModal(`<h2>Create task — ${p.FIELD_NAME}</h2><form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Task / operation<input name="name" required placeholder="e.g. Hooded spray, ProTill, cultivate…"></label><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><label class="wide">Notes<textarea name="notes"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
-  const type=$('#taskType'),wrap=$('#tankMixWrap'),sel=$('#tankMixSelect'),detail=$('#tankMixDetail');
-  const syncVisibility=()=>{wrap.style.display=type.value==='Application'?'block':'none'}; type.onchange=syncVisibility;syncVisibility();
+  openModal(`<h2>Create task — ${p.FIELD_NAME}</h2><form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><div class="wide" id="taskOperationWrap"><label>Task / operation<input name="name" id="taskOperation" placeholder="e.g. ProTill, cultivate, harvest…"></label></div><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><label class="wide">Notes<textarea name="notes"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
+  const type=$('#taskType'),wrap=$('#tankMixWrap'),opWrap=$('#taskOperationWrap'),op=$('#taskOperation'),sel=$('#tankMixSelect'),detail=$('#tankMixDetail');
+  const syncVisibility=()=>{const application=type.value==='Application';wrap.style.display=application?'block':'none';opWrap.style.display=application?'none':'block';op.required=!application}; type.onchange=syncVisibility;syncVisibility();
   try{
     const mixes=(await loadCommandTankMixes()).filter(m=>!m.archived).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
     sel.innerHTML='<option value="">Select tank mix…</option>'+mixes.map(m=>`<option value="${esc(m.id||m.deere_tank_mix_id)}">${esc(m.name)}</option>`).join('');
@@ -696,7 +696,7 @@ window.task=async()=>{if(!selected)return;let p=selected.feature.properties;
   $('#tsk').onsubmit=e=>{e.preventDefault();let x=Object.fromEntries(new FormData(e.target));
     if(x.type==='Application'&&!x.tankMixId){showToast('Select a tank mix.');return;}
     const m=(commandTankMixes||[]).find(v=>String(v.id||v.deere_tank_mix_id)===String(x.tankMixId));
-    if(m){x.tankMix={id:m.id||null,deereTankMixId:m.deere_tank_mix_id||null,name:m.name,solutionRate:m.solution_rate||null,solutionRateUnit:m.solution_rate_unit||null,components:m.components||[]};x.mix=m.name;}
+    if(m){x.tankMix={id:m.id||null,deereTankMixId:m.deere_tank_mix_id||null,name:m.name,solutionRate:m.solution_rate||null,solutionRateUnit:m.solution_rate_unit||null,components:m.components||[]};x.mix=m.name;x.name=m.name;}
     delete x.tankMixId;
     db.tasks.push({...x,id:crypto.randomUUID(),sessionId:active()?.id||null,fieldId:p.FIELD_ID,time:new Date().toISOString(),status:'Open',userId:currentUser()?.id,userName:currentUser()?.name});save();closeModal();refresh();
   };
