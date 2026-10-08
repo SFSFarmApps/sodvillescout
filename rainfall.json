@@ -3,7 +3,7 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-10-08T21:25:05.261983+00:00",
+  "updatedUtc": "2026-10-08T22:24:43.750520+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
@@ -1408,7 +1408,7 @@
         "lat": 28.169712
       },
       "rain1h": null,
-      "rain24h": 0.08,
+      "rain24h": 0.01,
       "rain48h": 0.08,
       "rain72h": 0.08,
       "rain7d": null,
