@@ -61,7 +61,8 @@
 })();
 </script>
 <div id="toast" style="display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#173b25;color:white;padding:12px 18px;border-radius:10px;z-index:5000;font-weight:700;box-shadow:0 4px 18px #0005"></div><div id="modal" class="modal hidden"><div class="card"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
-<script>window.SODVILLE_FIELDS = {
+<script src="./land/fields.js?build=1012-01"></script>
+  <script>window.SODVILLE_FIELDS = {
 "type": "FeatureCollection",
 "name": "fields",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
@@ -189,6 +190,7 @@
 ]
 }
 ;
+window.SODVILLE_FIELDS = window.SODVILLE_LAND_FIELDS || window.SODVILLE_FIELDS;    
 </script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
 let fields,selected,geoLayer,map;
 let multiFieldMode=false,multiSelectedFields=new Map();
