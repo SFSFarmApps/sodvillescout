@@ -239,6 +239,83 @@
   }
   installTimeEditor();
 
+  // Bulk urgency editing for selected outstanding tasks.
+  function installTaskUrgencyEditor() {
+    const complete = $('completeSelectedTasks');
+    if (!complete || $('changeTaskUrgencyBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'changeTaskUrgencyBtn';
+    btn.type = 'button';
+    btn.textContent = 'Urgency';
+    btn.disabled = true;
+    btn.style.cssText = 'padding:7px 10px;border:1px solid #b4c6b8;border-radius:7px;background:#f2f6ee;color:#173b25;font-weight:700;cursor:pointer';
+    complete.insertAdjacentElement('beforebegin', btn);
+
+    // Existing list redraws and checkbox changes invoke this updater.
+    const originalUpdate = window.updateTaskDeleteButton;
+    window.updateTaskDeleteButton = function (...args) {
+      if (typeof originalUpdate === 'function') originalUpdate.apply(this, args);
+      const count = document.querySelectorAll('.taskSelect:checked').length;
+      btn.disabled = count === 0;
+      btn.textContent = count ? 'Urgency (' + count + ')' : 'Urgency';
+    };
+    window.updateTaskDeleteButton();
+
+    const overlay = document.createElement('div');
+    overlay.hidden = true;
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.55);padding:16px;overflow:auto;display:none;align-items:flex-start;justify-content:center';
+    overlay.innerHTML = `
+      <section role="dialog" aria-modal="true" aria-label="Change task urgency" style="background:white;color:#173b25;border-radius:12px;padding:20px;max-width:400px;width:100%;margin:10vh auto;box-shadow:0 8px 35px #0004">
+        <h2 style="margin:0 0 10px;font-size:20px">Change Task Urgency</h2>
+        <p id="taskUrgencyCount" style="font-size:14px"></p>
+        <label style="display:block;margin:12px 0">New urgency
+          <select id="taskUrgencyValue" style="display:block;width:100%;padding:11px;margin-top:6px">
+            <option value="Urgent">Urgent — Red</option>
+            <option value="High">High — Yellow</option>
+            <option value="Normal" selected>Normal — Green</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+          <button id="taskUrgencyCancel" type="button" style="padding:11px 14px">Cancel</button>
+          <button id="taskUrgencySave" type="button" style="padding:11px 14px;background:#173b25;color:white;border-radius:7px">Update urgency</button>
+        </div>
+      </section>`;
+    document.body.appendChild(overlay);
+    let selectedIds = [];
+    const close = () => { overlay.hidden = true; overlay.style.display = 'none'; };
+    btn.addEventListener('click', () => {
+      selectedIds = Array.from(document.querySelectorAll('.taskSelect:checked'), el => el.dataset.taskId).filter(Boolean);
+      if (!selectedIds.length) return;
+      $('taskUrgencyCount').textContent = 'Update ' + selectedIds.length + ' selected task' + (selectedIds.length === 1 ? '' : 's') + '.';
+      overlay.hidden = false;
+      overlay.style.display = 'flex';
+    });
+    $('taskUrgencyCancel').addEventListener('click', close);
+    overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
+    $('taskUrgencySave').addEventListener('click', () => {
+      const priority = $('taskUrgencyValue').value;
+      if (!['Urgent','High','Normal','Low'].includes(priority)) return;
+      const ids = new Set(selectedIds.map(String));
+      let changed = 0;
+      for (const task of db.tasks || []) {
+        if (ids.has(String(task.id)) && !['Complete','Completed','Closed'].includes(task.status)) {
+          task.priority = priority;
+          changed++;
+        }
+      }
+      if (!changed) { close(); return; }
+      if (typeof save === 'function') save();
+      else localStorage.setItem('sodvilleScoutV1', JSON.stringify(db));
+      close();
+      if (typeof refresh === 'function') refresh();
+      if (typeof renderDashboard === 'function') renderDashboard();
+      schedule();
+    });
+  }
+  installTaskUrgencyEditor();
+
+
   window.sodvilleSyncChanged = schedule;
   window.sodvilleSyncNow = sync;
   window.addEventListener('online', sync);
