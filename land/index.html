@@ -50,7 +50,56 @@ function body(key,f){if(!f)return '<div class="empty">Select a field first.</div
 function selectField(f,zoom=false){selected=f;const x=p(f);document.getElementById('recordName').textContent=x.FIELD_NAME||'Field';document.getElementById('recordPath').textContent=normalizeClient(x.CLIENT_NAM)+' → '+x.FARM_NAME+' → '+x.FIELD_NAME;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab==='overview'));document.getElementById('tabbody').innerHTML=overview(f);document.querySelectorAll('.row').forEach(r=>r.classList.toggle('active',r.dataset.id===String(fieldId(f))));const lyr=layerById.get(String(fieldId(f)));if(lyr){lyr.openPopup();if(zoom)map.fitBounds(lyr.getBounds(),{padding:[35,35],maxZoom:15})}}
 function renderList(list){const root=document.getElementById('landList');root.innerHTML='';const groups={};list.forEach(f=>{const c=normalizeClient(p(f).CLIENT_NAM)||'Unassigned';(groups[c]??=[]).push(f)});Object.keys(groups).sort().forEach(c=>{const h=document.createElement('div');h.className='clientHead';h.textContent=c;root.appendChild(h);groups[c].sort((a,b)=>(p(a).FARM_NAME+' '+p(a).FIELD_NAME).localeCompare(p(b).FARM_NAME+' '+p(b).FIELD_NAME)).forEach(f=>{const x=p(f),r=document.createElement('div');r.className='row';r.dataset.id=String(fieldId(f));r.innerHTML='<span class="acre">'+Number(x.ACRES||0).toFixed(1)+' ac</span><b>'+esc(x.FIELD_NAME)+'</b><span>'+esc(x.FARM_NAME)+'</span>';r.onclick=()=>selectField(f,true);root.appendChild(r)})});document.getElementById('listCount').textContent=list.length+' mapped fields'}
 function loadGeo(fc){features=fc.features||[];const acres=features.reduce((a,f)=>a+(Number(p(f).ACRES)||0),0);document.getElementById('acreMetric').textContent=acres.toLocaleString(undefined,{maximumFractionDigits:1});renderList(features);geoLayer=L.geoJSON(fc,{style:()=>({color:'#fff',weight:1.3,fillColor:'#2d6b43',fillOpacity:.58}),onEachFeature:(f,l)=>{layerById.set(String(fieldId(f)),l);const x=p(f);l.bindPopup('<div class="popTitle">'+esc(x.FIELD_NAME)+'</div><div class="popMeta">'+esc(normalizeClient(x.CLIENT_NAM))+' → '+esc(x.FARM_NAME)+'<br>'+Number(x.ACRES||0).toFixed(1)+' acres</div><button class="popBtn">Open Land Record</button>');l.on('popupopen',e=>{const b=e.popup.getElement()?.querySelector('.popBtn');if(b)b.onclick=()=>{selectField(f,false);document.getElementById('record').scrollIntoView({behavior:'smooth'})}});l.on('click',()=>selectField(f,false))}}).addTo(map);map.fitBounds(geoLayer.getBounds(),{padding:[15,15]});document.getElementById('mapStatus').textContent=features.length+' Field Scout boundary polygons'}
-function init(){try{if(!window.SODVILLE_LAND_FIELDS)throw Error('Land boundary data not loaded');loadGeo(window.SODVILLE_LAND_FIELDS)}catch(e){document.getElementById('mapStatus').textContent='Boundary load failed';document.getElementById('landList').innerHTML='<div class="empty" style="padding:18px">Could not load the Sodville Land boundary layer. Refresh the page.</div>';console.error(e)}}
+async function init(){
+  try {
+    const response = await fetch(
+      'https://sodville-command-api.onrender.com/api/command/fields/geojson'
+    );
+
+    if (!response.ok) {
+      throw new Error('Command API returned ' + response.status);
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data.features) || data.features.length !== 116) {
+      throw new Error('Unexpected field count from Command');
+    }
+
+    const converted = {
+      type: 'FeatureCollection',
+      features: data.features.map(f => ({
+        ...f,
+        properties: {
+          ...f.properties,
+          FIELD_ID: f.properties.fieldId,
+          FIELD_NAME: f.properties.fieldName,
+          FARM_ID: f.properties.farmId,
+          FARM_NAME: f.properties.farmName,
+          CLIENT_ID: f.properties.clientId,
+          CLIENT_NAM: f.properties.clientName,
+          ACRES: f.properties.areaAcres
+        }
+      }))
+    };
+
+    loadGeo(converted);
+    document.getElementById('mapStatus').textContent =
+      '116 fields • Live Sodville Command boundaries';
+
+  } catch (error) {
+    console.warn('Command connection failed; using backup boundaries.', error);
+
+    if (window.SODVILLE_LAND_FIELDS) {
+      loadGeo(window.SODVILLE_LAND_FIELDS);
+      document.getElementById('mapStatus').textContent =
+        'Showing backup boundaries • Command unavailable';
+    } else {
+      document.getElementById('mapStatus').textContent =
+        'Boundary load failed';
+    }
+  }
+}
 document.getElementById('search').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();renderList(!q?features:features.filter(f=>{const x=p(f);return [normalizeClient(x.CLIENT_NAM),x.FARM_NAME,x.FIELD_NAME].join(' ').toLowerCase().includes(q)}))});
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('tabbody').innerHTML=body(b.dataset.tab,selected)});
 init();
