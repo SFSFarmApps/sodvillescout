@@ -260,6 +260,23 @@
       btn.textContent = count ? 'Urgency (' + count + ')' : 'Urgency';
     };
     window.updateTaskDeleteButton();
+    // Existing task checkboxes were bound before this script loaded.
+    // Observe checkbox changes directly so the new button always updates.
+    document.addEventListener('change', event => {
+      if (event.target && event.target.matches('.taskSelect')) {
+        window.updateTaskDeleteButton();
+      }
+    }, true);
+    // Re-check after list redraws, including changes from remote sync.
+    const taskList = $('taskList');
+    if (taskList) {
+      const observer = new MutationObserver(() => {
+        const count = taskList.querySelectorAll('.taskSelect:checked').length;
+        btn.disabled = count === 0;
+        btn.textContent = count ? 'Urgency (' + count + ')' : 'Urgency';
+      });
+      observer.observe(taskList, {childList:true,subtree:true});
+    }
 
     const overlay = document.createElement('div');
     overlay.hidden = true;
