@@ -22,7 +22,7 @@
     if (!el) {
       el = document.createElement('small');
       el.id = 'sodvilleSyncStatus';
-      el.style.cssText = 'display:block;padding:3px 10px;font-size:11px;color:#31583a';
+      el.style.cssText = 'display:block;padding:3px 10px;font-size:11px;color:#f0f8ed';
       (document.querySelector('header') || document.body).appendChild(el);
     }
     el.textContent = message;
@@ -118,6 +118,127 @@
     if (scheduled) clearTimeout(scheduled);
     scheduled = setTimeout(() => { scheduled = null; sync(); }, 1200);
   }
+
+  // Editable scouting time records. This augments the existing timer without
+  // replacing the original Start / End Scouting Day workflow.
+  function installTimeEditor() {
+    const timer = $('sessionBtn');
+    if (!timer || $('editScoutTimeBtn')) return;
+    const editBtn = document.createElement('button');
+    editBtn.id = 'editScoutTimeBtn';
+    editBtn.type = 'button';
+    editBtn.textContent = 'Edit Scouting Time';
+    editBtn.style.cssText = 'font-size:12px;padding:9px 10px;min-height:40px;background:#f2f6ee;color:#173b25;border:1px solid #b4c6b8;border-radius:8px;cursor:pointer';
+    timer.insertAdjacentElement('afterend', editBtn);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'scoutTimeEditor';
+    overlay.hidden = true;
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);padding:16px;overflow:auto;display:none;align-items:flex-start;justify-content:center';
+    overlay.innerHTML = `
+      <section role="dialog" aria-modal="true" aria-label="Edit scouting time" style="background:white;color:#173b25;border-radius:12px;padding:20px;max-width:440px;width:100%;margin:7vh auto;box-shadow:0 8px 35px #0004">
+        <h2 style="margin:0 0 8px;font-size:20px">Edit Scouting Time</h2>
+        <p style="font-size:13px;margin:0 0 14px">Correct a missed clock-out or an incorrect start/end time. Changes are saved and synchronized.</p>
+        <label style="display:block;margin-bottom:12px">Scouting session
+          <select id="scoutTimeSessionSelect" style="display:block;width:100%;padding:10px;margin-top:5px"></select>
+        </label>
+        <label style="display:block;margin-bottom:12px">Start date and time
+          <input id="scoutTimeStartInput" type="datetime-local" step="60" style="display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:5px">
+        </label>
+        <label style="display:block;margin-bottom:12px">End date and time
+          <input id="scoutTimeEndInput" type="datetime-local" step="60" style="display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:5px">
+        </label>
+        <p id="scoutTimeEditorHelp" style="font-size:12px;color:#596c5d">For a session still running, enter the time you actually stopped working.</p>
+        <p id="scoutTimeEditorError" role="alert" style="font-size:13px;color:#a32020;min-height:1em"></p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+          <button id="scoutTimeCancel" type="button" style="padding:11px 14px">Cancel</button>
+          <button id="scoutTimeSave" type="button" style="padding:11px 14px;background:#173b25;color:white;border-radius:7px">Save corrected time</button>
+        </div>
+      </section>`;
+    document.body.appendChild(overlay);
+
+    const select = $('scoutTimeSessionSelect');
+    const startInput = $('scoutTimeStartInput');
+    const endInput = $('scoutTimeEndInput');
+    const error = $('scoutTimeEditorError');
+    const asLocal = value => {
+      if (!value) return '';
+      const d = new Date(value);
+      if (!Number.isFinite(d.getTime())) return '';
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 16);
+    };
+    const display = value => new Date(value).toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+    const currentSessions = () => {
+      const id = db.currentUserId || (typeof currentUser === 'function' ? currentUser()?.id : '');
+      return (db.sessions || []).filter(s => s && (s.userId === id || (!s.userId && id === 'default-andrew')))
+        .sort((a,b) => new Date(b.start) - new Date(a.start));
+    };
+    const populate = () => {
+      const sessions = currentSessions();
+      select.replaceChildren();
+      for (const session of sessions) {
+        const option = document.createElement('option');
+        option.value = session.id;
+        option.textContent = display(session.start) + (session.end ? ' — ' + display(session.end) : ' — STILL RUNNING');
+        select.appendChild(option);
+      }
+      const hasSessions = sessions.length > 0;
+      $('scoutTimeSave').disabled = !hasSessions;
+      if (!hasSessions) {
+        const option = document.createElement('option');
+        option.textContent = 'No sessions for this scout';
+        select.appendChild(option);
+      }
+      loadSelected();
+    };
+    const loadSelected = () => {
+      const session = (db.sessions || []).find(s => s.id === select.value);
+      startInput.value = session ? asLocal(session.start) : '';
+      endInput.value = session ? asLocal(session.end) : '';
+      $('scoutTimeEditorHelp').textContent = session && !session.end
+        ? 'This session is still running. Enter the time you actually finished to clock out retroactively.'
+        : 'You can correct either time. Both are required to save.';
+      error.textContent = '';
+    };
+    editBtn.addEventListener('click', () => {
+      populate();
+      overlay.hidden = false;
+      overlay.style.display = 'flex';
+    });
+    select.addEventListener('change', loadSelected);
+    const close = () => { overlay.hidden = true; overlay.style.display = 'none'; };
+    $('scoutTimeCancel').addEventListener('click', close);
+    overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
+    $('scoutTimeSave').addEventListener('click', () => {
+      const session = (db.sessions || []).find(s => s.id === select.value);
+      if (!session) { error.textContent = 'Choose a scouting session.'; return; }
+      const start = new Date(startInput.value);
+      const end = new Date(endInput.value);
+      if (!startInput.value || !endInput.value || !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+        error.textContent = 'Enter valid start and end times.'; return;
+      }
+      if (end <= start) { error.textContent = 'End time must be after start time.'; return; }
+      if (end.getTime() > Date.now() + 60000) { error.textContent = 'End time cannot be in the future.'; return; }
+      const other = currentSessions().filter(s => s.id !== session.id);
+      if (other.some(s => {
+        const a = new Date(s.start).getTime();
+        const b = s.end ? new Date(s.end).getTime() : Date.now();
+        return start.getTime() < b && end.getTime() > a;
+      })) { error.textContent = 'These times overlap another scouting session. Check the dates and times.'; return; }
+      session.start = start.toISOString();
+      session.end = end.toISOString();
+      session.timeEditedAt = new Date().toISOString();
+      if (typeof save === 'function') save();
+      else localStorage.setItem('sodvilleScoutV1', JSON.stringify(db));
+      if (typeof refresh === 'function') refresh();
+      if (typeof renderDashboard === 'function') renderDashboard();
+      close();
+      schedule();
+    });
+  }
+  installTimeEditor();
+
   window.sodvilleSyncChanged = schedule;
   window.sodvilleSyncNow = sync;
   window.addEventListener('online', sync);
