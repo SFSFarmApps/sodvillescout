@@ -67,10 +67,9 @@ const unitConversions={
  'l':[0.26417205236,'gal',2],
  'L':[0.26417205236,'gal',2],
  'm3':[35.31466672,'ft³',1],
- // Grain yield volume: 1 US dry bushel = 0.03523907016688 m³.
- // Deere's [m3]1ha-1 harvest volume converts directly to volumetric bu/ac;
- // no crop density, moisture adjustment, or weight-based assumption is made.
- '[m3]1ha-1':[HA_PER_ACRE/0.03523907016688,'bu/ac',1],
+ // Grain sorghum display: Deere harvest volume (m³/ha) -> US dry bu/ac -> lb/ac.
+ // Assumes 56 lb per US dry bushel; this is a display conversion, not measured mass.
+ '[m3]1ha-1':[HA_PER_ACRE/0.03523907016688*56,'lbs/ac',0],
  'cel':[1,'°F',1],
  'degC':[1,'°F',1]
 };
