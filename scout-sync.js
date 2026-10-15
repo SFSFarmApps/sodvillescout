@@ -4,7 +4,7 @@
   'use strict';
   const API = 'https://sodville-command-api.onrender.com/api/scout/sync';
   const LEDGER_KEY = 'sodvilleScoutSyncLedgerV1';
-  const KINDS = ['users', 'sessions', 'tasks', 'observations', 'geoMarks'];
+  const KINDS = ['users', 'sessions', 'tasks', 'observations', 'geoMarks', 'laborLogs'];
   const $ = id => document.getElementById(id);
   let ledger;
   try { ledger = JSON.parse(localStorage.getItem(LEDGER_KEY) || '{}'); }
@@ -41,7 +41,7 @@
         }
       }
       // Deleted records use tombstones. Do not delete employee sessions.
-      if (kind !== 'sessions' && kind !== 'users') {
+      if (kind !== 'sessions' && kind !== 'users' && kind !== 'laborLogs') {
         for (const id of Object.keys(ledger[kind])) {
           if (!existing.has(id) && ledger[kind][id] !== null) {
             changes.push({ kind, id, data: { id }, deleted: true });
