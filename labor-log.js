@@ -34,10 +34,10 @@
   function speak(message) {
     if(!('speechSynthesis' in window))return false;
     // iOS standalone web apps can hang while acquiring speech audio. Keep playback opt-in.
-    if(isIOS){$('laborError').textContent='On iPhone, use the on-screen review; spoken playback may be unavailable.';return false}
+    // Spoken readback is initiated only by a user tap on iPhone.
     window.speechSynthesis.cancel();
     const utterance=new SpeechSynthesisUtterance(message);
-    utterance.rate=.93;window.speechSynthesis.speak(utterance);return true;
+    utterance.lang='en-US';utterance.rate=.93;window.speechSynthesis.speak(utterance);return true;
   }
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   function listen(onText,onError) {
@@ -106,7 +106,7 @@
       <p id="laborWarning" style="color:#854d0e;font-size:12px"></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button type="button" id="laborReadBack">🔊 Read back</button>
-        <button type="button" id="laborListenApprove">🎙 Say approve</button>
+        <button type="button" id="laborListenApprove">🎙 Speak save or edit</button>
         <button type="button" id="laborEdit">Edit</button>
         <button type="button" id="laborApprove" style="background:#173b25;color:white;font-weight:800">Approve & save</button>
       </div>
@@ -292,13 +292,13 @@
     return null;
   }
   function taskEditor(items,date,source){
-    extracted=items.map(x=>({...x}));
-    $('laborDate').value=date||'';
+    extracted=items.map(x=>({...x,date:x.date||date||''}));
+    $('laborDate').value=date||items[0]?.date||'';
     const root=$('laborParsedTasks');root.replaceChildren();
     $('laborReview').textContent='Continue to review & save →';
     $('laborContinue').hidden=false;$('laborContinue').style.display='block';
     const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
-    head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+items.length+' task(s). Check the work date and each activity. Enter any missing start/end times, then tap Continue to review & save below.';
+    head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+items.length+' task(s). Dates and times spoken in your dictation are filled in automatically. Correct anything inaccurate, then tap Continue to review & save.';
     root.appendChild(head);
     extracted.forEach((task,i)=>{
       const panel=document.createElement('div');panel.style.cssText='border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
@@ -308,6 +308,7 @@
       for(const c of CATEGORIES){const opt=document.createElement('option');opt.textContent=c;opt.value=c;category.appendChild(opt)}
       category.value=CATEGORIES.includes(task.category)?task.category:'Other';task.category=category.value;
       category.onchange=()=>task.category=category.value;panel.appendChild(category);
+      const dateLabel=document.createElement('label');dateLabel.style.cssText='display:block;font-size:12px;margin:6px 0';dateLabel.textContent='Work date';const dateInput=document.createElement('input');dateInput.type='date';dateInput.value=task.date||'';dateInput.style.cssText='display:block;width:100%';dateInput.onchange=()=>task.date=dateInput.value;dateLabel.appendChild(dateInput);panel.appendChild(dateLabel);
       const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:7px';
       const makeTime=(label,key)=>{const wrap=document.createElement('label');wrap.style.fontSize='12px';wrap.textContent=label;const input=document.createElement('input');input.type='time';input.style.width='100%';input.value=task[key]||'';input.onchange=()=>task[key]=input.value;wrap.appendChild(input);return wrap};
       grid.append(makeTime('Start time','startTime'),makeTime('End time','endTime'));panel.appendChild(grid);
@@ -338,19 +339,20 @@
     const text=$('laborNotes').value.trim();
     if(!extracted.length){await interpret();return}
     const date=$('laborDate').value;
-    if(!date){$('laborError').textContent='What date did you perform this work? Enter it above.';return}
+    if(extracted.some(x=>!(x.date||date))){$('laborError').textContent='Please enter the missing work date for each task.';return}
     if(extracted.some(x=>!x.description?.trim()||!x.startTime||!x.endTime)){
       $('laborError').textContent='Each task needs its description, actual start time, and finish time. Complete the missing details above.';return;
     }
     const drafts=[];
     for(const task of extracted){
-      const start=new Date(date+'T'+task.startTime),end=new Date(date+'T'+task.endTime);
+      const taskDate=task.date||date;
+      const start=new Date(taskDate+'T'+task.startTime),end=new Date(taskDate+'T'+task.endTime);
       if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start||end>Date.now()+60000||end-start>86400000){
         $('laborError').textContent='Check the start and finish times for '+task.description+'. Times must be valid, in the past, and in order.';return;
       }
       const overlap=currentLogs().filter(x=>x.approvedAt).some(x=>{const r=range(x);return r&&+start<r[1]&&+end>r[0]});
       if(overlap){$('laborError').textContent='This time overlaps an already approved labor entry. Correct the time before approval.';return}
-      drafts.push({id:crypto.randomUUID(),userId:user().id,userName:user().name,category:task.category,notes:task.description.trim(),start:start.toISOString(),end:end.toISOString(),workDate:date,sourceNarrative:text});
+      drafts.push({id:crypto.randomUUID(),userId:user().id,userName:user().name,category:task.category,notes:task.description.trim(),start:start.toISOString(),end:end.toISOString(),workDate:taskDate,sourceNarrative:text});
     }
     const sorted=[...drafts].sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
     if(sorted.some((x,i)=>i>0&&Date.parse(x.start)<Date.parse(sorted[i-1].end))){
@@ -364,11 +366,12 @@
     }).join('\n\n');
     $('laborWarning').textContent='Only approve if every activity, date, and time is correct. Scouting overlaps are excluded from additional labor totals.';
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
-    if(!isIOS)speak(spoken);
+    $('laborReadBack').textContent='🔊 Read results aloud';
+    $('laborError').textContent='Review the entries below. Tap Read results aloud to hear them, then say Save or Edit, or use the buttons.';
   };
   $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none'});
   $('laborReadBack').onclick=()=>speak(spoken);
-  if(isIOS){$('laborReadBack').textContent='Review text above';$('laborReadBack').onclick=()=>{$('laborSummary').scrollIntoView({block:'nearest'});};$('laborListenApprove').textContent='Approve using button';$('laborListenApprove').onclick=()=>{$('laborError').textContent='Tap Approve & save after reviewing the details.'};}
+
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
   function approve(){
     if(!Array.isArray(draft)||!draft.length)return;
@@ -383,7 +386,7 @@
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
   }
   $('laborApprove').onclick=approve;
-  if(!isIOS)$('laborListenApprove').onclick=()=>{
+  $('laborListenApprove').onclick=()=>{
     $('laborError').textContent='Listening for “approve” or “edit”…';
     listen(text=>{
       const cmd=text.toLowerCase().trim();
