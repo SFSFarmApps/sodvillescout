@@ -75,12 +75,12 @@
     <div id="laborForm">
       <label style="display:block;margin:10px 0">Activity
         <select id="laborCategory" style="display:block;width:100%;margin-top:5px">
-          <option>Equipment Management</option><option>Employee Management</option><option>Field Work</option>
+          <option value="" selected>Choose after dictation</option><option>Equipment Management</option><option>Employee Management</option><option>Field Work</option>
           <option>Marketing</option><option>Financial Management</option><option>Landowner Relations</option>
           <option>FSA Compliance</option><option>Cattle Management</option><option>Office / Administration</option><option>Other</option>
         </select>
       </label>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
+      <label style="display:block;margin:10px 0">Work date (from dictation, or enter it)<input type="date" id="laborDate" style="display:block;width:100%;margin-top:5px"></label>\n      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
         <label>Started<input type="datetime-local" id="laborStart" style="display:block;width:100%;margin-top:5px"></label>
         <label>Finished<input type="datetime-local" id="laborEnd" style="display:block;width:100%;margin-top:5px"></label>
       </div>
@@ -89,7 +89,7 @@
       </label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
         <button type="button" id="laborDictate">🎙 Dictate notes</button>
-        <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">Review time</button>
+        <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">✨ Interpret & review dictation</button>
       </div>
     </div>
     <div id="laborReviewPanel" hidden style="border:1px solid #bdd3c2;background:#f2f8f2;border-radius:10px;padding:12px">
@@ -121,9 +121,9 @@
   function open() {
     const u=user();if(!u){alert('Select a scout first.');return}
     $('laborWho').textContent='Scout: '+u.name;
-    $('laborStart').value=localTime(Date.now()-3600000);
-    $('laborEnd').value=localTime(Date.now());
-    $('laborNotes').value='';$('laborCategory').value='Equipment Management';
+    $('laborStart').value='';
+    $('laborEnd').value='';
+    $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
     $('laborError').textContent=isIOS?'For dictation, tap Dictate notes, then use the microphone on the iPhone keyboard.':'';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     draft=null;history();overlay.style.display='block';
   }
@@ -134,40 +134,131 @@
     $('laborError').textContent=isIOS?'Tap the microphone on the iPhone keyboard to dictate.':'Listening for your description…';
     listen(text=>{$('laborNotes').value=($('laborNotes').value+' '+text).trim();$('laborError').textContent='Dictation captured. Review the wording and times.'},m=>$('laborError').textContent=m);
   };
-  $('laborReview').onclick=()=>{
-    const start=new Date($('laborStart').value).getTime(),end=new Date($('laborEnd').value).getTime();
-    if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){$('laborError').textContent='Enter valid start and finish times.';return}
-    if(end>Date.now()+60000){$('laborError').textContent='Finish time cannot be in the future.';return}
-    if(end-start>24*3600000){$('laborError').textContent='A single entry cannot exceed 24 hours. Split the work into separate entries.';return}
-    if(!user()?.id){$('laborError').textContent='Select a scout first.';return}
-    const overlaps=currentLogs().filter(x=>x.approvedAt).some(x=>{const r=range(x);return r&&start<r[1]&&end>r[0]});
-    if(overlaps){$('laborError').textContent='This time overlaps another approved labor entry. Edit the times to avoid double-counting.';return}
-    const category=$('laborCategory').value,notes=$('laborNotes').value.trim();
-    if(!notes){$('laborError').textContent='Describe the work completed before approval.';return}
-    const t=totals(start,end);
-    draft={id:crypto.randomUUID(),userId:user().id,userName:user().name,category,notes,start:new Date(start).toISOString(),end:new Date(end).toISOString()};
-    spoken=category+' for '+user().name+'. From '+fmt(draft.start)+' to '+fmt(draft.end)+'. '+notes+
-      '. Total '+hours(t.gross)+' hours. '+hours(t.overlap)+' hours overlap the scouting timer. Additional labor '+hours(t.additional)+' hours. Say approve or press Approve and save.';
-    $('laborSummary').textContent=category+' — '+fmt(draft.start)+' to '+fmt(draft.end)+'\n'+notes+
-      '\nGross: '+hours(t.gross)+' hr | Scouting overlap: '+hours(t.overlap)+' hr | Additional: '+hours(t.additional)+' hr';
-    $('laborWarning').textContent=t.overlap?'Scouting overlap is excluded from additional labor totals.':'No scouting overlap found for this time interval.';
+
+  const CATEGORIES=['Equipment Management','Employee Management','Field Work','Marketing','Financial Management','Landowner Relations','FSA Compliance','Cattle Management','Office / Administration','Other'];
+  let extracted=[];
+  const isoDate=d=>{const x=new Date(d);return new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+  function localInterpret(text) {
+    const lower=text.toLowerCase(),now=new Date(),today=isoDate(now);
+    let date=null;
+    if(/\\btoday\\b/.test(lower))date=today;
+    else if(/\\byesterday\\b/.test(lower))date=isoDate(now.getTime()-86400000);
+    else {
+      const numeric=lower.match(/\\b(\\d{1,2})[\\/.-](\\d{1,2})(?:[\\/.-](\\d{2,4}))?\\b/);
+      if(numeric){let y=numeric[3]?Number(numeric[3]):now.getFullYear();if(y<100)y+=2000;const m=Number(numeric[1]),d=Number(numeric[2]);if(m>=1&&m<=12&&d>=1&&d<=31){const test=new Date(y,m-1,d);if(test.getMonth()===m-1&&test.getDate()===d)date=isoDate(test)}}
+    }
+    const groups=text.split(/(?:\\s+then\\s+|;|\\.\\s+|\\s+after that\\s+|\\s+and then\\s+)/i).map(x=>x.trim()).filter(Boolean);
+    const tasks=groups.map(segment=>{
+      const l=segment.toLowerCase();
+      let category='Other';
+      if(/repair|mechanic|tractor|sprayer|combine|picker|equipment|maintenance|greas|service truck/.test(l))category='Equipment Management';
+      else if(/employee|crew|hiring|workers|staff|payroll|meeting with/.test(l))category='Employee Management';
+      else if(/plant|plow|spray|harvest|field work|cultivat|tillage|leveling/.test(l))category='Field Work';
+      else if(/grain sale|cotton sale|market|hedg|contract price/.test(l))category='Marketing';
+      else if(/account|budget|invoice|bank|financial|bill|bookkeep/.test(l))category='Financial Management';
+      else if(/landowner|rent|lease|landlord/.test(l))category='Landowner Relations';
+      else if(/fsa|farm service agency|compliance|acreage report/.test(l))category='FSA Compliance';
+      else if(/cattle|cow|calv|pasture|fenc|graz/.test(l))category='Cattle Management';
+      else if(/office|paperwork|email|admin/.test(l))category='Office / Administration';
+      const duration=l.match(/\\b(?:for|about|roughly|approximately)\\s+(\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?|mins?)\\b/);
+      const minutes=duration?Math.round(Number(duration[1])*(duration[2].startsWith('h')?60:1)):null;
+      return {category,description:segment,startTime:null,endTime:null,durationMinutes:minutes};
+    });
+    return {source:'local',date,tasks,questions:[]};
+  }
+  function timeFromNarrative(text,date) {
+    // No inferred start or end times. Explicit manual inputs remain authoritative.
+    const a=$('laborStart').value,b=$('laborEnd').value;
+    if(a&&b)return {start:new Date(a),end:new Date(b)};
+    return null;
+  }
+  function taskEditor(items,date,source){
+    extracted=items.map(x=>({...x}));
+    $('laborDate').value=date||'';
+    const root=$('laborParsedTasks');root.replaceChildren();
+    const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
+    head.textContent=(source==='ai'?'AI extracted':'Local extraction')+' '+items.length+' task(s). Check every activity, date, and time. Missing information must be entered before approval.';
+    root.appendChild(head);
+    extracted.forEach((task,i)=>{
+      const panel=document.createElement('div');panel.style.cssText='border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
+      const title=document.createElement('b');title.textContent='Task '+(i+1);panel.appendChild(title);
+      const description=document.createElement('textarea');description.rows=2;description.value=task.description||'';description.style.cssText='display:block;width:100%;margin:6px 0';description.setAttribute('aria-label','Task '+(i+1)+' description');description.oninput=()=>task.description=description.value;panel.appendChild(description);
+      const category=document.createElement('select');category.style.cssText='display:block;width:100%;margin:6px 0';
+      for(const c of CATEGORIES){const opt=document.createElement('option');opt.textContent=c;opt.value=c;category.appendChild(opt)}
+      category.value=CATEGORIES.includes(task.category)?task.category:'Other';task.category=category.value;
+      category.onchange=()=>task.category=category.value;panel.appendChild(category);
+      const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:7px';
+      const makeTime=(label,key)=>{const wrap=document.createElement('label');wrap.style.fontSize='12px';wrap.textContent=label;const input=document.createElement('input');input.type='time';input.style.width='100%';input.value=task[key]||'';input.onchange=()=>task[key]=input.value;wrap.appendChild(input);return wrap};
+      grid.append(makeTime('Start time','startTime'),makeTime('End time','endTime'));panel.appendChild(grid);
+      if(task.durationMinutes&&!task.startTime) {const hint=document.createElement('small');hint.textContent='Dictated duration: '+task.durationMinutes+' minutes. Enter the actual start and finish times.';panel.appendChild(hint)}
+      root.appendChild(panel);
+    });
+  }
+  async function interpret() {
+    const text=$('laborNotes').value.trim();
+    if(text.length<8){$('laborError').textContent='Dictate what you did, including the date and times if you know them.';return}
+    const button=$('laborReview');button.disabled=true;button.textContent='Interpreting…';
+    $('laborError').textContent='';
+    let result=null;
+    try{
+      const response=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/interpret',{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({narrative:text,now:new Date().toISOString()}),signal:AbortSignal.timeout(15000)});
+      if(response.ok)result=await response.json();
+    }catch(error){console.warn('Labor AI extraction unavailable:',error)}
+    finally{button.disabled=false;button.textContent='✨ Interpret & review dictation'}
+    if(!result){result=localInterpret(text);$('laborError').textContent='AI service is not available yet; local task extraction is shown. Review and complete missing details.'}
+    taskEditor(result.tasks||[],result.date,result.source);
+    if(!result.tasks?.length){$('laborError').textContent='No tasks detected. Describe the work and try again.';return}
+    if(result.questions?.length)$('laborError').textContent=result.questions.join(' ');
+    $('laborParsedTasks').scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+  $('laborReview').onclick=async()=>{
+    const text=$('laborNotes').value.trim();
+    if(!extracted.length){await interpret();return}
+    const date=$('laborDate').value;
+    if(!date){$('laborError').textContent='What date did you perform this work? Enter it above.';return}
+    if(extracted.some(x=>!x.description?.trim()||!x.startTime||!x.endTime)){
+      $('laborError').textContent='Each task needs its description, actual start time, and finish time. Complete the missing details above.';return;
+    }
+    const drafts=[];
+    for(const task of extracted){
+      const start=new Date(date+'T'+task.startTime),end=new Date(date+'T'+task.endTime);
+      if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start||end>Date.now()+60000||end-start>86400000){
+        $('laborError').textContent='Check the start and finish times for '+task.description+'. Times must be valid, in the past, and in order.';return;
+      }
+      const overlap=currentLogs().filter(x=>x.approvedAt).some(x=>{const r=range(x);return r&&+start<r[1]&&+end>r[0]});
+      if(overlap){$('laborError').textContent='This time overlaps an already approved labor entry. Correct the time before approval.';return}
+      drafts.push({id:crypto.randomUUID(),userId:user().id,userName:user().name,category:task.category,notes:task.description.trim(),start:start.toISOString(),end:end.toISOString(),workDate:date,sourceNarrative:text});
+    }
+    const sorted=[...drafts].sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
+    if(sorted.some((x,i)=>i>0&&Date.parse(x.start)<Date.parse(sorted[i-1].end))){
+      $('laborError').textContent='Two tasks overlap. Correct their times before approval.';return;
+    }
+    draft=drafts;
+    spoken='Review '+drafts.length+' activities. '+drafts.map(x=>x.category+'. '+x.notes+'. '+fmt(x.start)+' to '+fmt(x.end)).join('. ');
+    $('laborSummary').textContent=drafts.map((x,i)=>{
+      const r=range(x),t=totals(...r);
+      return (i+1)+'. '+x.category+' — '+x.notes+'\n'+fmt(x.start)+' to '+fmt(x.end)+'\nGross '+hours(t.gross)+' hr | Scouting overlap '+hours(t.overlap)+' hr | Additional '+hours(t.additional)+' hr';
+    }).join('\n\n');
+    $('laborWarning').textContent='Only approve if every activity, date, and time is correct. Scouting overlaps are excluded from additional labor totals.';
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
     if(!isIOS)speak(spoken);
   };
+  $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren()});
   $('laborReadBack').onclick=()=>speak(spoken);
   if(isIOS){$('laborReadBack').textContent='Review text above';$('laborReadBack').onclick=()=>{$('laborSummary').scrollIntoView({block:'nearest'});};$('laborListenApprove').textContent='Approve using button';$('laborListenApprove').onclick=()=>{$('laborError').textContent='Tap Approve & save after reviewing the details.'};}
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
   function approve(){
-    if(!draft)return;
+    if(!Array.isArray(draft)||!draft.length)return;
     const u=user();
-    if(!u||u.id!==draft.userId){$('laborError').textContent='The selected scout changed. Review this entry again.';return}
+    if(!u||draft.some(x=>x.userId!==u.id)){$('laborError').textContent='Selected scout changed. Review again.';return}
     const now=new Date().toISOString();
-    db.laborLogs.push({...draft,approvedAt:now,createdAt:now,revision:1});
-    save();history();$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
-    $('laborNotes').value='';$('laborStart').value=localTime(Date.now()-3600000);$('laborEnd').value=localTime(Date.now());
-    $('laborError').style.color='#176333';$('laborError').textContent='Approved and saved. Synchronization will run automatically.';
+    for(const item of draft)db.laborLogs.push({...item,approvedAt:now,createdAt:now,revision:1});
+    const count=draft.length;save();history();$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
+    $('laborNotes').value='';$('laborStart').value='';$('laborEnd').value='';$('laborDate').value='';$('laborCategory').value='';
+    $('laborParsedTasks').replaceChildren();extracted=[];draft=null;
+    $('laborError').style.color='#176333';$('laborError').textContent=count+' approved labor activities saved. Synchronization will run automatically.';
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
-    draft=null;
   }
   $('laborApprove').onclick=approve;
   if(!isIOS)$('laborListenApprove').onclick=()=>{
