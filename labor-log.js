@@ -166,8 +166,8 @@
       const name='Sodville-Labor-Log-'+$('laborExportFrom').value+'-to-'+$('laborExportTo').value;
       if(kind==='csv'){
         const cols=['date','scout','category','start','end','gross','scouting','additional','description','approved'];
-        const csv=[cols.join(','),...data.rows.map(x=>cols.map(k=>'"'+String(x[k]??'').replace(/"/g,'""')+'"').join(','))].join('\\r\\n');
-        downloadLaborBlob('\\uFEFF'+csv,'text/csv;charset=utf-8',name+'.csv');
+        const csv=[cols.join(','),...data.rows.map(x=>cols.map(k=>'"'+String(x[k]??'').replace(/"/g,'""')+'"').join(','))].join('\r\n');
+        downloadLaborBlob('\uFEFF'+csv,'text/csv;charset=utf-8',name+'.csv');
         status.textContent='CSV download started for '+data.rows.length+' activities.';
       }else{
         const html=laborReportHTML(data);
