@@ -91,7 +91,7 @@
         <textarea id="laborNotes" rows="3" style="display:block;width:100%;margin-top:5px" placeholder="Example: Worked on equipment repairs and met with employees about tomorrow's field work."></textarea>
       </label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
-        <button type="button" id="laborDictate">🎙 Dictate notes</button>
+        <button type="button" id="laborDictate">🎙 Start recording</button>\n        <button type="button" id="laborKeyboardMic">⌨️ Use iPhone keyboard mic</button>
         <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">✨ Interpret & review dictation</button>
       </div>
     </div>
@@ -129,11 +129,11 @@
     $('laborStart').value='';
     $('laborEnd').value='';
     $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
-    $('laborError').textContent=isIOS?'For dictation, tap Dictate notes, then use the microphone on the iPhone keyboard.':'';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
+    $('laborError').textContent='Tap Start recording and speak. Tap Stop & transcribe when finished. If recording is unavailable, use the iPhone keyboard microphone.';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';
     try{history()}catch(error){console.error('Labor history:',error);$('laborHistory').textContent='Previous entries are temporarily unavailable.'}
   }
-  function close(){overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
+  function close(){if(audioRecorder?.state==='recording'){try{audioRecorder.stop()}catch(_){}}overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
   btn.onclick=()=>{
     try{open()}catch(error){
       console.error('Labor Log failed to open:',error);
@@ -144,10 +144,73 @@
   };
   $('laborClose').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
-  $('laborDictate').onclick=()=>{
-    $('laborError').textContent=isIOS?'Tap the microphone on the iPhone keyboard to dictate.':'Listening for your description…';
-    listen(text=>{$('laborNotes').value=($('laborNotes').value+' '+text).trim();$('laborError').textContent='Dictation captured. Review the wording and times.'},m=>$('laborError').textContent=m);
-  };
+  let audioRecorder=null,audioStream=null,audioChunks=[],audioStarted=0;
+  const recorderButton=$('laborDictate');
+  const microphoneStatus=message=>{$('laborError').textContent=message};
+  function keyboardDictation(){
+    const field=$('laborNotes');
+    field.focus();
+    field.scrollIntoView({block:'center',behavior:'instant'});
+    microphoneStatus('Tap the microphone on the iPhone keyboard, speak, then tap Done. Your words will appear in the notes field.');
+  }
+  $('laborKeyboardMic').onclick=keyboardDictation;
+  async function stopRecording(){
+    if(!audioRecorder||audioRecorder.state==='inactive')return;
+    recorderButton.disabled=true;
+    microphoneStatus('Finishing recording…');
+    audioRecorder.stop();
+  }
+  async function beginRecording(){
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
+      keyboardDictation();return;
+    }
+    recorderButton.disabled=true;
+    microphoneStatus('Requesting microphone access…');
+    try{
+      audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
+      const mimeType=types.find(x=>MediaRecorder.isTypeSupported(x));
+      audioRecorder=new MediaRecorder(audioStream,mimeType?{mimeType}:undefined);
+      audioChunks=[];
+      audioRecorder.ondataavailable=e=>{if(e.data.size)audioChunks.push(e.data)};
+      audioRecorder.onerror=()=>{microphoneStatus('Recording error. Try the keyboard microphone.');recorderButton.disabled=false};
+      audioRecorder.onstop=async()=>{
+        audioStream?.getTracks().forEach(track=>track.stop());audioStream=null;
+        recorderButton.textContent='🎙 Start recording';
+        const contentType=audioRecorder.mimeType.split(';')[0]||'audio/mp4';
+        const audio=new Blob(audioChunks,{type:contentType});
+        audioChunks=[];audioRecorder=null;
+        if(audio.size<1000){microphoneStatus('No audio captured. Try again or use the keyboard microphone.');recorderButton.disabled=false;return}
+        if(audio.size>8*1024*1024){microphoneStatus('Recording too large. Keep recordings under one minute.');recorderButton.disabled=false;return}
+        microphoneStatus('Transcribing your recording…');
+        try{
+          const response=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/transcribe',{
+            method:'POST',headers:{'Content-Type':contentType},body:audio,signal:AbortSignal.timeout(30000)});
+          const result=await response.json();
+          if(!response.ok||!result.text)throw Error(result.error||'No speech detected');
+          const field=$('laborNotes');
+          field.value=(field.value+' '+result.text).trim();
+          field.dispatchEvent(new Event('input',{bubbles:true}));
+          microphoneStatus('Dictation captured! Review the words, then tap Interpret & review dictation.');
+          field.scrollIntoView({block:'nearest'});
+        }catch(error){microphoneStatus('Recording finished, but transcription is unavailable: '+error.message+' Use the iPhone keyboard microphone below.')}
+        finally{recorderButton.disabled=false}
+      };
+      audioRecorder.start();
+      audioStarted=Date.now();
+      recorderButton.textContent='■ Stop & transcribe';
+      recorderButton.disabled=false;
+      microphoneStatus('Recording now. Speak your work date, tasks and times. Tap Stop & transcribe when finished.');
+    }catch(error){
+      audioStream?.getTracks().forEach(track=>track.stop());audioStream=null;
+      recorderButton.disabled=false;
+      microphoneStatus('Could not start microphone: '+error.message+'. Tap Use iPhone keyboard mic instead.');
+    }
+  }
+  recorderButton.onclick=()=>audioRecorder?.state==='recording'?stopRecording():beginRecording();
+  $('laborNotes').addEventListener('input',()=>{
+    if($('laborNotes').value.trim())$('laborError').textContent='Dictation text received. Tap Interpret & review dictation when ready.';
+  });
 
   const CATEGORIES=['Equipment Management','Employee Management','Field Work','Marketing','Financial Management','Landowner Relations','FSA Compliance','Cattle Management','Office / Administration','Other'];
   let extracted=[];
