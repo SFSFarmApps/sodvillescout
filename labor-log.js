@@ -162,7 +162,17 @@
       else if(/office|paperwork|email|admin/.test(l))category='Office / Administration';
       const duration=l.match(/\\b(?:for|about|roughly|approximately)\\s+(\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?|mins?)\\b/);
       const minutes=duration?Math.round(Number(duration[1])*(duration[2].startsWith('h')?60:1)):null;
-      return {category,description:segment,startTime:null,endTime:null,durationMinutes:minutes};
+      // Recognize explicit 24-hour or AM/PM clock ranges; do not guess ambiguous 8-to-10.
+      const clock=l.match(/\\b(?:from\\s+)?(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)?\\s*(?:to|until|through|-)\\s*(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)?\\b/);
+      let startTime=null,endTime=null;
+      if(clock){
+        const convert=(h,m,meridiem)=>{let hour=Number(h);const minute=Number(m||0);if(hour>23||minute>59)return null;if(meridiem){if(hour>12||hour<1)return null;hour=hour%12+(meridiem==='pm'?12:0)}return String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')};
+        const firstMeridiem=clock[3]||clock[6]||null,secondMeridiem=clock[6]||clock[3]||null;
+        // No assumption that bare 8 means 8 AM. Both endpoints need AM/PM, or explicit 24h values.
+        if(firstMeridiem&&secondMeridiem){startTime=convert(clock[1],clock[2],firstMeridiem);endTime=convert(clock[4],clock[5],secondMeridiem)}
+        else if(Number(clock[1])>12||Number(clock[4])>12){startTime=convert(clock[1],clock[2],null);endTime=convert(clock[4],clock[5],null)}
+      }
+      return {category,description:segment,startTime,endTime,durationMinutes:minutes};
     });
     return {source:'local',date,tasks,questions:[]};
   }
@@ -202,7 +212,7 @@
     let result=null;
     try{
       const response=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/interpret',{
-        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({narrative:text,now:new Date().toISOString()}),signal:AbortSignal.timeout(15000)});
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({narrative:text,now:(()=>{const d=new Date(),offset=-d.getTimezoneOffset(),sign=offset>=0?'+':'-';return isoDate(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':00'+sign+String(Math.floor(Math.abs(offset)/60)).padStart(2,'0')+':'+String(Math.abs(offset)%60).padStart(2,'0')})()}),signal:AbortSignal.timeout(15000)});
       if(response.ok)result=await response.json();
     }catch(error){console.warn('Labor AI extraction unavailable:',error)}
     finally{button.disabled=false;button.textContent='✨ Interpret & review dictation'}
