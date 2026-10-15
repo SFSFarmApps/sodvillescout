@@ -96,6 +96,7 @@
         <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">✨ Interpret & review dictation</button>
       </div>
       <div id="laborParsedTasks" style="margin:10px 0"></div>
+      <button type="button" id="laborContinue" hidden style="display:none;background:#173b25;color:white;font-weight:800;width:100%;padding:13px;margin:12px 0">Continue to review &amp; save →</button>
       <div id="laborRecordStatus" aria-live="polite" style="font-size:13px;font-weight:700;margin:8px 0"></div>
       <audio id="laborRecordingPreview" controls style="display:none;width:100%;margin:8px 0"></audio>
     </div>
@@ -132,7 +133,7 @@
     $('laborWho').textContent='Scout: '+(u?.name||'Select a scout');
     $('laborStart').value='';
     $('laborEnd').value='';
-    $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
+    $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none';
     $('laborError').textContent='Tap Start recording and speak. Tap Stop & transcribe when finished. If recording is unavailable, use the iPhone keyboard microphone.';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborRecordStatus').textContent='';
     if(recordTimer){clearInterval(recordTimer);recordTimer=null}
@@ -211,8 +212,8 @@
           const field=$('laborNotes');
           field.value=(field.value+' '+result.text).trim();
           field.dispatchEvent(new Event('input',{bubbles:true}));
-          microphoneStatus('Dictation captured! Review the words, then tap Interpret & review dictation.');
-          field.scrollIntoView({block:'nearest'});
+          microphoneStatus('Transcription complete. AI is analyzing the tasks and hours now…');
+          await interpret();
         }catch(error){microphoneStatus('Audio recorded, but transcription failed: '+error.message+' You can replay the audio below. Do not close this window until you have captured your notes.')}
         finally{recorderButton.disabled=false}
       };
@@ -294,9 +295,10 @@
     extracted=items.map(x=>({...x}));
     $('laborDate').value=date||'';
     const root=$('laborParsedTasks');root.replaceChildren();
-    $('laborReview').textContent='Review extracted tasks & hours';
+    $('laborReview').textContent='Continue to review & save →';
+    $('laborContinue').hidden=false;$('laborContinue').style.display='block';
     const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
-    head.textContent=(source==='ai'?'AI extracted':'Local extraction')+' '+items.length+' task(s). Check every activity, date, and time. Missing information must be entered before approval.';
+    head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+items.length+' task(s). Check the work date and each activity. Enter any missing start/end times, then tap Continue to review & save below.';
     root.appendChild(head);
     extracted.forEach((task,i)=>{
       const panel=document.createElement('div');panel.style.cssText='border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
@@ -325,12 +327,13 @@
       if(response.ok)result=await response.json();
     }catch(error){console.warn('Labor AI extraction unavailable:',error)}
     finally{button.disabled=false;button.textContent='✨ Interpret & review dictation'}
-    if(!result){result=localInterpret(text);$('laborError').textContent='AI service is not available yet; local task extraction is shown. Review and complete missing details.'}
+    if(!result){result=localInterpret(text);$('laborError').textContent='AI analysis could not be reached. Basic task extraction is shown; please review and complete the details.'}
     taskEditor(result.tasks||[],result.date,result.source);
     if(!result.tasks?.length){$('laborError').textContent='No tasks detected. Describe the work and try again.';return}
     if(result.questions?.length)$('laborError').textContent=result.questions.join(' ');
     $('laborParsedTasks').scrollIntoView({block:'nearest',behavior:'smooth'});
   }
+  $('laborContinue').onclick=()=> $('laborReview').click();
   $('laborReview').onclick=async()=>{
     const text=$('laborNotes').value.trim();
     if(!extracted.length){await interpret();return}
@@ -363,7 +366,7 @@
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
     if(!isIOS)speak(spoken);
   };
-  $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren()});
+  $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none'});
   $('laborReadBack').onclick=()=>speak(spoken);
   if(isIOS){$('laborReadBack').textContent='Review text above';$('laborReadBack').onclick=()=>{$('laborSummary').scrollIntoView({block:'nearest'});};$('laborListenApprove').textContent='Approve using button';$('laborListenApprove').onclick=()=>{$('laborError').textContent='Tap Approve & save after reviewing the details.'};}
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
@@ -375,7 +378,7 @@
     for(const item of draft)db.laborLogs.push({...item,approvedAt:now,createdAt:now,revision:1});
     const count=draft.length;save();history();$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborNotes').value='';$('laborStart').value='';$('laborEnd').value='';$('laborDate').value='';$('laborCategory').value='';
-    $('laborParsedTasks').replaceChildren();extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
+    $('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none';extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
     $('laborError').style.color='#176333';$('laborError').textContent=count+' approved labor activities saved. Synchronization will run automatically.';
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
   }
