@@ -134,6 +134,9 @@
     $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
     $('laborError').textContent='Tap Start recording and speak. Tap Stop & transcribe when finished. If recording is unavailable, use the iPhone keyboard microphone.';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborRecordStatus').textContent='';
+    if(recordTimer){clearInterval(recordTimer);recordTimer=null}
+    if(audioRecorder?.state==='recording'){try{audioRecorder.stop()}catch(_){}}
+    recorderButton.disabled=false;recorderButton.textContent='🎙 Start recording';
     draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';
     try{history()}catch(error){console.error('Labor history:',error);$('laborHistory').textContent='Previous entries are temporarily unavailable.'}
   }
@@ -180,23 +183,12 @@
     if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
       keyboardDictation();return;
     }
-    recorderButton.disabled=true;
-    microphoneStatus('Checking voice transcription…');
-    try{
-      const check=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/voice-status',{signal:AbortSignal.timeout(6000)});
-      if(check.ok){
-        const state=await check.json();
-        if(!state.transcriptionReady){
-          microphoneStatus('AI voice transcription is not configured yet. Use the iPhone keyboard microphone below; your speech will appear directly in the notes field.');
-          recorderButton.disabled=false;keyboardDictation();return;
-        }
-      }
-    }catch(_){}
     microphoneStatus('Requesting microphone access…');
+    recorderButton.disabled=true;
     try{
       audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
       const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
-      const mimeType=types.find(x=>MediaRecorder.isTypeSupported(x));
+      const mimeType=typeof MediaRecorder.isTypeSupported==='function'?types.find(x=>MediaRecorder.isTypeSupported(x)):null;
       audioRecorder=new MediaRecorder(audioStream,mimeType?{mimeType}:undefined);
       audioChunks=[];
       audioRecorder.ondataavailable=e=>{if(e.data.size)audioChunks.push(e.data)};
@@ -240,7 +232,12 @@
       microphoneStatus('Could not start microphone: '+error.message+'. Tap Use iPhone keyboard mic instead.');
     }
   }
-  recorderButton.onclick=()=>audioRecorder?.state==='recording'?stopRecording():beginRecording();
+  recorderButton.onclick=()=>{
+    try{
+      if(audioRecorder?.state==='recording')stopRecording();
+      else beginRecording().catch(error=>{resetRecorder();microphoneStatus('Could not record: '+error.message)});
+    }catch(error){resetRecorder();microphoneStatus('Recorder error: '+error.message)}
+  };
   $('laborNotes').addEventListener('input',()=>{
     if($('laborNotes').value.trim())$('laborError').textContent='Dictation text received. Tap Interpret & review dictation when ready.';
   });
