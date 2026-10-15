@@ -213,7 +213,7 @@
           field.dispatchEvent(new Event('input',{bubbles:true}));
           microphoneStatus('Dictation captured! Review the words, then tap Interpret & review dictation.');
           field.scrollIntoView({block:'nearest'});
-        }catch(error){microphoneStatus('Recording finished, but transcription is unavailable: '+error.message+' Use the iPhone keyboard microphone below.')}
+        }catch(error){microphoneStatus('Audio recorded, but transcription failed: '+error.message+' You can replay the audio below. Do not close this window until you have captured your notes.')}
         finally{recorderButton.disabled=false}
       };
       audioRecorder.start(1000);
