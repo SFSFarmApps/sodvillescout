@@ -2,7 +2,7 @@
    and shared offline database; employee reports are only in private Command. */
 (() => {
   'use strict';
-  db.laborLogs ||= [];
+  if(!Array.isArray(db.laborLogs))db.laborLogs=[];
   const $ = id => document.getElementById(id);
   const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fmt = iso => new Date(iso).toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
@@ -59,12 +59,15 @@
     rec.onend=()=>{if(!finished){cleanup();onError('Dictation stopped. Use the keyboard microphone if needed.')}};
     try{rec.start()}catch(e){cleanup();onError('Microphone unavailable. Use the keyboard microphone instead.')}
   }
-  const btn=document.createElement('button');
-  btn.id='laborLogBtn';btn.type='button';btn.textContent='🎙 Labor Log';
-  btn.style.cssText='background:#e6f1e8;border:1px solid #b5d1bc;color:#173b25;font-weight:800;min-height:43px';
-  const reportBtn=$('reportBtn');
-  if(reportBtn)reportBtn.insertAdjacentElement('afterend',btn);
-  else $('sessionBtn')?.insertAdjacentElement('afterend',btn);
+  let btn=$('laborLogBtn');
+  if(!btn){
+    btn=document.createElement('button');
+    btn.id='laborLogBtn';btn.type='button';btn.textContent='🎙 Labor Log';
+    btn.style.cssText='background:#e6f1e8;border:1px solid #b5d1bc;color:#173b25;font-weight:800;min-height:43px';
+    const reportBtn=$('reportBtn');
+    if(reportBtn)reportBtn.insertAdjacentElement('afterend',btn);
+    else $('sessionBtn')?.insertAdjacentElement('afterend',btn);
+  }
   const overlay=document.createElement('div');
   overlay.id='laborLogOverlay';
   overlay.style.cssText='display:none;position:fixed;inset:0;z-index:100010;background:#0009;padding:12px;overflow:auto';
@@ -119,16 +122,27 @@
     }).join(''):'No labor entries yet.';
   }
   function open() {
-    const u=user();if(!u){alert('Select a scout first.');return}
-    $('laborWho').textContent='Scout: '+u.name;
+    overlay.style.display='block';
+    overlay.hidden=false;
+    const u=user();
+    $('laborWho').textContent='Scout: '+(u?.name||'Select a scout');
     $('laborStart').value='';
     $('laborEnd').value='';
     $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
     $('laborError').textContent=isIOS?'For dictation, tap Dictate notes, then use the microphone on the iPhone keyboard.':'';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
-    draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';history();overlay.style.display='block';
+    draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';
+    try{history()}catch(error){console.error('Labor history:',error);$('laborHistory').textContent='Previous entries are temporarily unavailable.'}
   }
   function close(){overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
-  btn.onclick=open;$('laborClose').onclick=close;
+  btn.onclick=()=>{
+    try{open()}catch(error){
+      console.error('Labor Log failed to open:',error);
+      overlay.style.display='block';
+      const status=$('laborError');
+      if(status)status.textContent='Labor Log encountered an error: '+error.message+'. Please reload this page in Safari.';
+    }
+  };
+  $('laborClose').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
   $('laborDictate').onclick=()=>{
     $('laborError').textContent=isIOS?'Tap the microphone on the iPhone keyboard to dictate.':'Listening for your description…';
