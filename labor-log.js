@@ -73,14 +73,14 @@
     <p style="font-size:13px;color:#53675a">Log physical labor or management work. Scouting time already recorded by the scouting timer will be deducted automatically.</p>
     <p id="laborWho" style="font-weight:800"></p>
     <div id="laborForm">
-      <label style="display:block;margin:10px 0">Activity
+      <label style="display:none;margin:10px 0">Activity
         <select id="laborCategory" style="display:block;width:100%;margin-top:5px">
           <option value="" selected>Choose after dictation</option><option>Equipment Management</option><option>Employee Management</option><option>Field Work</option>
           <option>Marketing</option><option>Financial Management</option><option>Landowner Relations</option>
           <option>FSA Compliance</option><option>Cattle Management</option><option>Office / Administration</option><option>Other</option>
         </select>
       </label>
-      <label style="display:block;margin:10px 0">Work date (from dictation, or enter it)<input type="date" id="laborDate" style="display:block;width:100%;margin-top:5px"></label>\n      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
+      <label style="display:block;margin:10px 0">Work date (from dictation, or enter it)<input type="date" id="laborDate" style="display:block;width:100%;margin-top:5px"></label>\n      <div style="display:none;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
         <label>Started<input type="datetime-local" id="laborStart" style="display:block;width:100%;margin-top:5px"></label>
         <label>Finished<input type="datetime-local" id="laborEnd" style="display:block;width:100%;margin-top:5px"></label>
       </div>
@@ -125,7 +125,7 @@
     $('laborEnd').value='';
     $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();
     $('laborError').textContent=isIOS?'For dictation, tap Dictate notes, then use the microphone on the iPhone keyboard.':'';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
-    draft=null;history();overlay.style.display='block';
+    draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';history();overlay.style.display='block';
   }
   function close(){overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
   btn.onclick=open;$('laborClose').onclick=close;
@@ -186,6 +186,7 @@
     extracted=items.map(x=>({...x}));
     $('laborDate').value=date||'';
     const root=$('laborParsedTasks');root.replaceChildren();
+    $('laborReview').textContent='Review extracted tasks & hours';
     const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
     head.textContent=(source==='ai'?'AI extracted':'Local extraction')+' '+items.length+' task(s). Check every activity, date, and time. Missing information must be entered before approval.';
     root.appendChild(head);
@@ -266,7 +267,7 @@
     for(const item of draft)db.laborLogs.push({...item,approvedAt:now,createdAt:now,revision:1});
     const count=draft.length;save();history();$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborNotes').value='';$('laborStart').value='';$('laborEnd').value='';$('laborDate').value='';$('laborCategory').value='';
-    $('laborParsedTasks').replaceChildren();extracted=[];draft=null;
+    $('laborParsedTasks').replaceChildren();extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
     $('laborError').style.color='#176333';$('laborError').textContent=count+' approved labor activities saved. Synchronization will run automatically.';
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
   }
