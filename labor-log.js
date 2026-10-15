@@ -29,19 +29,35 @@
     const gross=end-start,overlap=overlapMs(start,end,sessions());
     return {gross,overlap,additional:Math.max(0,gross-overlap)};
   }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let recognition = null;
   function speak(message) {
     if(!('speechSynthesis' in window))return false;
+    // iOS standalone web apps can hang while acquiring speech audio. Keep playback opt-in.
+    if(isIOS){$('laborError').textContent='On iPhone, use the on-screen review; spoken playback may be unavailable.';return false}
     window.speechSynthesis.cancel();
     const utterance=new SpeechSynthesisUtterance(message);
     utterance.rate=.93;window.speechSynthesis.speak(utterance);return true;
   }
   const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   function listen(onText,onError) {
-    if(!Recognition){onError('Voice dictation is not supported in this browser. You can type the details instead.');return}
-    const rec=new Recognition();rec.lang='en-US';rec.interimResults=false;rec.continuous=false;
-    rec.onresult=e=>onText(Array.from(e.results).map(r=>r[0].transcript).join(' '));
-    rec.onerror=e=>onError('Microphone: '+e.error+'. You can enter the information manually.');
-    try{rec.start()}catch(e){onError('Microphone unavailable. Use the text fields instead.')}
+    // iOS Web Speech recognition can stall in Home Screen PWAs. Use the reliable
+    // system keyboard microphone instead, which transcribes directly into notes.
+    if(isIOS){
+      $('laborNotes').focus();
+      onError('On iPhone, tap the microphone on your keyboard to dictate. Tap Done when finished.');
+      return;
+    }
+    if(!Recognition){onError('Tap the notes field and use your keyboard microphone to dictate.');$('laborNotes').focus();return}
+    if(recognition){try{recognition.abort()}catch(_){} recognition=null}
+    const rec=new Recognition();recognition=rec;rec.lang='en-US';rec.interimResults=false;rec.continuous=false;
+    let finished=false;
+    const timeout=setTimeout(()=>{if(!finished){try{rec.abort()}catch(_){}onError('Speech recognition timed out. Use the keyboard microphone instead.')}},12000);
+    const cleanup=()=>{finished=true;clearTimeout(timeout);if(recognition===rec)recognition=null};
+    rec.onresult=e=>{cleanup();onText(Array.from(e.results).map(r=>r[0].transcript).join(' '))};
+    rec.onerror=e=>{cleanup();onError('Microphone: '+e.error+'. Use the keyboard microphone instead.')};
+    rec.onend=()=>{if(!finished){cleanup();onError('Dictation stopped. Use the keyboard microphone if needed.')}};
+    try{rec.start()}catch(e){cleanup();onError('Microphone unavailable. Use the keyboard microphone instead.')}
   }
   const btn=document.createElement('button');
   btn.id='laborLogBtn';btn.type='button';btn.textContent='🎙 Labor Log';
@@ -108,14 +124,14 @@
     $('laborStart').value=localTime(Date.now()-3600000);
     $('laborEnd').value=localTime(Date.now());
     $('laborNotes').value='';$('laborCategory').value='Equipment Management';
-    $('laborError').textContent='';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
+    $('laborError').textContent=isIOS?'For dictation, tap Dictate notes, then use the microphone on the iPhone keyboard.':'';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     draft=null;history();overlay.style.display='block';
   }
-  function close(){overlay.style.display='none';window.speechSynthesis?.cancel()}
+  function close(){overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
   btn.onclick=open;$('laborClose').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
   $('laborDictate').onclick=()=>{
-    $('laborError').textContent='Listening for your description…';
+    $('laborError').textContent=isIOS?'Tap the microphone on the iPhone keyboard to dictate.':'Listening for your description…';
     listen(text=>{$('laborNotes').value=($('laborNotes').value+' '+text).trim();$('laborError').textContent='Dictation captured. Review the wording and times.'},m=>$('laborError').textContent=m);
   };
   $('laborReview').onclick=()=>{
@@ -136,9 +152,10 @@
       '\nGross: '+hours(t.gross)+' hr | Scouting overlap: '+hours(t.overlap)+' hr | Additional: '+hours(t.additional)+' hr';
     $('laborWarning').textContent=t.overlap?'Scouting overlap is excluded from additional labor totals.':'No scouting overlap found for this time interval.';
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
-    speak(spoken);
+    if(!isIOS)speak(spoken);
   };
   $('laborReadBack').onclick=()=>speak(spoken);
+  if(isIOS){$('laborReadBack').textContent='Review text above';$('laborReadBack').onclick=()=>{$('laborSummary').scrollIntoView({block:'nearest'});};$('laborListenApprove').textContent='Approve using button';$('laborListenApprove').onclick=()=>{$('laborError').textContent='Tap Approve & save after reviewing the details.'};}
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
   function approve(){
     if(!draft)return;
@@ -153,7 +170,7 @@
     draft=null;
   }
   $('laborApprove').onclick=approve;
-  $('laborListenApprove').onclick=()=>{
+  if(!isIOS)$('laborListenApprove').onclick=()=>{
     $('laborError').textContent='Listening for “approve” or “edit”…';
     listen(text=>{
       const cmd=text.toLowerCase().trim();
