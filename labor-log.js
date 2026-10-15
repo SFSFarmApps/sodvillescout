@@ -104,8 +104,9 @@
       <h3 style="margin:0 0 8px">Review before approval</h3>
       <div id="laborSummary" style="font-size:14px;line-height:1.7;white-space:pre-line"></div>
       <p id="laborWarning" style="color:#854d0e;font-size:12px"></p>
+      <audio id="laborSpokenPlayback" controls preload="none" style="display:none;width:100%;margin:10px 0"></audio>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" id="laborReadBack">🔊 Read back</button>
+        <button type="button" id="laborReadBack">🔊 Read results aloud</button>
         <button type="button" id="laborListenApprove">🎙 Speak save or edit</button>
         <button type="button" id="laborEdit">Edit</button>
         <button type="button" id="laborApprove" style="background:#173b25;color:white;font-weight:800">Approve & save</button>
@@ -367,10 +368,37 @@
     $('laborWarning').textContent='Only approve if every activity, date, and time is correct. Scouting overlaps are excluded from additional labor totals.';
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
     $('laborReadBack').textContent='🔊 Read results aloud';
+    $('laborSpokenPlayback').pause();$('laborSpokenPlayback').removeAttribute('src');$('laborSpokenPlayback').style.display='none';
     $('laborError').textContent='Review the entries below. Tap Read results aloud to hear them, then say Save or Edit, or use the buttons.';
   };
   $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none'});
-  $('laborReadBack').onclick=()=>speak(spoken);
+  let spokenAudioUrl=null;
+  $('laborReadBack').onclick=async()=>{
+    const button=$('laborReadBack'),player=$('laborSpokenPlayback');
+    if(!spoken?.trim()){ $('laborError').textContent='No reviewed entries to read yet.';return }
+    if(player.src&&!player.paused){player.pause();button.textContent='🔊 Read results aloud';return}
+    if(player.src){try{await player.play();$('laborError').textContent='Playing reviewed activities aloud.';button.textContent='■ Pause readback';return}catch(_){player.style.display='block'}}
+    button.disabled=true;button.textContent='Preparing voice…';$('laborError').textContent='Generating spoken review…';
+    try{
+      const response=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/speak',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:spoken.slice(0,2800)}),signal:AbortSignal.timeout(30000)
+      });
+      if(!response.ok){const data=await response.json().catch(()=>({}));throw Error(data.error||'Speech service unavailable')}
+      const blob=await response.blob();
+      if(spokenAudioUrl)URL.revokeObjectURL(spokenAudioUrl);
+      spokenAudioUrl=URL.createObjectURL(blob);
+      player.src=spokenAudioUrl;player.style.display='block';
+      button.textContent='🔊 Play readback';
+      try{await player.play();button.textContent='■ Pause readback';$('laborError').textContent='Reading results aloud.'}
+      catch(_){$('laborError').textContent='Audio is ready. Tap Play on the audio player below to hear the results.'}
+    }catch(error){
+      $('laborError').textContent='Audio readback unavailable: '+error.message+'. Trying iPhone speech…';
+      if(!speak(spoken))$('laborError').textContent='Voice readback is unavailable. Please review the written summary.';
+    }finally{button.disabled=false}
+  };
+  $('laborSpokenPlayback').onended=()=>{$('laborReadBack').textContent='🔊 Read results aloud'};
+
 
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
   function approve(){
