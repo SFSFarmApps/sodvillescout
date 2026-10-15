@@ -113,12 +113,83 @@
       </div>
     </div>
     <p id="laborError" role="alert" style="color:#a32222;font-size:13px;min-height:1em"></p>
+    <div id="laborExportPanel" style="border:1px solid #d6e2d7;border-radius:10px;padding:12px;margin:16px 0;background:#f8faf8">
+      <h3 style="margin:0 0 7px;font-size:16px">Download labor log report</h3>
+      <p style="font-size:12px;color:#53675a;margin:5px 0">Approved labor entries for the selected scout. Scouting overlap is excluded from additional labor hours.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label style="font-size:12px">From<input type="date" id="laborExportFrom" style="width:100%;display:block"></label>
+        <label style="font-size:12px">Through<input type="date" id="laborExportTo" style="width:100%;display:block"></label>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin:10px 0">
+        <button type="button" id="laborDownloadCSV">⬇ Download CSV</button>
+        <button type="button" id="laborDownloadReport">⬇ Download Report</button>
+        <button type="button" id="laborPrintReport">🖨 Print / Save PDF</button>
+      </div>
+      <div id="laborExportStatus" role="status" style="font-size:12px;color:#31543a"></div>
+    </div>
     <h3 style="font-size:16px">Your recent entries</h3>
     <div id="laborHistory" style="font-size:12px;max-height:190px;overflow:auto"></div>
     <p style="font-size:11px;color:#607466">Entries save on this device first and synchronize when online. Management reports are available only in Sodville Command.</p>
   </section>`;
   document.body.appendChild(overlay);
   let draft=null,spoken='';
+  const exportDay=iso=>{const d=new Date(iso);if(!Number.isFinite(+d))return '';return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+  function selectedLaborRows(){
+    const from=$('laborExportFrom').value,to=$('laborExportTo').value;
+    if(!from||!to||from>to)throw Error('Choose a valid From and Through date.');
+    return currentLogs().filter(x=>x.approvedAt&&range(x)&&exportDay(x.start)>=from&&exportDay(x.start)<=to).sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
+  }
+  function laborExportData(){
+    const rows=selectedLaborRows(),records=rows.map(x=>{
+      const span=range(x),t=totals(...span);
+      return {date:exportDay(x.start),scout:x.userName||user()?.name||'',category:x.category||'Other',
+        start:fmt(x.start),end:fmt(x.end),gross:hours(t.gross),scouting:hours(t.overlap),additional:hours(t.additional),
+        description:x.notes||'',approved:fmt(x.approvedAt)};
+    });
+    return {rows:records,additional:records.reduce((n,x)=>n+Number(x.additional),0),gross:records.reduce((n,x)=>n+Number(x.gross),0)};
+  }
+  function downloadLaborBlob(content,type,filename){
+    const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
+  function laborReportHTML(data){
+    const from=$('laborExportFrom').value,to=$('laborExportTo').value;
+    const lines=data.rows.map(x=>'<tr>'+[x.date,x.scout,x.category,x.start,x.end,x.gross,x.scouting,x.additional,x.description].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('');
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sodville Labor Log '+esc(from)+' to '+esc(to)+'</title><style>body{font-family:Arial,sans-serif;color:#17291d;padding:20px}h1{color:#173b25;font-size:22px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}th{background:#e6f1e8}p{line-height:1.5}.controls{margin:12px 0}button{padding:10px}@media print{.controls{display:none}body{padding:0}@page{size:landscape;margin:12mm}}</style></head><body><div class="controls"><button onclick="window.print()">Print / Save PDF</button></div><h1>Sodville Farm Services — Labor &amp; Management Log</h1><p><b>Scout:</b> '+esc(user()?.name||'Unknown')+'<br><b>Period:</b> '+esc(from)+' through '+esc(to)+'<br><b>Approved activities:</b> '+data.rows.length+'<br><b>Gross logged hours:</b> '+data.gross.toFixed(2)+'<br><b>Additional labor hours (after scouting overlap):</b> '+data.additional.toFixed(2)+'</p><table><thead><tr>'+['Date','Scout','Category','Start','End','Gross hrs','Scouting overlap hrs','Additional hrs','Activity'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+lines+'</tbody></table><p>Entries are based on approved local labor records for the selected scout. Scouting overlap is deducted to avoid double-counting. Review before using for FSA or payroll documentation.</p></body></html>';
+  }
+  function runLaborExport(kind){
+    const status=$('laborExportStatus');
+    try{
+      const data=laborExportData();
+      if(!data.rows.length){status.textContent='No approved labor entries found for this scout and date range.';return}
+      const name='Sodville-Labor-Log-'+$('laborExportFrom').value+'-to-'+$('laborExportTo').value;
+      if(kind==='csv'){
+        const cols=['date','scout','category','start','end','gross','scouting','additional','description','approved'];
+        const csv=[cols.join(','),...data.rows.map(x=>cols.map(k=>'"'+String(x[k]??'').replace(/"/g,'""')+'"').join(','))].join('\\r\\n');
+        downloadLaborBlob('\\uFEFF'+csv,'text/csv;charset=utf-8',name+'.csv');
+        status.textContent='CSV download started for '+data.rows.length+' activities.';
+      }else{
+        const html=laborReportHTML(data);
+        if(kind==='download'){
+          downloadLaborBlob(html,'text/html;charset=utf-8',name+'.html');
+          status.textContent='Printable report downloaded. Open it in Safari and choose Print to save as PDF.';
+        }else{
+          const w=window.open('','_blank');
+          if(!w){status.textContent='Safari blocked the print window. Tap Download Report instead.';return}
+          w.document.open();w.document.write(html);w.document.close();w.focus();
+          status.textContent='Print report opened. Tap Print / Save PDF in the new window.';
+        }
+      }
+    }catch(error){status.textContent=error.message}
+  }
+  const currentDate=exportDay(new Date());
+  $('laborExportFrom').value=currentDate.slice(0,7)+'-01';
+  $('laborExportTo').value=currentDate;
+  $('laborDownloadCSV').onclick=()=>runLaborExport('csv');
+  $('laborDownloadReport').onclick=()=>runLaborExport('download');
+  $('laborPrintReport').onclick=()=>runLaborExport('print');
+
   function history() {
     const list=currentLogs().slice(0,15);
     $('laborHistory').innerHTML=list.length?list.map(x=>{
