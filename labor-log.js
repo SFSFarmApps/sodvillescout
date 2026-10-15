@@ -95,6 +95,7 @@
         <button type="button" id="laborKeyboardMic">⌨️ Use iPhone keyboard mic</button>
         <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">✨ Interpret & review dictation</button>
       </div>
+      <div id="laborParsedTasks" style="margin:10px 0"></div>
       <div id="laborRecordStatus" aria-live="polite" style="font-size:13px;font-weight:700;margin:8px 0"></div>
       <audio id="laborRecordingPreview" controls style="display:none;width:100%;margin:8px 0"></audio>
     </div>
