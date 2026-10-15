@@ -68,6 +68,14 @@
     if(reportBtn)reportBtn.insertAdjacentElement('afterend',btn);
     else $('sessionBtn')?.insertAdjacentElement('afterend',btn);
   }
+  let exportShortcut=$('laborReportBtn');
+  if(!exportShortcut){
+    exportShortcut=document.createElement('button');
+    exportShortcut.id='laborReportBtn';exportShortcut.type='button';
+    exportShortcut.textContent='⬇ Labor Reports';
+    exportShortcut.style.cssText='background:#e6f1e8;border:1px solid #b5d1bc;color:#173b25;font-weight:800;min-height:43px';
+    btn.insertAdjacentElement('afterend',exportShortcut);
+  }
   const overlay=document.createElement('div');
   overlay.id='laborLogOverlay';
   overlay.style.cssText='display:none;position:fixed;inset:0;z-index:100010;background:#0009;padding:12px;overflow:auto';
@@ -222,6 +230,13 @@
       const status=$('laborError');
       if(status)status.textContent='Labor Log encountered an error: '+error.message+'. Please reload this page in Safari.';
     }
+  };
+  exportShortcut.onclick=()=>{
+    try{
+      open();
+      $('laborExportPanel').scrollIntoView({block:'start',behavior:'auto'});
+      $('laborExportStatus').textContent='Choose your dates, then download CSV or the printable report.';
+    }catch(error){console.error('Labor export:',error)}
   };
   $('laborClose').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
