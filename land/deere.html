@@ -33,7 +33,28 @@ function prop(f){return f.properties||{}}
 function fid(f){return String(prop(f).fieldId||prop(f).FIELD_ID||'')}
 function boundsOf(ext){if(!ext)return null;const a=[+ext.minimumLatitude,+ext.minimumLongitude],b=[+ext.maximumLatitude,+ext.maximumLongitude];if(![...a,...b].every(Number.isFinite)||a[0]>=b[0]||a[1]>=b[1]||a[0]<-90||b[0]>90)return null;return L.latLngBounds(a,b)}
 function resetMap(){if(state.overlay)map.removeLayer(state.overlay);if(state.footprintLayer)map.removeLayer(state.footprintLayer);if(state.overlayUrl)URL.revokeObjectURL(state.overlayUrl);state.overlay=null;state.overlayUrl=null;state.footprintLayer=null;state.chosen=null;state.activeMapType=null;$('mapLegend').style.display='none';$('mapHint').textContent='Choose a Deere layer to display it in its original geographic position.'}
-const fieldPalette=['#51d57d','#3eafff','#f5b941','#c47bff','#ff795a','#a7d85a','#ff7dc3','#39d2c7'];function fieldColor(f){const p=prop(f),name=String(p.clientName||'')+'|'+String(p.farmName||'');let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))|0;return fieldPalette[Math.abs(h)%fieldPalette.length]}function style(f){const active=fid(f)===state.selected;return {color:active?'#ffffff':fieldColor(f),weight:active?3.5:2.2,opacity:1,fillColor:fieldColor(f),fillOpacity:active?.46:.29}}
+// Match the main Sodville Land map's strong, client-specific boundary palette.
+const fieldPalette=['#087e3b','#005dbb','#b46a00','#7027a8','#b72d18','#007f83','#a01862','#526e00'];
+const clientColors={
+  'andrew miller farms':'#005dbb',
+  'weston james farms':'#b46a00',
+  'brad & sarah bickham farms':'#7027a8',
+  'brad and sarah bickham farms':'#7027a8',
+  'webb farms inc.':'#087e3b',
+  'webb farms inc':'#087e3b',
+  'bickham farms inc.':'#b72d18',
+  'bickham farms inc':'#b72d18',
+  'j&b legend farms llc':'#007f83'
+};
+function fieldColor(f){
+  const p=prop(f),key=String(p.clientName||p.CLIENT_NAM||'').replace(/~1$/,'').trim().toLowerCase()||'unassigned';
+  let hash=0;for(let i=0;i<key.length;i++)hash=(hash*31+key.charCodeAt(i))|0;
+  return clientColors[key]||fieldPalette[Math.abs(hash)%fieldPalette.length];
+}
+function style(f){
+  const active=fid(f)===state.selected,c=fieldColor(f);
+  return {color:active?'#ffffff':c,weight:active?3.5:2.3,opacity:1,fillColor:c,fillOpacity:active?.46:.38};
+}
 function drawFields(){if(boundaryLayer)map.removeLayer(boundaryLayer);boundaryLayer=L.geoJSON({type:'FeatureCollection',features:state.fields},{style:f=>{const v=style(f),mode=$('shade').value;v.fillOpacity=mode==='outline'?0:mode==='light'?.13:v.fillOpacity;return v},onEachFeature:(f,l)=>{const p=prop(f);l.bindTooltip(esc(p.fieldName||p.FIELD_NAME),{sticky:true});l.on('click',()=>selectField(fid(f),true))}}).addTo(map);if(boundaryLayer.getBounds().isValid())map.fitBounds(boundaryLayer.getBounds(),{padding:[30,30],maxZoom:12})}
 function renderFields(){const q=$('search').value.toLowerCase().trim(),root=$('fieldList');root.replaceChildren();let last='';const sorted=[...state.fields].sort((a,b)=>{const x=prop(a),y=prop(b);return [cleanName(x.clientName),x.farmName,x.fieldName].join('|').localeCompare([cleanName(y.clientName),y.farmName,y.fieldName].join('|'))});const found=sorted.filter(f=>{const p=prop(f);return [p.clientName,p.farmName,p.fieldName].join(' ').toLowerCase().includes(q)});$('filteredCount').textContent=found.length+' shown';for(const f of found){const p=prop(f),c=cleanName(p.clientName)||'Unassigned';if(c!==last){const h=document.createElement('div');h.className='client';h.textContent=c;root.append(h);last=c}const b=document.createElement('button');b.className='field'+(fid(f)===state.selected?' active':'');b.innerHTML='<span><b>'+esc(p.fieldName)+'</b><small>'+esc(p.farmName)+'</small></span><span class="acre">'+Number(p.areaAcres||0).toFixed(1)+' ac</span>';b.onclick=()=>selectField(fid(f),true);root.append(b)}}
 function setYears(){const years=[...new Set(state.footprints.map(x=>Number(x.crop_season)).filter(Number.isFinite))];for(let y=2010;y<=new Date().getFullYear()+1;y++)years.push(y);const select=$('year');for(const y of [...new Set(years)].sort((a,b)=>b-a)){const o=document.createElement('option');o.value=y;o.textContent=y;select.append(o)}}
