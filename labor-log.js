@@ -386,13 +386,69 @@
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
   }
   $('laborApprove').onclick=approve;
-  $('laborListenApprove').onclick=()=>{
-    $('laborError').textContent='Listening for “approve” or “edit”…';
-    listen(text=>{
-      const cmd=text.toLowerCase().trim();
-      if(/\bapprove\b/.test(cmd)){approve()}
-      else if(/\b(edit|correct|change)\b/.test(cmd)){$('laborEdit').click();$('laborError').textContent='Make corrections, then review again.'}
-      else $('laborError').textContent='Heard: '+text+'. Say “approve” or press the approval button.';
-    },m=>$('laborError').textContent=m);
+  let commandRecorder=null,commandStream=null,commandChunks=[],commandTimer=null;
+  function stopCommandRecording(){
+    if(commandTimer){clearTimeout(commandTimer);commandTimer=null}
+    if(commandRecorder?.state==='recording')commandRecorder.stop();
+  }
+  function handleVoiceCommand(transcript){
+    const command=transcript.toLowerCase().trim().replace(/[.!?]+$/,'');
+    if(/^(?:yes\\s+)?(?:save|approve|approve and save|save it|save entries|save the entries)$/.test(command)){
+      $('laborError').textContent='Voice approval received: '+transcript;
+      approve();
+    }else if(/^(?:edit|change|correct|edit it|make changes)$/.test(command)){
+      $('laborEdit').click();
+      $('laborError').textContent='Editing is open. Change the fields, then continue to review and save.';
+    }else if(/^(?:edit|change|correct)\\b/.test(command)){
+      $('laborEdit').click();
+      const notes=$('laborNotes');
+      notes.value=(notes.value+'\\nCorrection: '+transcript).trim();
+      notes.dispatchEvent(new Event('input',{bubbles:true}));
+      $('laborError').textContent='I added your spoken correction to the dictation. Tap Interpret & review dictation to apply it, then confirm before saving.';
+    }else{
+      $('laborError').textContent='Heard: “'+transcript+'”. For safety, say only “save” or “edit”, or tap the manual buttons.';
+    }
+  }
+  $('laborListenApprove').onclick=async()=>{
+    if(!isIOS){
+      listen(handleVoiceCommand,m=>$('laborError').textContent=m);
+      return;
+    }
+    if(commandRecorder?.state==='recording'){stopCommandRecording();return}
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
+      $('laborError').textContent='Voice commands are unavailable on this device. Use Approve & save or Edit.';return;
+    }
+    window.speechSynthesis?.cancel();
+    const button=$('laborListenApprove');
+    button.disabled=true;$('laborError').textContent='Requesting microphone for voice command…';
+    try{
+      commandStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      const type=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+      commandRecorder=new MediaRecorder(commandStream,type?{mimeType:type}:undefined);
+      commandChunks=[];
+      commandRecorder.ondataavailable=e=>{if(e.data.size)commandChunks.push(e.data)};
+      commandRecorder.onstop=async()=>{
+        const contentType=commandRecorder.mimeType.split(';')[0]||'audio/mp4';
+        const audio=new Blob(commandChunks,{type:contentType});
+        commandStream?.getTracks().forEach(t=>t.stop());commandStream=null;commandRecorder=null;commandChunks=[];
+        button.textContent='🎙 Speak save or edit';button.disabled=true;
+        if(audio.size<1000){$('laborError').textContent='No voice command heard. Try again or tap Save/Edit.';button.disabled=false;return}
+        $('laborError').textContent='Understanding voice command…';
+        try{
+          const response=await fetch('https://sodville-command-api.onrender.com/api/scout/labor/transcribe',{method:'POST',headers:{'Content-Type':contentType},body:audio,signal:AbortSignal.timeout(30000)});
+          const data=await response.json();
+          if(!response.ok||!data.text)throw Error(data.error||'No speech recognized');
+          handleVoiceCommand(data.text);
+        }catch(error){$('laborError').textContent='Voice command failed: '+error.message+'. Use the manual buttons.'}
+        finally{button.disabled=false}
+      };
+      commandRecorder.start();
+      button.textContent='■ Stop voice command';button.disabled=false;
+      $('laborError').textContent='Say “save” or “edit”, then tap Stop voice command.';
+      commandTimer=setTimeout(stopCommandRecording,12000);
+    }catch(error){
+      commandStream?.getTracks().forEach(t=>t.stop());commandStream=null;
+      button.disabled=false;$('laborError').textContent='Microphone unavailable: '+error.message+'. Use manual Save/Edit.';
+    }
   };
 })();
