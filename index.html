@@ -150,6 +150,8 @@ main.map-expanded #mapExpandBtn{position:fixed!important;top:auto!important;bott
 <div id="toast" style="display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#173b25;color:white;padding:12px 18px;border-radius:10px;z-index:5000;font-weight:700;box-shadow:0 4px 18px #0005"></div><div id="modal" class="modal hidden"><div class="card"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
 <script src="./land/fields.js?build=20261016-headquarters-fix"></script>
 <script src="./scouting-report.js?v=20261016-checked-fields-1"></script>
+<script src="./report-print.js?v=20261016-builder-1"></script>
+<script src="./labor-report.js?v=20261016-builder-1"></script>
   <script>window.SODVILLE_FIELDS = {
 "type": "FeatureCollection",
 "name": "fields",
@@ -823,7 +825,7 @@ function scoutingReportDocument(){
   if(!preview||!preview.querySelector('h1'))throw Error('Build the scouting report before downloading or printing.');
   const content=preview.cloneNode(true);
   content.querySelectorAll('button,.noprint').forEach(x=>x.remove());
-  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sodville Scouting Report</title><style>body{box-sizing:border-box;font-family:Arial,sans-serif;color:#17291d;width:100%;max-width:none;margin:0;padding:22px;line-height:1.45}h1{font-size:22px;color:#173b25}h2{font-size:17px}h3{font-size:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{margin:5px 0;padding:4px;border-bottom:1px solid #eee}.muted{color:#59675c}.controls{padding:12px;background:#f3f7f3;margin-bottom:18px}button{padding:10px}@media print{.controls{display:none}body{max-width:none;padding:0}@page{margin:12mm}}</style></head><body><div class="controls"><button onclick="window.print()">Print / Save PDF</button></div>'+content.innerHTML+'</body></html>';
+  return window.SodvillePrint.document({title:'Sodville Scouting Report',body:content.innerHTML,returnUrl:'https://sfsfarmapps.github.io/sodvillescout/'});
 }
 function scoutingReportAction(kind){
   const msg=document.getElementById('scoutingExportStatus');
@@ -861,7 +863,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pageshow',()=>refreshLiveRainfall());
 </script>
 <script src="./scout-sync.js?v=20261015-labor-1"></script>
-<script src="./labor-log.js?v=20261016-fluid-layout-11"></script>
+<script src="./labor-log.js?v=20261016-report-builder-1"></script>
 <script id="sodville-map-expand-script">
 (function(){
 const btn=document.getElementById('mapExpandBtn'),main=document.querySelector('main');
