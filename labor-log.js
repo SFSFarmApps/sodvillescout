@@ -121,82 +121,122 @@
       </div>
     </div>
     <p id="laborError" role="alert" style="color:#a32222;font-size:13px;min-height:1em"></p>
-    <div id="laborExportPanel" style="border:1px solid #d6e2d7;border-radius:10px;padding:12px;margin:16px 0;background:#f8faf8">
-      <h3 style="margin:0 0 7px;font-size:16px">Download labor log report</h3>
-      <p style="font-size:12px;color:#53675a;margin:5px 0">Approved labor entries for the selected scout. Scouting overlap is excluded from additional labor hours.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <label style="font-size:12px">From<input type="date" id="laborExportFrom" style="width:100%;display:block"></label>
-        <label style="font-size:12px">Through<input type="date" id="laborExportTo" style="width:100%;display:block"></label>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:7px;margin:10px 0">
-        <button type="button" id="laborDownloadCSV">⬇ Download CSV</button>
-        <button type="button" id="laborDownloadReport">⬇ Download Report</button>
-        <button type="button" id="laborPrintReport">🖨 Print / Save PDF</button>
-      </div>
-      <div id="laborExportStatus" role="status" style="font-size:12px;color:#31543a"></div>
-    </div>
+    <div style="border-top:1px solid #d6e2d7;padding-top:14px;margin-top:16px"><button type="button" id="laborOpenReportBuilder">Open labor report builder</button><p style="font-size:12px;color:#607466">Choose dates, preview approved entries, and download or print your report.</p></div>
     <h3 style="font-size:16px">Your recent entries</h3>
     <div id="laborHistory" style="font-size:12px;max-height:190px;overflow:auto"></div>
     <p style="font-size:11px;color:#607466">Entries save on this device first and synchronize when online. Management reports are available only in Sodville Command.</p>
   </section>`;
   document.body.appendChild(overlay);
   let draft=null,spoken='';
-  const exportDay=iso=>{const d=new Date(iso);if(!Number.isFinite(+d))return '';return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-  function selectedLaborRows(){
-    const from=$('laborExportFrom').value,to=$('laborExportTo').value;
-    if(!from||!to||from>to)throw Error('Choose a valid From and Through date.');
-    return currentLogs().filter(x=>x.approvedAt&&range(x)&&exportDay(x.start)>=from&&exportDay(x.start)<=to).sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
+  const reportOverlay=document.createElement('div');
+  reportOverlay.id='laborReportOverlay';reportOverlay.hidden=true;
+  reportOverlay.innerHTML=`<style>
+  #laborReportOverlay{position:fixed;inset:0;z-index:100030;background:#10291fe6;padding:14px;overflow:auto;color:#193426;font:14px/1.5 system-ui,Arial,sans-serif}
+  #laborReportOverlay[hidden]{display:none}#laborReportOverlay *{box-sizing:border-box}
+  #laborReportOverlay .labor-builder{width:100%;min-height:calc(100vh - 28px);margin:0 auto;background:#edf3ed;border-radius:14px;overflow:hidden;box-shadow:0 14px 70px #0004}
+  #laborReportOverlay .builder-head{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#173e2b;color:white;padding:20px 24px}
+  #laborReportOverlay h2{margin:0;color:white;font-size:24px}#laborReportOverlay .builder-head p{margin:4px 0 0;color:#d0e0d4}
+  #laborReportOverlay button,#laborReportOverlay select,#laborReportOverlay input{font:inherit;border:1px solid #b7cbbd;border-radius:8px;padding:10px 12px;min-height:43px}
+  #laborReportOverlay button{cursor:pointer;background:white;color:#173e2b;font-weight:700}#laborReportOverlay button:disabled{cursor:default;opacity:.45}
+  #laborReportOverlay .builder-main{padding:22px;display:grid;gap:18px}#laborReportOverlay .builder-controls{padding:18px;background:white;border:1px solid #d7e3d9;border-radius:11px}
+  #laborReportOverlay .builder-filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px}#laborReportOverlay label{display:block;font-size:12px;font-weight:700;color:#46614d}
+  #laborReportOverlay label input,#laborReportOverlay label select{display:block;width:100%;margin-top:5px;background:#fbfdfb;color:#193426}
+  #laborReportOverlay .builder-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:14px}#laborReportOverlay .primary{background:#1c5535;color:white;border-color:#1c5535}
+  #laborReportOverlay .builder-preview{background:white;border:1px solid #d7e3d9;border-radius:11px;padding:24px;min-height:220px}
+  #laborReportOverlay .empty-report{text-align:center;padding:36px 15px;color:#627469}#laborReportOverlay .empty-report b{display:block;font-size:19px;color:#234c32;margin-bottom:8px}
+  #laborReportOverlay .builder-output{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:15px 18px;border:1px solid #d7e3d9;border-radius:11px;background:white}#laborReportOverlay .builder-output label{min-width:200px}
+  #laborReportOverlay table{width:100%;border-collapse:collapse;font-size:12px}#laborReportOverlay th,#laborReportOverlay td{padding:10px;border-bottom:1px solid #dce6dd;text-align:left;vertical-align:top}#laborReportOverlay th{background:#f0f6f0;color:#31563b}
+  #laborReportOverlay .table-scroll{overflow:auto}#laborReportOverlay .labor-report-metrics{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:18px 0}#laborReportOverlay .labor-report-metrics p{background:#f0f6f0;border-radius:9px;padding:12px;margin:0}
+  #laborReportOverlay .muted{color:#627469}#laborReportOverlay h1{font-size:25px;margin:0;color:#173e2b}
+  @media(max-width:800px){#laborReportOverlay{padding:5px}#laborReportOverlay .builder-head,#laborReportOverlay .builder-main,#laborReportOverlay .builder-preview{padding:15px}#laborReportOverlay .builder-filters,#laborReportOverlay .labor-report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#laborReportOverlay .builder-output>*{flex:1}#laborReportOverlay table{min-width:750px}}
+  </style><section class="labor-builder" role="dialog" aria-modal="true" aria-labelledby="laborReportTitle">
+  <header class="builder-head"><div><h2 id="laborReportTitle">Labor report builder</h2><p id="laborReportScout"></p></div><button type="button" id="laborReportClose" aria-label="Close labor report builder">✕ Close</button></header>
+  <div class="builder-main"><section class="builder-controls" aria-label="Report filters"><div class="builder-filters">
+  <label>From<input type="date" id="laborExportFrom"></label><label>Through<input type="date" id="laborExportTo"></label>
+  <label>Report layout<select id="laborReportLayout"><option value="detail">Detailed activity log</option><option value="summary">Summary by category</option></select></label>
+  <label>Activity category<select id="laborReportCategory"><option value="">All categories</option></select></label></div>
+  <div class="builder-actions"><button type="button" id="laborReportMonth">This month</button><button type="button" id="laborReportYear">This year</button><button type="button" id="laborReportLastYear">Last year</button><button type="button" id="laborReportBuild" class="primary">Build report</button></div>
+  <p class="muted" style="font-size:12px;margin:10px 0 0">Approved entries for the selected scout. Additional hours exclude time already logged by the scouting timer.</p></section>
+  <section id="laborReportPreview" class="builder-preview" aria-label="Labor report preview"><div class="empty-report"><b>Your report starts here</b>Choose a date range and layout, then select Build report.</div></section>
+  <section class="builder-output" aria-label="Report output"><label>Download format<select id="laborReportFormat"><option value="html">Printable report (.html)</option><option value="csv">Spreadsheet (.csv)</option></select></label><button type="button" id="laborReportDownload" disabled>Download</button><button type="button" id="laborReportPrint" class="primary" disabled>Print / Save PDF</button><button type="button" id="laborReportDone">Close builder</button></section>
+  <div id="laborExportStatus" role="status" aria-live="polite" style="min-height:1.5em;color:#31543a"></div></div></section>`;
+  document.body.appendChild(reportOverlay);
+  let builtLaborReport=null,reportReturnFocus=null;
+  function clearLaborReport(message='Filters changed. Select Build report to update the preview.'){
+    builtLaborReport=null;$('laborReportDownload').disabled=true;$('laborReportPrint').disabled=true;
+    $('laborReportPreview').innerHTML='<div class="empty-report"><b>Ready to build</b>'+esc(message)+'</div>';
+    $('laborExportStatus').textContent='';
   }
-  function laborExportData(){
-    const rows=selectedLaborRows(),records=rows.map(x=>{
-      const span=range(x),t=totals(...span);
-      return {date:exportDay(x.start),scout:x.userName||user()?.name||'',category:x.category||'Other',
-        start:fmt(x.start),end:fmt(x.end),gross:hours(t.gross),scouting:hours(t.overlap),additional:hours(t.additional),
-        description:x.notes||'',approved:fmt(x.approvedAt)};
-    });
-    return {rows:records,additional:records.reduce((n,x)=>n+Number(x.additional),0),gross:records.reduce((n,x)=>n+Number(x.gross),0)};
+  function openLaborReports(){
+    reportReturnFocus=document.activeElement;
+    $('laborReportScout').textContent='Scout: '+(user()?.name||'Select a scout')+' · Approved labor & management records';
+    const select=$('laborReportCategory'),previous=select.value;select.replaceChildren();
+    const all=document.createElement('option');all.value='';all.textContent='All categories';select.appendChild(all);
+    for(const category of [...new Set(currentLogs().filter(x=>x.approvedAt).map(x=>x.category||'Other'))].sort()){
+      const option=document.createElement('option');option.value=category;option.textContent=category;select.appendChild(option);
+    }
+    if([...select.options].some(x=>x.value===previous))select.value=previous;
+    clearLaborReport('Choose your dates and layout, then select Build report.');
+    reportOverlay.hidden=false;$('laborReportClose').focus();
+  }
+  function closeLaborReports(){reportOverlay.hidden=true;reportReturnFocus?.focus();}
+  function buildLaborReport(){
+    try{
+      const data=window.SodvilleLaborReport.build({logs:db.laborLogs,sessions:db.sessions,scout:user(),from:$('laborExportFrom').value,to:$('laborExportTo').value,category:$('laborReportCategory').value,layout:$('laborReportLayout').value});
+      if(!data.rows.length){clearLaborReport('No approved labor entries match this scout, date range and category.');return;}
+      builtLaborReport=data;$('laborReportPreview').innerHTML=window.SodvilleLaborReport.body(data);
+      $('laborReportDownload').disabled=false;$('laborReportPrint').disabled=false;
+      $('laborExportStatus').textContent='Report built: '+data.rows.length+' approved activities · '+data.additional.toFixed(2)+' additional labor hours.';
+    }catch(error){clearLaborReport(error.message);$('laborExportStatus').textContent=error.message;}
   }
   function downloadLaborBlob(content,type,filename){
     const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');
     link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),60000);
   }
-  function laborReportHTML(data){
-    const from=$('laborExportFrom').value,to=$('laborExportTo').value;
-    const lines=data.rows.map(x=>'<tr>'+[x.date,x.scout,x.category,x.start,x.end,x.gross,x.scouting,x.additional,x.description].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('');
-    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sodville Labor Log '+esc(from)+' to '+esc(to)+'</title><style>body{font-family:Arial,sans-serif;color:#17291d;padding:20px}h1{color:#173b25;font-size:22px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}th{background:#e6f1e8}p{line-height:1.5}.controls{margin:12px 0}button{padding:10px}@media print{.controls{display:none}body{padding:0}@page{size:landscape;margin:12mm}}</style></head><body><div class="controls"><button onclick="window.print()">Print / Save PDF</button></div><h1>Sodville Farm Services — Labor &amp; Management Log</h1><p><b>Scout:</b> '+esc(user()?.name||'Unknown')+'<br><b>Period:</b> '+esc(from)+' through '+esc(to)+'<br><b>Approved activities:</b> '+data.rows.length+'<br><b>Gross logged hours:</b> '+data.gross.toFixed(2)+'<br><b>Additional labor hours (after scouting overlap):</b> '+data.additional.toFixed(2)+'</p><table><thead><tr>'+['Date','Scout','Category','Start','End','Gross hrs','Scouting overlap hrs','Additional hrs','Activity'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+lines+'</tbody></table><p>Entries are based on approved local labor records for the selected scout. Scouting overlap is deducted to avoid double-counting. Review before using for FSA or payroll documentation.</p></body></html>';
-  }
   function runLaborExport(kind){
-    const status=$('laborExportStatus');
+    const status=$('laborExportStatus'),data=builtLaborReport;
+    if(!data){status.textContent='Build a report first.';return;}
+    if(data.scout.id!==user()?.id){clearLaborReport('Scout changed. Build a new report.');return;}
     try{
-      const data=laborExportData();
-      if(!data.rows.length){status.textContent='No approved labor entries found for this scout and date range.';return}
-      const name='Sodville-Labor-Log-'+$('laborExportFrom').value+'-to-'+$('laborExportTo').value;
-      if(kind==='csv'){
-        const cols=['date','scout','category','start','end','gross','scouting','additional','description','approved'];
-        const csv=[cols.join(','),...data.rows.map(x=>cols.map(k=>'"'+String(x[k]??'').replace(/"/g,'""')+'"').join(','))].join('\r\n');
-        downloadLaborBlob('\uFEFF'+csv,'text/csv;charset=utf-8',name+'.csv');
-        status.textContent='CSV download started for '+data.rows.length+' activities.';
+      const name='Sodville-Labor-'+data.layout+'-'+data.from+'-to-'+data.to;
+      if(kind==='download'&&$('laborReportFormat').value==='csv'){
+        downloadLaborBlob(window.SodvilleLaborReport.csv(data),'text/csv;charset=utf-8',name+'.csv');
+        status.textContent='Spreadsheet downloaded using the displayed report layout.';
       }else{
-        const html=laborReportHTML(data);
-        if(kind==='download'){
-          downloadLaborBlob(html,'text/html;charset=utf-8',name+'.html');
-          status.textContent='Printable report downloaded. Open it in Safari and choose Print to save as PDF.';
-        }else{
+        const html=window.SodvillePrint.document({title:'Sodville Labor Report '+data.from+' to '+data.to,body:window.SodvilleLaborReport.body(data),returnUrl:'https://sfsfarmapps.github.io/sodvillescout/#labor-reports',landscape:data.layout==='detail'});
+        if(kind==='download'){downloadLaborBlob(html,'text/html;charset=utf-8',name+'.html');status.textContent='Printable report downloaded. Open it to print or save a PDF.';}
+        else{
           const w=window.open('','_blank');
-          if(!w){status.textContent='Safari blocked the print window. Tap Download Report instead.';return}
+          if(!w){status.textContent='Your browser blocked the preview. Allow pop-ups for Scout or choose Download → Printable report.';return;}
           w.document.open();w.document.write(html);w.document.close();w.focus();
-          status.textContent='Print report opened. Tap Print / Save PDF in the new window.';
+          status.textContent='Print preview opened. Use Close preview & return to come back to this builder.';
         }
       }
-    }catch(error){status.textContent=error.message}
+    }catch(error){status.textContent='Report output failed: '+error.message;}
   }
-  const currentDate=exportDay(new Date());
-  $('laborExportFrom').value=currentDate.slice(0,7)+'-01';
-  $('laborExportTo').value=currentDate;
-  $('laborDownloadCSV').onclick=()=>runLaborExport('csv');
-  $('laborDownloadReport').onclick=()=>runLaborExport('download');
-  $('laborPrintReport').onclick=()=>runLaborExport('print');
+  const currentDate=window.SodvilleLaborReport.day(new Date());
+  $('laborExportFrom').value=currentDate.slice(0,7)+'-01';$('laborExportTo').value=currentDate;
+  for(const id of ['laborExportFrom','laborExportTo','laborReportLayout','laborReportCategory'])$(''+id).addEventListener('change',()=>clearLaborReport());
+  function setLaborDates(from,to){$('laborExportFrom').value=from;$('laborExportTo').value=to;clearLaborReport();}
+  $('laborReportMonth').onclick=()=>{const d=window.SodvilleLaborReport.day(new Date());setLaborDates(d.slice(0,7)+'-01',d);};
+  $('laborReportYear').onclick=()=>{const d=window.SodvilleLaborReport.day(new Date());setLaborDates(d.slice(0,4)+'-01-01',d);};
+  $('laborReportLastYear').onclick=()=>{const y=new Date().getFullYear()-1;setLaborDates(y+'-01-01',y+'-12-31');};
+  $('laborReportBuild').onclick=buildLaborReport;$('laborReportDownload').onclick=()=>runLaborExport('download');$('laborReportPrint').onclick=()=>runLaborExport('print');
+  $('laborReportClose').onclick=closeLaborReports;$('laborReportDone').onclick=closeLaborReports;
+  reportOverlay.addEventListener('click',e=>{if(e.target===reportOverlay)closeLaborReports();});
+  reportOverlay.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();closeLaborReports();}
+    if(e.key==='Tab'){
+      const controls=[...reportOverlay.querySelectorAll('button,input,select')].filter(x=>!x.disabled),first=controls[0],last=controls.at(-1);
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  $('laborOpenReportBuilder').onclick=openLaborReports;
+  exportShortcut.textContent='Labor Reports';exportShortcut.onclick=openLaborReports;
+  if(window.location.hash==='#labor-reports')openLaborReports();
+  window.addEventListener('hashchange',()=>{if(window.location.hash==='#labor-reports')openLaborReports();});
 
   function history() {
     const list=currentLogs().slice(0,15);
@@ -230,13 +270,6 @@
       const status=$('laborError');
       if(status)status.textContent='Labor Log encountered an error: '+error.message+'. Please reload this page in Safari.';
     }
-  };
-  exportShortcut.onclick=()=>{
-    try{
-      open();
-      $('laborExportPanel').scrollIntoView({block:'start',behavior:'auto'});
-      $('laborExportStatus').textContent='Choose your dates, then download CSV or the printable report.';
-    }catch(error){console.error('Labor export:',error)}
   };
   $('laborClose').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
@@ -566,3 +599,4 @@
     }
   };
 })();
+
