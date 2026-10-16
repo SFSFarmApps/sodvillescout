@@ -414,15 +414,21 @@
   function taskEditor(items,date,source){
     extracted=items.map(x=>({...x,date:x.date||date||''}));
     $('laborDate').value=date||items[0]?.date||'';
+    renderTaskEditor(source);
+  }
+  function renderTaskEditor(source){
     const root=$('laborParsedTasks');root.replaceChildren();
-    $('laborReview').textContent='Continue to review & save →';
-    $('laborContinue').hidden=false;$('laborContinue').style.display='block';
+    $('laborReview').textContent=extracted.length?'Continue to review & save →':'✨ Interpret dictation again';
+    $('laborContinue').hidden=!extracted.length;$('laborContinue').style.display=extracted.length?'block':'none';
     const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
-    head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+items.length+' task(s). Dates and times spoken in your dictation are filled in automatically. Correct anything inaccurate, then tap Continue to review & save.';
+    head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+extracted.length+' task(s). Dates and times spoken in your dictation are filled in automatically. Correct anything inaccurate or remove unwanted tasks with ×, then tap Continue to review & save.';
     root.appendChild(head);
+    if(!extracted.length){head.textContent='All tasks removed. Edit your dictation or tap Interpret dictation again to start over.';return;}
     extracted.forEach((task,i)=>{
-      const panel=document.createElement('div');panel.style.cssText='border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
-      const title=document.createElement('b');title.textContent='Task '+(i+1);panel.appendChild(title);
+      const panel=document.createElement('div');panel.style.cssText='position:relative;border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
+      const title=document.createElement('b');title.textContent='Task '+(i+1);title.style.cssText='display:block;min-height:32px;padding-right:44px';panel.appendChild(title);
+      const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove task '+(i+1));remove.title='Remove this task';remove.style.cssText='position:absolute;top:4px;right:4px;width:44px;height:44px;min-height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:#9b2c2c;font-size:26px;line-height:1;cursor:pointer';
+      remove.onclick=()=>{const index=extracted.indexOf(task);if(index<0)return;extracted.splice(index,1);draft=null;spoken='';$('laborError').textContent='Task removed from this draft.';renderTaskEditor(source);const buttons=root.querySelectorAll('button');(buttons[Math.min(index,buttons.length-1)]||$('laborReview')).focus();};panel.appendChild(remove);
       const description=document.createElement('textarea');description.rows=2;description.value=task.description||'';description.style.cssText='display:block;width:100%;margin:6px 0';description.setAttribute('aria-label','Task '+(i+1)+' description');description.oninput=()=>task.description=description.value;panel.appendChild(description);
       const category=document.createElement('select');category.style.cssText='display:block;width:100%;margin:6px 0';
       for(const c of CATEGORIES){const opt=document.createElement('option');opt.textContent=c;opt.value=c;category.appendChild(opt)}
