@@ -507,16 +507,16 @@
   }
   function handleVoiceCommand(transcript){
     const command=transcript.toLowerCase().trim().replace(/[.!?]+$/,'');
-    if(/^(?:yes\\s+)?(?:save|approve|approve and save|save it|save entries|save the entries)$/.test(command)){
+    if(/^(?:yes\s+)?(?:save|approve|approve and save|save it|save entries|save the entries)$/.test(command)){
       $('laborError').textContent='Voice approval received: '+transcript;
       approve();
     }else if(/^(?:edit|change|correct|edit it|make changes)$/.test(command)){
       $('laborEdit').click();
       $('laborError').textContent='Editing is open. Change the fields, then continue to review and save.';
-    }else if(/^(?:edit|change|correct)\\b/.test(command)){
+    }else if(/^(?:edit|change|correct)\b/.test(command)){
       $('laborEdit').click();
       const notes=$('laborNotes');
-      notes.value=(notes.value+'\\nCorrection: '+transcript).trim();
+      notes.value=(notes.value+'\nCorrection: '+transcript).trim();
       notes.dispatchEvent(new Event('input',{bubbles:true}));
       $('laborError').textContent='I added your spoken correction to the dictation. Tap Interpret & review dictation to apply it, then confirm before saving.';
     }else{
@@ -524,6 +524,9 @@
     }
   }
   $('laborListenApprove').onclick=async()=>{
+    $('laborSpokenPlayback').pause();
+    $('laborReadBack').textContent='🔊 Read results aloud';
+    window.speechSynthesis?.cancel();
     if(!isIOS){
       listen(handleVoiceCommand,m=>$('laborError').textContent=m);
       return;
@@ -566,3 +569,4 @@
     }
   };
 })();
+
