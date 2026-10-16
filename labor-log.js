@@ -79,7 +79,7 @@
   const overlay=document.createElement('div');
   overlay.id='laborLogOverlay';
   overlay.style.cssText='display:none;position:fixed;inset:0;z-index:100010;background:#0009;padding:12px;overflow:auto';
-  overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-label="Labor and management time log" style="max-width:580px;width:100%;margin:3vh auto;background:#fff;color:#17291d;border-radius:14px;padding:18px;box-shadow:0 8px 35px #0004">
+  overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-label="Labor and management time log" style="box-sizing:border-box;max-width:none;width:100%;margin:3vh auto;background:#fff;color:#17291d;border-radius:14px;padding:18px;box-shadow:0 8px 35px #0004">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;font-size:21px">Labor & Management Log</h2><button type="button" id="laborClose" aria-label="Close">✕</button></div>
     <p style="font-size:13px;color:#53675a">Log physical labor or management work. Scouting time already recorded by the scouting timer will be deducted automatically.</p>
     <p id="laborWho" style="font-weight:800"></p>
