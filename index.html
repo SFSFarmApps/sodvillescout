@@ -149,6 +149,7 @@ main.map-expanded #mapExpandBtn{position:fixed!important;top:auto!important;bott
 </script>
 <div id="toast" style="display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#173b25;color:white;padding:12px 18px;border-radius:10px;z-index:5000;font-weight:700;box-shadow:0 4px 18px #0005"></div><div id="modal" class="modal hidden"><div class="card"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
 <script src="./land/fields.js?build=20261016-headquarters-fix"></script>
+<script src="./scouting-report.js?v=20261016-checked-fields-1"></script>
   <script>window.SODVILLE_FIELDS = {
 "type": "FeatureCollection",
 "name": "fields",
@@ -586,42 +587,7 @@ function showToast(msg){
   window._toastTimer=setTimeout(()=>t.style.display='none',2200);
 }
 function taskKey(t){return String(t.id);}
-function formatTaskTankMix(t){
-  // Support the tank-mix shapes used by the prototype as it has evolved.
-  const candidates=[
-    t.tankMix, t.tankmix, t.mix, t.products, t.chemicals,
-    t.application && t.application.tankMix,
-    t.application && t.application.products
-  ].filter(v=>v!==undefined && v!==null && v!=='');
-
-  if(!candidates.length)return 'Not entered';
-  const v=candidates[0];
-
-  if(Array.isArray(v)){
-    if(!v.length)return 'Not entered';
-    return v.map(x=>{
-      if(typeof x==='string')return x;
-      if(!x || typeof x!=='object')return String(x);
-      const name=x.name||x.product||x.chemical||x.productName||'Product';
-      const rate=x.rate||x.amount||'';
-      const unit=x.unit||x.units||'';
-      return [name, rate, unit].filter(Boolean).join(' ');
-    }).join(' + ');
-  }
-  if(typeof v==='object'){
-    return Object.values(v).filter(Boolean).map(x=>{
-      if(typeof x==='string')return x;
-      if(x && typeof x==='object'){
-        const name=x.name||x.product||x.chemical||x.productName||'Product';
-        const rate=x.rate||x.amount||'';
-        const unit=x.unit||x.units||'';
-        return [name,rate,unit].filter(Boolean).join(' ');
-      }
-      return String(x);
-    }).join(' + ') || 'Not entered';
-  }
-  return String(v);
-}
+function formatTaskTankMix(t){return esc(window.SodvilleReports.formatTankMix(t));}
 
 let taskFilters={client:'',priority:'',category:'',taskName:'',farm:''};
 function openTasks(){return db.tasks.filter(t=>!['Complete','Completed','Closed'].includes(t.status))}
@@ -877,7 +843,11 @@ function scoutingReportAction(kind){
     }
   }catch(error){if(msg)msg.textContent=error.message;else alert(error.message)}
 }
-$('#reportBtn').onclick=()=>{let today=new Date(),first=new Date(today.getFullYear(),today.getMonth(),1),ymd=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');openModal(`<div class="report"><h1>Scouting Reports</h1><p class="muted">Choose any date range to combine scouting sessions into one FSA labor/management report. Use a calendar month, full year, or a custom period.</p><div class="grid2"><label>From<input id="rptFrom" type="date" value="${ymd(first)}"></label><label>Through<input id="rptTo" type="date" value="${ymd(today)}"></label></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button id="thisMonthRpt">This Month</button><button id="thisYearRpt">This Year</button><button id="lastYearRpt">Last Year</button><button class="primary" id="buildRangeRpt">Build Report</button></div><div id="rangeReportPreview"></div></div>`);let setDates=(a,b)=>{$('#rptFrom').value=ymd(a);$('#rptTo').value=ymd(b)};$('#thisMonthRpt').onclick=()=>setDates(new Date(today.getFullYear(),today.getMonth(),1),today);$('#thisYearRpt').onclick=()=>setDates(new Date(today.getFullYear(),0,1),today);$('#lastYearRpt').onclick=()=>setDates(new Date(today.getFullYear()-1,0,1),new Date(today.getFullYear()-1,11,31));$('#buildRangeRpt').onclick=()=>{let from=$('#rptFrom').value,to=$('#rptTo').value;if(!from||!to)return alert('Choose a From and Through date.');let a=new Date(from+'T00:00:00'),b=new Date(to+'T23:59:59'),sessions=db.sessions.filter(x=>new Date(x.start)>=a&&new Date(x.start)<=b).sort((x,y)=>new Date(x.start)-new Date(y.start));if(!sessions.length){$('#rangeReportPreview').innerHTML='<p><b>No scouting sessions were found in that date range on this device.</b></p>';return}let totalMin=0,totalObs=0,totalTasks=0,allFields=new Set(),sessionHtml=sessions.map(ses=>{let finish=ses.end?new Date(ses.end):new Date(),mins=Math.max(0,Math.round((finish-new Date(ses.start))/60000));totalMin+=mins;let obs=db.observations.filter(o=>o.sessionId===ses.id||(!o.sessionId&&o.time&&new Date(o.time)>=new Date(ses.start)&&new Date(o.time)<=finish));let tasks=db.tasks.filter(t=>t.sessionId===ses.id||(!t.sessionId&&t.time&&new Date(t.time)>=new Date(ses.start)&&new Date(t.time)<=finish));totalObs+=obs.length;totalTasks+=tasks.length;obs.concat(tasks).forEach(x=>allFields.add(String(x.fieldId)));let ids=[...new Set(obs.concat(tasks).map(x=>String(x.fieldId)))],fieldHtml=ids.map(fid=>{let p=fields.features.find(f=>String(f.properties.FIELD_ID)===fid)?.properties||{},oo=obs.filter(o=>String(o.fieldId)===fid),tt=tasks.filter(t=>String(t.fieldId)===fid);let oh=oo.map(o=>`<div class="item"><b>Observation</b> — Weeds: ${o.weed||'—'}; Insects: ${o.insect||'—'}${o.notes?`<br>${o.notes}`:''}</div>`).join('');let th=tt.map(t=>`<div class="item"><b>${t.type||'Task'}: ${t.name||''}</b> — ${t.priority||'Normal'}${String(t.type||'').toLowerCase()==='application'?`<br>Tank mix: ${formatTaskTankMix(t)}`:''}${t.notes?`<br>${t.notes}`:''}</div>`).join('');return `<div style="margin:8px 0 8px 14px"><b>${p.FIELD_NAME||'Field'}${p.FARM_NAME?' — '+p.FARM_NAME:''}</b>${oh}${th}</div>`}).join('');return `<section style="border:1px solid #d7ddd8;border-radius:8px;padding:11px;margin:12px 0;break-inside:avoid"><h3 style="margin:0 0 5px">${fmt(ses.start)}</h3><p style="margin:3px 0"><b>Scout:</b> ${ses.userName||'Not recorded'} &nbsp; <b>Start:</b> ${fmt(ses.start)} &nbsp; <b>End:</b> ${ses.end?fmt(ses.end):'In progress'} &nbsp; <b>Time:</b> ${Math.floor(mins/60)} hr ${mins%60} min</p>${fieldHtml||'<p class="muted">No observations or tasks entered.</p>'}</section>`}).join('');$('#rangeReportPreview').innerHTML=`<hr><h1>Sodville Scouting & Labor/Management Log</h1><p><b>Reporting period:</b> ${from} through ${to}</p><div class="grid2"><div><b>Scouting sessions:</b> ${sessions.length}<br><b>Unique fields with records:</b> ${allFields.size}</div><div><b>Total observations:</b> ${totalObs}<br><b>Total tasks identified:</b> ${totalTasks}</div></div><h2>Total Scouting / Management Time: ${Math.floor(totalMin/60)} hr ${totalMin%60} min</h2>${sessionHtml}<hr><h2>Period Summary</h2><p><b>Total documented scouting/management time:</b> ${Math.floor(totalMin/60)} hr ${totalMin%60} min<br><b>Scouting sessions:</b> ${sessions.length}<br><b>Observations recorded:</b> ${totalObs}<br><b>Tasks identified:</b> ${totalTasks}</p><p class="muted">Each session records the overall scouting activity from departure from the office through completion. Time is not allocated as per-field time.</p><div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0"><button type="button" class="primary" onclick="scoutingReportAction('print')">Print / Save PDF</button><button type="button" onclick="scoutingReportAction('download')">Download Report</button></div><p id="scoutingExportStatus" class="noprint" role="status"></p>`}};
+$('#reportBtn').onclick=()=>{let today=new Date(),first=new Date(today.getFullYear(),today.getMonth(),1),ymd=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');openModal(`<div class="report"><h1>Scouting Reports</h1><p class="muted">Choose any date range to combine scouting sessions into one FSA labor/management report. Use a calendar month, full year, or a custom period.</p><div class="grid2"><label>From<input id="rptFrom" type="date" value="${ymd(first)}"></label><label>Through<input id="rptTo" type="date" value="${ymd(today)}"></label></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button id="thisMonthRpt">This Month</button><button id="thisYearRpt">This Year</button><button id="lastYearRpt">Last Year</button><button class="primary" id="buildRangeRpt">Build Report</button></div><div id="rangeReportPreview"></div></div>`);let setDates=(a,b)=>{$('#rptFrom').value=ymd(a);$('#rptTo').value=ymd(b)};$('#thisMonthRpt').onclick=()=>setDates(new Date(today.getFullYear(),today.getMonth(),1),today);$('#thisYearRpt').onclick=()=>setDates(new Date(today.getFullYear(),0,1),today);$('#lastYearRpt').onclick=()=>setDates(new Date(today.getFullYear()-1,0,1),new Date(today.getFullYear()-1,11,31));$('#buildRangeRpt').onclick=()=>{
+ const from=$('#rptFrom').value,to=$('#rptTo').value;
+ try{$('#rangeReportPreview').innerHTML=window.SodvilleReports.renderReport({db,fields,from,to});}
+ catch(error){$('#rangeReportPreview').textContent=error.message;}
+}};
 
 $('#taskFilterBtn').onclick=()=>{fillFilterOptions();let e=$('#taskFilters');e.style.display=e.style.display==='none'?'block':'none'};
 $('#applyTaskFilters').onclick=()=>{taskFilters={client:$('#filterClient').value,priority:$('#filterPriority').value,category:$('#filterCategory').value,taskName:$('#filterTaskName').value,farm:$('#filterFarm').value};renderOutstandingTasks();applyTaskBoundaryFilter()};
