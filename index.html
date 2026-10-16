@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1015-31</title><link rel="manifest" href="manifest.webmanifest?v=1002-32-final">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1015-32</title><link rel="manifest" href="manifest.webmanifest?v=1002-32-final">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -857,28 +857,7 @@ function scoutingReportDocument(){
   if(!preview||!preview.querySelector('h1'))throw Error('Build the scouting report before downloading or printing.');
   const content=preview.cloneNode(true);
   content.querySelectorAll('button,.noprint').forEach(x=>x.remove());
-  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sodville Scouting Report</title><style>body{font-family:Arial,sans-serif;color:#17291d;max-width:1050px;margin:0 auto;padding:22px;line-height:1.45}h1{font-size:22px;color:#173b25}h2{font-size:17px}h3{font-size:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{margin:5px 0;padding:4px;border-bottom:1px solid #eee}.muted{color:#59675c}.controls{padding:12px;background:#f3f7f3;margin-bottom:18px}button{padding:10px}@media print{.controls{display:none}body{max-width:none;padding:0}@page{margin:12mm}}</style></head><body><div class="controls"><button onclick="window.print()">Print / Save PDF</button></div>'+content.innerHTML+'<script id="sodville-map-expand-script">
-(function(){
-const btn=document.getElementById('mapExpandBtn'),main=document.querySelector('main');
-if(!btn||!main)return;
-let expanded=false;
-function setExpanded(next){
- expanded=Boolean(next);
- main.classList.toggle('map-expanded',expanded);
- document.body.classList.toggle('map-expanded-body',expanded);
- btn.textContent=expanded?'↙':'⛶';
- btn.title=expanded?'Restore normal view':'Expand map';
- btn.setAttribute('aria-label',expanded?'Restore normal map view':'Expand map to full screen');
- btn.setAttribute('aria-pressed',String(expanded));
- // Leaflet must recalculate tile size after the container changes.
- const update=()=>{try{window.map?.invalidateSize?.({pan:false,animate:false})}catch(e){}};
- requestAnimationFrame(()=>{update();setTimeout(update,250)});
-}
-btn.addEventListener('click',()=>setExpanded(!expanded));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded)setExpanded(false)});
-window.addEventListener('resize',()=>{if(expanded)window.map?.invalidateSize?.({pan:false,animate:false})});
-})();
-</script></body></html>';
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sodville Scouting Report</title><style>body{font-family:Arial,sans-serif;color:#17291d;max-width:1050px;margin:0 auto;padding:22px;line-height:1.45}h1{font-size:22px;color:#173b25}h2{font-size:17px}h3{font-size:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{margin:5px 0;padding:4px;border-bottom:1px solid #eee}.muted{color:#59675c}.controls{padding:12px;background:#f3f7f3;margin-bottom:18px}button{padding:10px}@media print{.controls{display:none}body{max-width:none;padding:0}@page{margin:12mm}}</style></head><body><div class="controls"><button onclick="window.print()">Print / Save PDF</button></div>'+content.innerHTML+'</body></html>';
 }
 function scoutingReportAction(kind){
   const msg=document.getElementById('scoutingExportStatus');
@@ -913,5 +892,27 @@ window.addEventListener('pageshow',()=>refreshLiveRainfall());
 </script>
 <script src="./scout-sync.js?v=20261015-labor-1"></script>
 <script src="./labor-log.js?v=20261015-labor-exports-10"></script>
+<script id="sodville-map-expand-script">
+(function(){
+const btn=document.getElementById('mapExpandBtn'),main=document.querySelector('main');
+if(!btn||!main)return;
+let expanded=false;
+function setExpanded(next){
+ expanded=Boolean(next);
+ main.classList.toggle('map-expanded',expanded);
+ document.body.classList.toggle('map-expanded-body',expanded);
+ btn.textContent=expanded?'↙':'⛶';
+ btn.title=expanded?'Restore normal view':'Expand map';
+ btn.setAttribute('aria-label',expanded?'Restore normal map view':'Expand map to full screen');
+ btn.setAttribute('aria-pressed',String(expanded));
+ // Leaflet must recalculate tile size after the container changes.
+ const update=()=>{try{window.map?.invalidateSize?.({pan:false,animate:false})}catch(e){}};
+ requestAnimationFrame(()=>{update();setTimeout(update,250)});
+}
+btn.addEventListener('click',()=>setExpanded(!expanded));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&expanded)setExpanded(false)});
+window.addEventListener('resize',()=>{if(expanded)window.map?.invalidateSize?.({pan:false,animate:false})});
+})();
+</script>
 </body>
 </html>
