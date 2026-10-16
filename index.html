@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1015-28</title><link rel="manifest" href="manifest.webmanifest?v=1002-32-final">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Sodville Field Scout • Build 1015-29</title><link rel="manifest" href="manifest.webmanifest?v=1002-32-final">
 <meta name="theme-color" content="#173b25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -71,6 +71,36 @@ aside{background:#fff;border:1px solid #e2eae1;border-radius:16px;padding:15px;m
 @media(max-width:800px){header{padding:12px 13px;gap:10px}header b{font-size:15px;letter-spacing:1px}header span{font-size:11px}#timerDisplay{font-size:17px;min-width:91px}#sessionBtn{font-size:13px;min-height:44px;padding:9px 11px}.toolbar{padding:9px;gap:7px}.toolbar button,.toolbar select{font-size:13px}.taskSidebar{padding:50px 12px 12px}.card{padding:17px;border-radius:16px}.dashHead{padding:14px!important}}
 @media(prefers-reduced-motion:reduce){button,input,select,textarea{transition:none}}
 @media print{header,.toolbar{box-shadow:none}.card{box-shadow:none}}
+</style><style id="sodville-field-green">
+/* Option 1: Field Green — outdoor-legible earthy surfaces, low-glare controls */
+:root{--forest:#163c2a;--forest2:#284d37;--olive:#526d4e;--sage:#a8b9a1;--stone:#e6e7db;--cream:#e6e9df;--ink:#20352a;--line:#bacbb8;--shadow:0 8px 24px rgba(25,49,32,.13)}
+html,body{background:#dce3d8!important;color:#20352a}
+header{background:linear-gradient(112deg,#102f22,#204a33 65%,#426345)!important}
+.toolbar{background:#cddacb!important;border-bottom:1px solid #9eb49e!important;box-shadow:0 3px 14px #254a3024!important}
+.toolbar input,.toolbar select{background:#e8eee5!important;border-color:#aebfac!important;color:#243c2d!important}
+.toolbar button:not(.primary){background:#dfe9dc!important;border-color:#a5bca5!important;color:#25452f!important}
+.toolbar button:hover{background:#d1e0ce!important}
+main{background:#d9e2d5!important}
+.taskSidebar{background:#bdcfba!important;border-right:1px solid #91ad91!important}
+.taskSidebar aside,aside{background:#e3eadf!important;border:1px solid #b6cbb4!important;box-shadow:0 4px 18px #1b3c281c!important}
+.taskSidebar .section{border-color:#b9cdb8!important}
+.taskSidebar .chip,.chip{background:#cbdcc8!important;border-color:#b0c7af!important}
+.taskSidebar .taskItem,.taskSidebar .fieldTask{border-color:#abc1a9!important}
+.taskSidebar input,.taskSidebar select,.taskSidebar textarea{background:#f0f3eb!important}
+.card{background:#e9ede3!important;border:1px solid #bccdb9!important}
+.card input,.card textarea,.card select{background:#f3f5ee!important}
+.dashboardView{background:#d7e2d4!important}
+.dashHead{background:linear-gradient(115deg,#173e2b,#416747)!important}
+.dashGrid>*,.dashSections>*,.dashTime,.dashList{background:#e8ede4!important;border-color:#b8cbb5!important}
+#allocationBanner{background:#e7ede2!important}
+#map{background:#bacbb7!important}
+#fieldCount{background:#d3e4cf!important;color:#245236!important}
+#dashboardBtn{background:#c2d8bd!important;border-color:#94b594!important}
+#reportBtn{background:#e2e9dc!important}
+#laborLogBtn{background:#c9ddc4!important;border-color:#9dbb9c!important}
+#sidebarToggle{background:#264d34!important;color:#fff!important}
+@media(max-width:800px){.toolbar{background:#c9d8c6!important}.taskSidebar{background:#c2d2bf!important}}
+@media print{html,body,main,.dashboardView,.card{background:#fff!important}}
 </style></head>
 <body><header><div><b>SODVILLE FIELD SCOUT</b><span id="sessionStatus">No scouting session</span></div><div class="sessionControls"><div id="timerDisplay">00:00:00</div><button id="sessionBtn" class="primary">▶ START scouting DAY</button></div></header>
 <div class="toolbar"><span id="fieldCount" style="display:none"></span><div class="userControls"><select id="scoutSelect" aria-label="Current scout"></select><button id="manageUsersBtn" class="manageUsers">+ Scouts</button></div><input id="search" placeholder="Search client, farm, field…"><select id="layerMode"><option value="status">Outstanding task urgency</option><option value="soils" selected>Soils (USDA NRCS)</option><option value="workability">Workability</option><option value="weed">Weed pressure</option><option value="insect">Insect pressure</option></select><button id="soilLegendBtn" type="button" style="display:none;font-weight:800">Soil Legend</button><button id="locationToggleBtn" type="button" style="font-weight:800">📍 Location: ON</button><button id="multiFieldBtn" type="button" style="font-weight:800">☐ Multi Field</button><button id="mapPinsBtn" type="button" aria-expanded="false" aria-controls="mapPinsOverlay" style="font-weight:800">Map Settings</button><button id="dashboardBtn" class="dashboardBtn">Dashboard</button><button id="reportBtn">Scouting Reports</button><button id="laborLogBtn" type="button" style="background:#e6f1e8;border:1px solid #b5d1bc;color:#173b25;font-weight:800;min-height:43px">🎙 Labor Log</button></div>
