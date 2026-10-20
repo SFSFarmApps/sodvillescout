@@ -122,7 +122,7 @@
     </div>
     <p id="laborError" role="alert" style="color:#a32222;font-size:13px;min-height:1em"></p>
     <div style="border-top:1px solid #d6e2d7;padding-top:14px;margin-top:16px"><button type="button" id="laborOpenReportBuilder">Open labor report builder</button><p style="font-size:12px;color:#607466">Choose dates, preview approved entries, and download or print your report.</p></div>
-    <h3 style="font-size:16px">Your recent entries</h3>
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h3 style="font-size:16px">Your saved tasks</h3><button type="button" id="laborHistoryRefresh">Refresh entries</button></div>
     <div id="laborHistory" style="font-size:12px;max-height:190px;overflow:auto"></div>
     <p style="font-size:11px;color:#607466">Entries save on this device first and synchronize when online. Management reports are available only in Sodville Command.</p>
   </section>`;
@@ -239,13 +239,83 @@
   window.addEventListener('hashchange',()=>{if(window.location.hash==='#labor-reports')openLaborReports();});
 
   function history() {
-    const list=currentLogs().slice(0,15);
+    const list=currentLogs();
     $('laborHistory').innerHTML=list.length?list.map(x=>{
       const r=range(x),t=r?totals(...r):null;
       return '<div style="padding:8px 0;border-bottom:1px solid #e2e9e2"><b>'+esc(x.category)+'</b> · '+esc(fmt(x.start))+
-        ' · '+(t?hours(t.additional)+' additional hr':'—')+'<div>'+esc(x.notes||'')+'</div></div>';
+        ' · '+(t?hours(t.additional)+' additional hr':'—')+'<div>'+esc(x.notes||'')+'</div><button type="button" data-labor-edit="'+esc(x.id)+'" style="margin-top:6px;min-height:40px" aria-label="Edit '+esc(x.category)+' task from '+esc(fmt(x.start))+'">Edit task</button>'+(x.editedAt?'<small style="display:block">Edited '+esc(fmt(x.editedAt))+'</small>':'')+'</div>';
     }).join(''):'No labor entries yet.';
   }
+  // Stable record IDs let the existing offline sync update, rather than duplicate, saved tasks.
+  const savedEditor=document.createElement('div');savedEditor.id='laborSavedEditor';savedEditor.hidden=true;
+  savedEditor.innerHTML=`<style>
+  #laborSavedEditor{position:fixed;inset:0;z-index:100040;background:#10291fd9;padding:12px;overflow:auto;color:#173b25;font:15px/1.5 system-ui,sans-serif}
+  #laborSavedEditor[hidden]{display:none}#laborSavedEditor *{box-sizing:border-box}
+  #laborSavedEditor section{width:100%;max-width:620px;margin:3vh auto;background:#f2f6f0;border:1px solid #b6cdb8;border-radius:15px;padding:20px;box-shadow:0 15px 50px #0004}
+  #laborSavedEditor h2{margin:0;font-size:23px;color:#173b25}#laborSavedEditor label{display:block;font-weight:700;margin:12px 0}
+  #laborSavedEditor input,#laborSavedEditor textarea,#laborSavedEditor select{display:block;width:100%;min-width:0;margin-top:5px;padding:11px;border:1px solid #a9c1af;border-radius:8px;background:white;color:#193426;font:inherit}
+  #laborSavedEditor button{min-height:44px;padding:10px 15px;border:1px solid #a9c1af;border-radius:8px;font:inherit;font-weight:700;color:#173b25;background:white;cursor:pointer}
+  #laborSavedEditor .times{display:grid;grid-template-columns:1fr 1fr;gap:12px}#laborSavedEditor .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  #laborSavedEditor #laborSavedSave{color:white;background:#1c5535}#laborSavedEditor .totals{padding:12px;background:#e1ebdf;border-radius:9px;font-size:13px}
+  #laborSavedEditor #laborSavedError{color:#a32222;font-size:13px;min-height:1.5em}#laborSavedEditor button:disabled{opacity:.5;cursor:default}
+  @media(max-width:500px){#laborSavedEditor .times{grid-template-columns:1fr;gap:0}#laborSavedEditor section{margin:0 auto;padding:16px}}
+  </style><section role="dialog" aria-modal="true" aria-labelledby="laborSavedTitle"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="laborSavedTitle">Edit saved labor task</h2><button type="button" id="laborSavedClose" aria-label="Close saved task editor">✕</button></div>
+  <p id="laborSavedWho" style="font-weight:700"></p><form id="laborSavedForm">
+  <label>Activity category<select id="laborSavedCategory" required></select></label>
+  <label>What did you do?<textarea id="laborSavedNotes" rows="4" required maxlength="10000"></textarea></label>
+  <div class="times"><label>Started<input id="laborSavedStart" type="datetime-local" required></label><label>Finished<input id="laborSavedEnd" type="datetime-local" required></label></div>
+  <p class="totals" id="laborSavedTotals" aria-live="polite"></p><p id="laborSavedError" role="alert"></p>
+  <p style="font-size:12px;color:#52694e">Changes update this saved task. Scouting overlap is recalculated, and reports use the corrected entry.</p>
+  <div class="actions"><button type="button" id="laborSavedCancel">Cancel</button><button type="submit" id="laborSavedSave">Save changes</button></div></form></section>`;
+  document.body.appendChild(savedEditor);
+  let savedEditing=null,savedReturnFocus=null;
+  function savedError(message){$('laborSavedError').textContent=message;return null;}
+  function savedValues(){
+    const original=savedEditing?.original,u=user();
+    if(!original||u?.id!==original.userId)return savedError('Selected scout changed. Close this editor and reopen the task for the correct scout.');
+    const notes=$('laborSavedNotes').value.trim(),category=$('laborSavedCategory').value;
+    const a=$('laborSavedStart').value,b=$('laborSavedEnd').value;
+    const start=new Date(a===localTime(original.start)?original.start:a),end=new Date(b===localTime(original.end)?original.end:b);
+    if(!notes||notes.length>10000||!category)return savedError('Enter an activity category and a description (up to 10,000 characters).');
+    if(!a||!b||!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start||end-start>86400000||end>Date.now()+60000)return savedError('Enter valid start and finish dates and times, in the past and no more than 24 hours apart.');
+    if(currentLogs().filter(x=>x.id!==original.id&&x.approvedAt).some(x=>{const r=range(x);return r&&+start<r[1]&&+end>r[0]}))return savedError('These times overlap another approved labor task. Correct the times before saving.');
+    $('laborSavedError').textContent='';
+    return {category,notes,start:start.toISOString(),end:end.toISOString(),workDate:window.SodvilleLaborReport.day(start)};
+  }
+  function previewSaved(){const v=savedValues();if(!v){$('laborSavedTotals').textContent='Correct the details above to recalculate hours.';return}const t=totals(Date.parse(v.start),Date.parse(v.end));$('laborSavedTotals').textContent='Gross '+hours(t.gross)+' hr · Scouting overlap '+hours(t.overlap)+' hr · Additional labor '+hours(t.additional)+' hr';}
+  function openSaved(id,trigger){
+    const original=currentLogs().find(x=>x.id===id);if(!original)return;
+    savedEditing={original:JSON.parse(JSON.stringify(original)),signature:JSON.stringify(original)};savedReturnFocus=trigger||document.activeElement;
+    const category=$('laborSavedCategory');category.replaceChildren();
+    for(const c of [...new Set([...CATEGORIES,original.category||'Other'])]){const option=document.createElement('option');option.value=c;option.textContent=c;category.appendChild(option)}
+    category.value=original.category||'Other';$('laborSavedNotes').value=original.notes||'';$('laborSavedStart').value=localTime(original.start);$('laborSavedEnd').value=localTime(original.end);
+    $('laborSavedWho').textContent='Scout: '+(original.userName||user()?.name||'')+' · Saved '+fmt(original.createdAt||original.approvedAt||original.start);
+    savedEditor.hidden=false;previewSaved();$('laborSavedNotes').focus();
+  }
+  function closeSaved(){savedEditor.hidden=true;savedEditing=null;savedReturnFocus?.focus();}
+  $('laborHistory').addEventListener('click',event=>{const button=event.target.closest('[data-labor-edit]');if(button)openSaved(button.dataset.laborEdit,button)});
+  $('laborHistoryRefresh').onclick=async()=>{const button=$('laborHistoryRefresh');button.disabled=true;try{await window.sodvilleSyncNow?.();history();}finally{button.disabled=false}};
+  for(const id of ['laborSavedCategory','laborSavedNotes','laborSavedStart','laborSavedEnd'])$(id).addEventListener('input',previewSaved);
+  $('laborSavedCancel').onclick=closeSaved;$('laborSavedClose').onclick=closeSaved;
+  savedEditor.addEventListener('click',event=>{if(event.target===savedEditor)closeSaved()});
+  savedEditor.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeSaved();}
+    if(event.key==='Tab'){const items=[...savedEditor.querySelectorAll('button,input,textarea,select')].filter(x=>!x.disabled),first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}
+  });
+  $('laborSavedForm').onsubmit=event=>{
+    event.preventDefault();const values=savedValues();if(!values)return;
+    const original=savedEditing.original,index=db.laborLogs.findIndex(x=>x.id===original.id&&x.userId===original.userId),current=db.laborLogs[index];
+    if(!current||JSON.stringify(current)!==savedEditing.signature){savedError('This task changed since you opened it. Close and reopen it to review the latest version.');return;}
+    const changed=Object.keys(values).some(k=>values[k]!==original[k]);if(!changed){closeSaved();return;}
+    const now=new Date().toISOString(),prior={...original};delete prior.editHistory;
+    const updated={...original,...values,editedAt:now,updatedAt:now,editedBy:user().id,revision:(Number(original.revision)||1)+1,editHistory:[...(original.editHistory||[]),{editedAt:now,editedBy:user().id,previous:prior}]};
+    db.laborLogs[index]=updated;
+    try{save()}catch(error){db.laborLogs[index]=current;savedError('Changes could not be saved on this device. The original task is unchanged. '+error.message);return;}
+    clearLaborReport('A labor task changed. Build your report again to include the correction.');closeSaved();history();
+    $('laborError').textContent='Saved task updated. Synchronization will run automatically when online.';
+    window.sodvilleSyncChanged?.();
+  };
+
   function open() {
     overlay.style.display='block';
     overlay.hidden=false;
@@ -605,4 +675,5 @@
     }
   };
 })();
+
 
