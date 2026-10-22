@@ -1,0 +1,816 @@
+/* Shared Land design system. Presentation only; field data stays in its existing services. */
+:root {
+  --land-forest: #163c2a;
+  --land-olive: #526d4e;
+  --land-sage: #dfe7d8;
+  --land-stone: #e8ebe1;
+  --land-paper: #f6f8f1;
+  --land-ink: #20352a;
+  --land-muted: #63735f;
+  --land-line: #c5d1bd;
+  --land-accent: #d5e7a4;
+  --land-shadow: 0 5px 18px #203c2810;
+}
+body.land-page {
+  margin: 0;
+  background: var(--land-stone);
+  color: var(--land-ink);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  --bg: var(--land-stone);
+  --card: var(--land-paper);
+  --ink: var(--land-ink);
+  --muted: var(--land-muted);
+  --line: var(--land-line);
+  --paper: var(--land-stone);
+  --pale: #e4eddc;
+  --forest: var(--land-forest);
+  --green: var(--land-forest);
+  --g: var(--land-forest);
+  --g2: #315b3c;
+  --deep: #163c2a;
+  --white: var(--land-paper);
+  --accent: #315b3c;
+}
+.land-page * {
+  box-sizing: border-box;
+}
+.land-page [hidden] {
+  display: none !important;
+}
+.land-page .land-masthead {
+  display: block !important;
+  position: relative;
+  top: auto;
+  height: auto;
+  min-height: 0;
+  background: var(--land-forest);
+  color: #f1f6e9;
+  padding: 0 !important;
+  z-index: 1200;
+  border: 0;
+  box-shadow: 0 2px 12px #10291b1a;
+}
+.land-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px clamp(16px, 2.4vw, 36px);
+}
+.land-page .land-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #f6f9ef;
+  text-decoration: none;
+  letter-spacing: 2px;
+  font-size: 14px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.land-logo .land-monogram {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 10px;
+  background: #d5e7a4;
+  color: #163c2a;
+  font-size: 19px;
+  letter-spacing: 0;
+}
+.land-logo b {
+  font-weight: 400;
+  color: #c8d9b9;
+  margin-left: 6px;
+}
+.land-utilities {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 12px;
+}
+.land-page .land-utilities a {
+  color: #d6e4c9;
+  text-decoration: none;
+}
+.land-page .land-utilities a:hover {
+  color: white;
+}
+.land-page .land-navigation {
+  display: flex !important;
+  align-items: center;
+  gap: 3px;
+  padding: 0 clamp(12px, 2vw, 30px) 10px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  font-size: 13px;
+}
+.land-page .land-navigation a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: #d7e4ce;
+  text-decoration: none;
+  font-weight: 550;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+.land-page .land-navigation a:hover {
+  background: #ffffff12;
+  color: white;
+}
+.land-page .land-navigation a[aria-current="page"] {
+  background: #d5e7a4;
+  color: #193b26;
+  font-weight: 750;
+}
+.land-nav-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.land-page a:focus-visible,
+.land-page button:focus-visible,
+.land-page input:focus-visible,
+.land-page select:focus-visible,
+.land-page summary:focus-visible {
+  outline: 3px solid #bc8a2e;
+  outline-offset: 3px;
+}
+.land-page > .land-skip {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 8000;
+}
+.land-page > .land-skip:focus {
+  top: 12px;
+  background: white;
+  color: #163c2a;
+  padding: 10px;
+}
+.land-page main {
+  padding: 24px clamp(14px, 2.4vw, 36px);
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+}
+.land-page h1 {
+  font-size: clamp(26px, 2.3vw, 34px);
+  font-weight: 720;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
+  color: var(--land-ink);
+}
+.land-page h2 {
+  font-size: 18px;
+  letter-spacing: -0.25px;
+  color: var(--land-ink);
+}
+.land-page h3 {
+  font-size: 15px;
+  color: var(--land-ink);
+}
+.land-page p {
+  line-height: 1.6;
+}
+.land-page .heading,
+.land-page .hero,
+.land-page .intro,
+.land-page .land-page-heading {
+  margin: 0 0 20px;
+  gap: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.land-page-heading h1 {
+  margin: 2px 0 7px;
+}
+.land-page-heading p {
+  margin: 0;
+  color: var(--land-muted);
+  font-size: 13px;
+}
+.land-page .eyebrow,
+.land-kicker {
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: var(--land-olive);
+}
+.land-page .muted,
+.land-page .caption,
+.land-page .hint {
+  color: var(--land-muted);
+}
+.land-page .card,
+.land-page .panel,
+.land-page .stat,
+.land-page .total,
+.land-page .metric,
+.land-page .fact,
+.land-page main > section:not([role="tabpanel"]) {
+  background: var(--land-paper);
+  border-color: var(--land-line);
+  color: var(--land-ink);
+  border-radius: 12px;
+  box-shadow: var(--land-shadow);
+}
+.land-page .fact,
+.land-page .metric,
+.land-page .stat {
+  background: #edf2e5;
+}
+.land-page .card .label,
+.land-page .stat .label,
+.land-page small {
+  color: var(--land-muted);
+}
+.land-page .ph,
+.land-page .panelHead,
+.land-page .dialoghead,
+.land-page .dialogHead {
+  border-color: var(--land-line);
+  background: #e4ebdc;
+}
+.land-page button,
+.land-page .button {
+  border-radius: 8px;
+  border: 1px solid #bbcbb1;
+  background: #f1f5e9;
+  color: #23442d;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+  min-height: 36px;
+  box-shadow: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.land-page button:hover:not(:disabled),
+.land-page .button:hover {
+  background: #e3edd5;
+  border-color: #93aa82;
+}
+.land-page button.primary,
+.land-page button.tabactive,
+.land-page .button.primary,
+.land-page button[aria-pressed="true"] {
+  background: #254f34;
+  color: #f5f8ed;
+  border-color: #254f34;
+}
+.land-page button.active,
+.land-page .tabs button.active {
+  background: #d7e6c2;
+  color: #23442d;
+  border-color: #9eb78a;
+}
+.land-page button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.land-page input:not([type="checkbox"]):not([type="radio"]),
+.land-page select,
+.land-page textarea {
+  background: #fbfcf7;
+  border: 1px solid #b9c9ae;
+  border-radius: 8px;
+  color: #20352a;
+  font-family: inherit;
+  min-height: 37px;
+  max-width: 100%;
+}
+.land-page input[type="checkbox"],
+.land-page input[type="radio"] {
+  accent-color: #355f3c;
+}
+.land-page table {
+  font-variant-numeric: tabular-nums;
+}
+.land-page th {
+  background: #e5ecdc;
+  color: #526849;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.15px;
+}
+.land-page td,
+.land-page th {
+  border-color: #d3ddc9;
+}
+.land-page tr:hover td {
+  background: #eaf0e21f;
+}
+.land-page .table-wrap,
+.land-page .tablewrap,
+.land-page .scrolltable {
+  border-radius: 8px;
+}
+.land-page .notice,
+.land-page .warning {
+  border-radius: 8px;
+  background: #f6efd9;
+  border-color: #d9c48c;
+  color: #74551f;
+}
+.land-page .badge,
+.land-page .tag,
+.land-page .pill {
+  background: #e4eddb;
+  color: #3d5b32;
+  border-color: #aabd9c;
+}
+.land-page .clientHead,
+.land-page .clienthead,
+.land-page .clientGroup > summary {
+  background: #dfe9d4;
+  color: #304c2c;
+}
+.land-page .field.selected,
+.land-page .row.active,
+.land-page .fieldRow.active {
+  background: #e1eccf;
+}
+.land-page .asidehead,
+.land-page aside:not(.card),
+.land-page .fields,
+.land-page .detail,
+.land-page #editor {
+  background: #f0f4e9;
+  color: #20352a;
+}
+.land-page dialog {
+  background: #f6f8f1;
+  color: #20352a;
+  border: 1px solid #bccdb0;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px #0e23194d;
+}
+.land-page dialog::backdrop {
+  background: #122b22b8;
+}
+.land-page .leaflet-container {
+  font-family: inherit;
+}
+.land-page .leaflet-popup-content-wrapper {
+  background: #f8faf2;
+  color: #20352a;
+  border-radius: 10px;
+}
+.land-page .leaflet-popup-content h3 {
+  color: #20352a;
+}
+.land-page .leaflet-control-zoom a {
+  background: #f8faf2;
+  color: #20432e;
+}
+.land-page .leaflet-control-attribution a {
+  color: #315c44;
+}
+.land-page .land-page-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 19px clamp(14px, 2.4vw, 36px);
+  background: #e5ecdc;
+  border-bottom: 1px solid #c5d1bd;
+}
+.land-page-tools h1 {
+  margin: 0 auto 0 0;
+}
+.land-page-tools label {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.land-page-tools label select {
+  width: auto;
+}
+.land-page #saved {
+  color: #617253;
+  font-size: 12px;
+}
+.land-page[data-land-page="planner"] main {
+  padding: 0;
+  min-height: 510px;
+  height: calc(100dvh - 390px);
+}
+.land-page[data-land-page="planner"] main > section {
+  border-radius: 0;
+  box-shadow: none;
+}
+.land-page[data-land-page="planner"] > nav:not(.land-navigation) {
+  padding: 12px clamp(14px, 2.4vw, 36px);
+  background: #edf2e5;
+  border-bottom: 1px solid #c5d1bd;
+}
+.land-page[data-land-page="planner"] #totals {
+  padding: 14px clamp(14px, 2.4vw, 36px);
+  gap: 10px;
+}
+.land-page[data-land-page="planner"] .stat strong {
+  color: #26472c;
+}
+.land-page[data-land-page="overview"] .hero {
+  align-items: center;
+}
+.land-overview-search {
+  width: min(440px, 100%);
+  padding: 11px 14px;
+  font-size: 13px;
+}
+.land-page[data-land-page="overview"] .cards {
+  gap: 12px;
+}
+.land-page[data-land-page="overview"] .card {
+  padding: 16px 18px;
+}
+.land-page[data-land-page="overview"] .metric {
+  font-size: 28px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.land-page[data-land-page="overview"] .list,
+.land-page[data-land-page="overview"] #map {
+  height: max(520px, calc(100dvh - 365px));
+}
+.land-page[data-land-page="overview"] .recordHead {
+  background: #e7eddc;
+}
+.land-page .landOverlay .landModal {
+  background: #f6f8f1;
+}
+.land-page .landRecordAction {
+  display: inline-flex;
+  padding: 9px 13px;
+  background: #e1ecd4;
+  border: 1px solid #abc19c;
+  border-radius: 8px;
+  color: #294b31;
+  text-decoration: none;
+}
+.land-page[data-land-page="spatial"] .shell {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.land-page[data-land-page="spatial"] .land-spatial-status {
+  margin-left: auto;
+  font-size: 11px;
+  max-width: 210px;
+}
+.land-page[data-land-page="spatial"] .sidebar,
+.land-page[data-land-page="spatial"] .inspector {
+  background: #eef3e6;
+}
+.land-page[data-land-page="spatial"] .sideTop,
+.land-page[data-land-page="spatial"] .insTop {
+  background: #e1e9d7;
+}
+.land-page .land-section-tabs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 0 0 20px;
+}
+.land-section-tabs button,
+.land-section-tabs a {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #b7c9aa;
+  text-decoration: none;
+  color: #345633;
+  background: #eef4e4;
+  font-weight: 650;
+  font-size: 13px;
+}
+.land-section-tabs button[aria-selected="true"] {
+  background: #254f34;
+  color: white;
+  border-color: #254f34;
+}
+.land-page .fsa-register-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  margin-top: 16px;
+}
+.land-page .fsa-register-record {
+  padding: 20px;
+  border: 1px solid #c5d1bd;
+  background: #f6f8f1;
+  border-radius: 12px;
+  min-width: 0;
+}
+.fsa-register-record .facts {
+  margin: 14px 0;
+}
+.land-page .fsa-register-record h3 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+.fsa-register-record .land-record-fields {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fsa-register-record .land-record-fields a {
+  font-size: 12px;
+  padding: 5px 9px;
+  background: #e4edd9;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #355332;
+}
+.land-page .land-import-tools {
+  margin: 18px 0;
+  padding: 16px 18px;
+  background: #eef3e7;
+  border: 1px solid #c5d1bd;
+  border-radius: 10px;
+}
+.land-import-tools > summary {
+  font-weight: 650;
+  color: #355332;
+  cursor: pointer;
+}
+.land-page .land-map-expand {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 1050;
+  width: 39px;
+  height: 39px;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #758c66;
+  background: #f4f8e9;
+  color: #26482e;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px #142c2a33;
+  cursor: pointer;
+}
+.land-page .land-map-expand svg {
+  width: 18px;
+  height: 18px;
+}
+.land-page .land-map-expanded {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  z-index: 6000 !important;
+}
+.land-page .land-map-expanded .land-map-expand {
+  width: auto;
+  padding: 0 12px;
+  gap: 7px;
+  display: flex;
+  right: 16px;
+  top: 16px;
+}
+.land-map-close-label {
+  display: none;
+}
+.land-map-expanded .land-map-close-label {
+  display: inline;
+}
+.land-page .land-map-expanded .land-map-expand {
+  background: #f0f6e5;
+}
+@media (max-width: 900px) {
+  .land-brand-row {
+    padding: 13px 16px;
+  }
+  .land-utilities {
+    gap: 12px;
+  }
+  .land-page .land-navigation {
+    padding: 0 10px 9px;
+  }
+  .land-page .land-navigation a {
+    font-size: 12px;
+    padding: 8px 11px;
+  }
+  .land-page .heading,
+  .land-page .hero {
+    align-items: flex-start;
+  }
+  .land-page main {
+    padding: 20px 14px;
+  }
+  .land-page[data-land-page="overview"] .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .land-page[data-land-page="overview"] .grid {
+    grid-template-columns: 1fr;
+  }
+  .land-page[data-land-page="overview"] .list {
+    height: 300px;
+  }
+  .land-page[data-land-page="overview"] #map {
+    height: 510px;
+  }
+  .land-page .land-spatial-status {
+    display: none;
+  }
+  .land-page .fsa-register-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .land-logo b {
+    margin-left: 3px;
+  }
+  .land-page .land-logo {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+  }
+  .land-utilities {
+    font-size: 11px;
+  }
+  .land-utilities a:first-child {
+    display: none;
+  }
+  .land-page main {
+    padding: 17px 12px;
+  }
+  .land-page .heading,
+  .land-page .hero,
+  .land-page .land-page-heading {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .land-page h1 {
+    font-size: 27px;
+  }
+  .land-page[data-land-page="planner"] main {
+    height: auto;
+    min-height: 0;
+  }
+  .land-page[data-land-page="planner"] .land-page-tools {
+    gap: 9px;
+  }
+  .land-page-tools h1 {
+    width: 100%;
+  }
+  .land-page[data-land-page="overview"] #map {
+    height: 430px;
+    min-height: 0;
+  }
+  .land-page .land-map-expand {
+    right: 10px;
+    top: 10px;
+  }
+  .land-page .land-map-expanded {
+    height: 100dvh !important;
+  }
+  .land-page .land-navigation {
+    scrollbar-width: none;
+  }
+  .land-page .land-navigation::-webkit-scrollbar {
+    display: none;
+  }
+  .land-page .fsa-register-record {
+    padding: 15px;
+  }
+}
+@media print {
+  .land-masthead,
+  .land-map-expand,
+  .land-section-tabs,
+  .land-import-tools,
+  .land-utilities {
+    display: none !important;
+  }
+  .land-page {
+    background: white !important;
+    color: #111 !important;
+  }
+  .land-page main {
+    padding: 0;
+  }
+  .land-page .card,
+  .land-page .panel,
+  .land-page .fact {
+    box-shadow: none !important;
+    background: white !important;
+  }
+}
+.land-page .fsa-register-record .facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.land-page .fsa-register-record .fact {
+  padding: 12px;
+}
+.land-page .fsa-register-record .fact small,
+.land-page .fsa-register-record .fact strong {
+  display: block;
+}
+.land-page .fsa-register-record .fact strong {
+  font-size: 16px;
+  margin-top: 4px;
+}
+.land-page .fsa-register-record table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.land-page .fsa-register-record th,
+.land-page .fsa-register-record td {
+  padding: 10px;
+  border-bottom: 1px solid #d3ddc9;
+  text-align: left;
+}
+.land-page[data-land-page="planner"] .stat {
+  border-top: 3px solid var(--color, #75876b);
+}
+.land-page[data-land-page="rent"] .tablewrap {
+  max-height: 65vh;
+  overflow: auto;
+}
+.land-page[data-land-page="rent"] .tablewrap th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.land-page[data-land-page="spatial"] .shell {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+.land-page[data-land-page="spatial"] .workspace,
+.land-page[data-land-page="spatial"] .mapPanel {
+  min-width: 0;
+}
+.land-page .land-navigation {
+  max-width: 100%;
+  width: 100%;
+}
+@media (max-width: 850px) {
+  .land-page[data-land-page="spatial"] .mapPanel {
+    width: 100%;
+  }
+  .land-page[data-land-page="spatial"] .toolbar {
+    flex-wrap: wrap;
+  }
+  .land-page[data-land-page="spatial"] .control {
+    min-width: 0;
+    flex: 1 1 115px;
+  }
+  .land-page[data-land-page="spatial"] .control select {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  .land-page[data-land-page="spatial"] .toolbar button {
+    flex: 0 1 auto;
+  }
+}
+.land-page[data-land-page="spatial"] .login {
+  z-index: 1500;
+}
+.land-page[data-land-page="spatial"] .loginBox {
+  background: #f6f8f1;
+  border: 1px solid #c2d1b8;
+}
+.land-page .land-page-tools label {
+  font-size: 12px;
+}
+.land-page .land-utilities {
+  letter-spacing: 0;
+}
