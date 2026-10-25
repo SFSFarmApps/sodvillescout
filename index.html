@@ -781,15 +781,55 @@ window.deleteFieldSelectedTasks=function(){
   deleteTaskIds(ids);
 };
 window.observation=()=>{if(!selected)return;let p=selected.feature.properties;openModal(`<h2>Scout ${p.FIELD_NAME}</h2><form id="obs"><div class="formgrid"><div><b>Weed pressure</b><div class="pressure"><label class="green"><input type="radio" name="weed" value="green" checked> Green</label><label class="yellow"><input type="radio" name="weed" value="yellow"> Yellow</label><label class="red"><input type="radio" name="weed" value="red"> Red</label></div></div><div><b>Insect pressure</b><div class="pressure"><label class="green"><input type="radio" name="insect" value="green" checked> Green</label><label class="yellow"><input type="radio" name="insect" value="yellow"> Yellow</label><label class="red"><input type="radio" name="insect" value="red"> Red</label></div></div><div class="wide"><label>Notes / observations</label><textarea name="notes" placeholder="Crop condition, weeds, insects, disease, moisture, field conditions…"></textarea></div><button class="primary wide">Save Observation</button></div></form>`);$('#obs').onsubmit=e=>{e.preventDefault();let x=new FormData(e.target),weed=x.get('weed'),insect=x.get('insect');db.observations.push({id:crypto.randomUUID(),sessionId:active()?.id||null,fieldId:p.FIELD_ID,time:new Date().toISOString(),weed,insect,status:(weed==='red'||insect==='red')?'red':(weed==='yellow'||insect==='yellow')?'yellow':'green',notes:x.get('notes'),userId:currentUser()?.id,userName:currentUser()?.name});save();closeModal();refresh()}}
-const COMMAND_TANK_MIX_URL='https://iwzeagzbrzrvaehkuyby.supabase.co/functions/v1/tank-mixes';
-let commandTankMixes=null;
+const COMMAND_TANK_MIX_URL='https://sodville-command-api.onrender.com/api/scout/tank-mixes';
+const COMMAND_MIX_ACCESS_KEY='sodvilleScoutDeereMixAccessV1';
+let commandTankMixes=null,commandTankMixLoadedAt=0,commandTankMixStatus=null;
+let commandMixWindow=null,commandMixState=null,commandMixConnected=null;
+function commandMixAccess(){
+  try{const a=JSON.parse(localStorage.getItem(COMMAND_MIX_ACCESS_KEY)||'null');if(a&&/^[a-f0-9]{64}$/.test(a.token)&&Date.parse(a.expiresAt)>Date.now())return a.token;}catch{}
+  return null;
+}
+// A return from the secure connection page may open a fresh Scout tab on mobile.
+try{
+  const prefix='#deere-mix-access=';
+  if(location.hash.startsWith(prefix)){
+    const a=JSON.parse(decodeURIComponent(location.hash.slice(prefix.length)));
+    if(/^[a-f0-9]{64}$/.test(a?.token||'')&&Date.parse(a.expiresAt)>Date.now()&&Date.parse(a.expiresAt)<=Date.now()+8*86400000)localStorage.setItem(COMMAND_MIX_ACCESS_KEY,JSON.stringify({token:a.token,expiresAt:a.expiresAt}));
+    history.replaceState(null,'',location.pathname+location.search);
+  }
+}catch{try{history.replaceState(null,'',location.pathname+location.search);}catch{}}
+function connectCommandMixes(onConnected){
+  commandMixState=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
+  commandMixConnected=onConnected;
+  commandMixWindow=window.open('https://sodville-command-api.onrender.com/command/scout/mix-access?state='+commandMixState,'sodville-mix-library','width=560,height=700');
+  if(!commandMixWindow)showToast('Allow the connection window to open, then tap Connect again.');
+}
+window.addEventListener('message',async e=>{
+  if(e.origin!=='https://sodville-command-api.onrender.com'||e.source!==commandMixWindow||!commandMixState||e.data?.type!=='sodville:mix-access'||e.data.state!==commandMixState)return;
+  const {token,expiresAt}=e.data;if(!/^[a-f0-9]{64}$/.test(token||'')||!(Date.parse(expiresAt)>Date.now())||Date.parse(expiresAt)>Date.now()+8*86400000)return;
+  try{localStorage.setItem(COMMAND_MIX_ACCESS_KEY,JSON.stringify({token,expiresAt}));commandTankMixes=null;commandTankMixLoadedAt=0;commandTankMixStatus=null;commandMixState=null;if(commandMixConnected)await commandMixConnected();}catch{showToast('The mix library could not connect. Allow browser storage and try again.');}
+});
 async function loadCommandTankMixes(){
-  if(Array.isArray(commandTankMixes))return commandTankMixes;
-  const res=await fetch(COMMAND_TANK_MIX_URL,{headers:{Accept:'application/json'},cache:'no-store'});
-  if(!res.ok)throw new Error('Tank mixes unavailable ('+res.status+')');
-  const data=await res.json();
-  commandTankMixes=Array.isArray(data)?data:(data.tankMixes||[]);
-  return commandTankMixes;
+  const token=commandMixAccess();
+  if(!token)throw Object.assign(new Error('Connect your Deere mix library to load current mixes.'),{connectRequired:true});
+  if(Array.isArray(commandTankMixes)&&Date.now()-commandTankMixLoadedAt<60000)return commandTankMixes;
+  try{
+    const res=await fetch(COMMAND_TANK_MIX_URL,{headers:{Accept:'application/json',Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(12000)});
+    if(res.status===401){localStorage.removeItem(COMMAND_MIX_ACCESS_KEY);commandTankMixes=null;throw Object.assign(new Error('Your mix-library connection expired. Tap Connect to renew it.'),{connectRequired:true});}
+    if(!res.ok)throw new Error('Tank mixes unavailable ('+res.status+')');
+    const data=await res.json();
+    if(!Array.isArray(data.tankMixes))throw new Error('Invalid Deere mix catalog');
+    commandTankMixes=data.tankMixes;commandTankMixLoadedAt=Date.now();commandTankMixStatus={syncedAt:data.syncedAt,stale:data.stale,warning:data.warning,refreshing:data.refreshing};
+    return commandTankMixes;
+  }catch(error){
+    if(error.connectRequired)throw error;
+    if(Array.isArray(commandTankMixes)){commandTankMixStatus={...commandTankMixStatus,stale:true,warning:'Unable to refresh. Using the last loaded Deere mixes.'};return commandTankMixes;}
+    throw error;
+  }
+}
+function tankMixSyncText(){
+  const s=commandTankMixStatus;if(!s)return '';
+  return [s.syncedAt?'Deere synced '+new Date(s.syncedAt).toLocaleString():'',s.warning||(s.stale?'Using saved Deere catalog.':s.refreshing?'Refresh in progress.':'Auto-updates from Deere.')].filter(Boolean).join(' • ');
 }
 function tankMixRecipeText(m){
   const parts=(m.components||[]).map(x=>[x.product_name||x.name||'Product',x.rate,x.rate_unit||x.unit].filter(v=>v!==null&&v!==undefined&&v!=='').join(' '));
@@ -804,20 +844,23 @@ function taskCropYearOptions(){
   return Array.from({length:year+5-2020+1},(_,i)=>2020+i).map(y=>`<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
 }
 window.task=async()=>{if(!selected&&!multiSelectedFields.size)return;const targets=multiFieldMode?[...multiSelectedFields.values()]:(selected?[selected]:[]);if(!targets.length){showToast('Select at least one field.');return;}let p=targets[0].feature.properties;
-  openModal(`<h2>${targets.length>1?'Create task — '+targets.length+' fields':'Create task — '+p.FIELD_NAME}</h2>${targets.length>1?`<p class="muted">${targets.reduce((n,x)=>n+(Number(x.feature.properties.ACRES)||0),0).toFixed(1)} total acres • a separate assignment will be created for each field.</p>`:''}<form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Crop year<select name="cropYear" id="taskCropYear" required>${taskCropYearOptions()}</select><small class="muted">Crop season for this task and its future Deere Work Plan; separate from the date you create it.</small></label><div class="wide" id="taskOperationWrap"><label>Task / operation<input name="name" id="taskOperation" placeholder="e.g. ProTill, cultivate, harvest…"></label></div><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><div class="wide" id="deereTaskOptions"><label>Treatment area<select name="treatmentArea" id="taskTreatmentArea"><option value="">Choose treatment area…</option><option value="whole-field">Whole field</option><option value="partial-field">Edges / spot treatment</option></select></label><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="deerePublishRequested" id="taskDeereRequested" checked> Queue for Deere Work Plan</label><small class="muted">Uses this mix’s saved rates and crop year. Andrew controls automatic publishing and sends plans to machines. Partial-field instructions require review.</small></div><label class="wide">Notes<textarea name="notes" maxlength="2000"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
+  openModal(`<h2>${targets.length>1?'Create task — '+targets.length+' fields':'Create task — '+p.FIELD_NAME}</h2>${targets.length>1?`<p class="muted">${targets.reduce((n,x)=>n+(Number(x.feature.properties.ACRES)||0),0).toFixed(1)} total acres • a separate assignment will be created for each field.</p>`:''}<form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Crop year<select name="cropYear" id="taskCropYear" required>${taskCropYearOptions()}</select><small class="muted">Crop season for this task and its future Deere Work Plan; separate from the date you create it.</small></label><div class="wide" id="taskOperationWrap"><label>Task / operation<input name="name" id="taskOperation" placeholder="e.g. ProTill, cultivate, harvest…"></label></div><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div><button type="button" id="connectDeereMixes" style="margin-top:8px">Connect / renew Deere mix library</button></div><div class="wide" id="deereTaskOptions"><label>Treatment area<select name="treatmentArea" id="taskTreatmentArea"><option value="">Choose treatment area…</option><option value="whole-field">Whole field</option><option value="partial-field">Edges / spot treatment</option></select></label><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="deerePublishRequested" id="taskDeereRequested" checked> Queue for Deere Work Plan</label><small class="muted">Uses this mix’s saved rates and crop year. Andrew controls automatic publishing and sends plans to machines. Partial-field instructions require review.</small></div><label class="wide">Notes<textarea name="notes" maxlength="2000"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
   const type=$('#taskType'),wrap=$('#tankMixWrap'),opWrap=$('#taskOperationWrap'),op=$('#taskOperation'),sel=$('#tankMixSelect'),detail=$('#tankMixDetail');
   const syncVisibility=()=>{const application=type.value==='Application';wrap.style.display=application?'block':'none';opWrap.style.display=application?'none':'block';op.required=!application;$('#deereTaskOptions').style.display=application?'block':'none';$('#taskTreatmentArea').required=application}; type.onchange=syncVisibility;syncVisibility();
-  try{
+  async function populateMixes(){try{
     const mixes=(await loadCommandTankMixes()).filter(m=>!m.archived).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
     sel.innerHTML='<option value="">Select tank mix…</option>'+mixes.map(m=>`<option value="${esc(m.id||m.deere_tank_mix_id)}">${esc(m.name)}</option>`).join('');
+    detail.textContent=tankMixSyncText();
     sel.onchange=()=>{
       const m=mixes.find(x=>String(x.id||x.deere_tank_mix_id)===String(sel.value));
-      detail.textContent=m?[m.solution_rate&&m.solution_rate_unit?`${m.solution_rate} ${m.solution_rate_unit}`:'',tankMixRecipeText(m)].filter(Boolean).join(' • '):'';
+      detail.textContent=m?[m.solution_rate&&m.solution_rate_unit?`${m.solution_rate} ${m.solution_rate_unit}`:'',tankMixRecipeText(m),tankMixSyncText()].filter(Boolean).join(' • '):tankMixSyncText();
     };
   }catch(err){
-    sel.innerHTML='<option value="">Tank mixes could not be loaded</option>';
-    detail.textContent='Sodville Command tank-mix service is unavailable.';
-  }
+    sel.innerHTML='<option value="">'+(err.connectRequired?'Connect Deere mix library':'Tank mixes could not be loaded')+'</option>';
+    detail.textContent=err.connectRequired?err.message:'Deere tank mixes could not be loaded. Saved tasks are preserved; retry when connected.';
+  }}
+  $('#connectDeereMixes').onclick=()=>connectCommandMixes(()=>document.contains(sel)?populateMixes():Promise.resolve());
+  await populateMixes();
   $('#tsk').onsubmit=e=>{e.preventDefault();let x=Object.fromEntries(new FormData(e.target));
     x.cropYear=Number(x.cropYear);
     if(!Number.isInteger(x.cropYear)||x.cropYear<2000||x.cropYear>2100){showToast('Select a valid crop year.');return;}
