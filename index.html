@@ -704,6 +704,7 @@ function renderOutstandingTasks(){
         <span class="taskJump" data-field-id="${t.fieldId}">
           <span class="taskName"><span class="priorityDot ${t.priority||'Normal'}"></span>${t.name}</span>
           <div class="taskField">${p.FIELD_NAME||'Unknown field'} • ${t.priority||'Normal'}${taskCropYearText(t)}</div>
+          ${window.ScoutWorkPlans?.badge(t)||''}
           ${String(t.type||'').toLowerCase()==='application' ? `<div class="taskMix" style="margin-top:4px;font-size:12px;line-height:1.3;font-weight:700;color:#244b31;">Tank mix: ${formatTaskTankMix(t)}</div>` : ''}
         </span>
       </div>`;
@@ -803,9 +804,9 @@ function taskCropYearOptions(){
   return Array.from({length:year+5-2020+1},(_,i)=>2020+i).map(y=>`<option value="${y}"${y===year?' selected':''}>${y}</option>`).join('');
 }
 window.task=async()=>{if(!selected&&!multiSelectedFields.size)return;const targets=multiFieldMode?[...multiSelectedFields.values()]:(selected?[selected]:[]);if(!targets.length){showToast('Select at least one field.');return;}let p=targets[0].feature.properties;
-  openModal(`<h2>${targets.length>1?'Create task — '+targets.length+' fields':'Create task — '+p.FIELD_NAME}</h2>${targets.length>1?`<p class="muted">${targets.reduce((n,x)=>n+(Number(x.feature.properties.ACRES)||0),0).toFixed(1)} total acres • a separate assignment will be created for each field.</p>`:''}<form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Crop year<select name="cropYear" id="taskCropYear" required>${taskCropYearOptions()}</select><small class="muted">Crop season for this task and its future Deere Work Plan; separate from the date you create it.</small></label><div class="wide" id="taskOperationWrap"><label>Task / operation<input name="name" id="taskOperation" placeholder="e.g. ProTill, cultivate, harvest…"></label></div><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><label class="wide">Notes<textarea name="notes"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
+  openModal(`<h2>${targets.length>1?'Create task — '+targets.length+' fields':'Create task — '+p.FIELD_NAME}</h2>${targets.length>1?`<p class="muted">${targets.reduce((n,x)=>n+(Number(x.feature.properties.ACRES)||0),0).toFixed(1)} total acres • a separate assignment will be created for each field.</p>`:''}<form id="tsk"><div class="formgrid"><label>Task type<select name="type" id="taskType"><option>Application</option><option>Tillage</option><option>Fertility</option><option>Harvest</option><option>Irrigation</option><option>Other</option></select></label><label>Priority<select name="priority"><option>Normal</option><option>High</option><option>Urgent</option></select></label><label class="wide">Crop year<select name="cropYear" id="taskCropYear" required>${taskCropYearOptions()}</select><small class="muted">Crop season for this task and its future Deere Work Plan; separate from the date you create it.</small></label><div class="wide" id="taskOperationWrap"><label>Task / operation<input name="name" id="taskOperation" placeholder="e.g. ProTill, cultivate, harvest…"></label></div><div class="wide" id="tankMixWrap"><label>Tank Mix<select name="tankMixId" id="tankMixSelect"><option value="">Loading Deere tank mixes…</option></select></label><div id="tankMixDetail" class="muted" style="margin-top:6px"></div></div><div class="wide" id="deereTaskOptions"><label>Treatment area<select name="treatmentArea" id="taskTreatmentArea"><option value="">Choose treatment area…</option><option value="whole-field">Whole field</option><option value="partial-field">Edges / spot treatment</option></select></label><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="deerePublishRequested" id="taskDeereRequested" checked> Queue for Deere Work Plan</label><small class="muted">Uses this mix’s saved rates and crop year. Andrew controls automatic publishing and sends plans to machines. Partial-field instructions require review.</small></div><label class="wide">Notes<textarea name="notes" maxlength="2000"></textarea></label><button class="primary wide">Create Task</button></div></form>`);
   const type=$('#taskType'),wrap=$('#tankMixWrap'),opWrap=$('#taskOperationWrap'),op=$('#taskOperation'),sel=$('#tankMixSelect'),detail=$('#tankMixDetail');
-  const syncVisibility=()=>{const application=type.value==='Application';wrap.style.display=application?'block':'none';opWrap.style.display=application?'none':'block';op.required=!application}; type.onchange=syncVisibility;syncVisibility();
+  const syncVisibility=()=>{const application=type.value==='Application';wrap.style.display=application?'block':'none';opWrap.style.display=application?'none':'block';op.required=!application;$('#deereTaskOptions').style.display=application?'block':'none';$('#taskTreatmentArea').required=application}; type.onchange=syncVisibility;syncVisibility();
   try{
     const mixes=(await loadCommandTankMixes()).filter(m=>!m.archived).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
     sel.innerHTML='<option value="">Select tank mix…</option>'+mixes.map(m=>`<option value="${esc(m.id||m.deere_tank_mix_id)}">${esc(m.name)}</option>`).join('');
@@ -821,6 +822,10 @@ window.task=async()=>{if(!selected&&!multiSelectedFields.size)return;const targe
     x.cropYear=Number(x.cropYear);
     if(!Number.isInteger(x.cropYear)||x.cropYear<2000||x.cropYear>2100){showToast('Select a valid crop year.');return;}
     if(x.type==='Application'&&!x.tankMixId){showToast('Select a tank mix.');return;}
+    x.deerePublishRequested=x.type==='Application'&&$('#taskDeereRequested').checked;
+    if(x.type==='Application'&&!['whole-field','partial-field'].includes(x.treatmentArea)){showToast('Choose the treatment area.');return;}
+    if(x.type==='Application'&&x.treatmentArea==='partial-field'&&!String(x.notes||'').trim()){showToast('Describe the edges or spots to treat.');return;}
+    if(x.type!=='Application'){delete x.treatmentArea;}
     const m=(commandTankMixes||[]).find(v=>String(v.id||v.deere_tank_mix_id)===String(x.tankMixId));
     if(m){x.tankMix={id:m.id||null,deereTankMixId:m.deere_tank_mix_id||null,name:m.name,solutionRate:m.solution_rate||null,solutionRateUnit:m.solution_rate_unit||null,components:m.components||[]};x.mix=m.name;x.name=m.name;}
     delete x.tankMixId;
@@ -873,6 +878,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pageshow',()=>refreshLiveRainfall());
 </script>
 <script src="./scout-sync.js?v=20261015-labor-1"></script>
+<script src="./scout-work-plans.js?v=20261025-1"></script>
 <script src="./labor-log.js?v=20261020-saved-task-editor-1"></script>
 <script id="sodville-map-expand-script">
 (function(){
