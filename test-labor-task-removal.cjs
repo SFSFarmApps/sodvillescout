@@ -8,7 +8,7 @@ function setup(){
   querySelectorAll(tag){return this.children.flatMap(x=>[...(x.tag===tag?[x]:[]),...x.querySelectorAll(tag)]);}
  }
  const elements=new Map(),$=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
- const context={$: $,document:{createElement:tag=>new Element(tag)},CATEGORIES:['Field Work','Other'],Date,crypto:{randomUUID:()=> 'draft'},user:()=>({id:'u',name:'Scout'}),currentLogs:()=>[],range:x=>[Date.parse(x.start),Date.parse(x.end)],totals:()=>({gross:3600000,overlap:0,additional:3600000}),hours:x=>(x/3600000).toFixed(2),fmt:x=>x,interpret:()=>{throw Error('Unexpected reinterpretation');}};
+ const context={persistLaborDraft:()=>{},draftOwner:'u',laborFeedback:message=>{$('laborError').textContent=message},$: $,document:{createElement:tag=>new Element(tag)},CATEGORIES:['Field Work','Other'],Date,crypto:{randomUUID:()=> 'draft'},user:()=>({id:'u',name:'Scout'}),currentLogs:()=>[],range:x=>[Date.parse(x.start),Date.parse(x.end)],totals:()=>({gross:3600000,overlap:0,additional:3600000}),hours:x=>(x/3600000).toFixed(2),fmt:x=>x,interpret:()=>{throw Error('Unexpected reinterpretation');}};
  const editor=source.slice(source.indexOf('  function taskEditor('),source.indexOf('  async function interpret()'));
  const reviewStart=source.indexOf("  $('laborReview').onclick=async()=>{");
  const review=source.slice(reviewStart,source.indexOf("  $('laborNotes').addEventListener('input'",reviewStart));
@@ -45,3 +45,4 @@ test('removed tasks never reach review drafts or spoken readback',async()=>{
  assert.doesNotMatch(state.spoken,/Unwanted/);assert.match(t.$('laborSummary').textContent,/Keep/);
  assert.equal(t.$('laborReviewPanel').hidden,false);
 });
+

@@ -83,6 +83,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:0;font-size:21px">Labor & Management Log</h2><button type="button" id="laborClose" aria-label="Close">✕</button></div>
     <p style="font-size:13px;color:#53675a">Log physical labor or management work. Scouting time already recorded by the scouting timer will be deducted automatically.</p>
     <p id="laborWho" style="font-weight:800"></p>
+    <p id="laborError" role="alert" aria-live="polite" tabindex="-1" style="position:sticky;top:0;z-index:2;background:#fff;padding:10px 0;color:#a32222;font-size:14px;min-height:1em"></p>
     <div id="laborForm">
       <label style="display:none;margin:10px 0">Activity
         <select id="laborCategory" style="display:block;width:100%;margin-top:5px">
@@ -120,7 +121,6 @@
         <button type="button" id="laborApprove" style="background:#173b25;color:white;font-weight:800">Approve & save</button>
       </div>
     </div>
-    <p id="laborError" role="alert" style="color:#a32222;font-size:13px;min-height:1em"></p>
     <div style="border-top:1px solid #d6e2d7;padding-top:14px;margin-top:16px"><button type="button" id="laborOpenReportBuilder">Open labor report builder</button><p style="font-size:12px;color:#607466">Choose dates, preview approved entries, and download or print your report.</p></div>
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h3 style="font-size:16px">Your saved tasks</h3><button type="button" id="laborHistoryRefresh">Refresh entries</button></div>
     <div id="laborHistory" style="font-size:12px;max-height:190px;overflow:auto"></div>
@@ -330,9 +330,10 @@
     if(audioRecorder?.state==='recording'){try{audioRecorder.stop()}catch(_){}}
     recorderButton.disabled=false;recorderButton.textContent='🎙 Start recording';
     draft=null;extracted=[];$('laborReview').textContent='✨ Interpret & review dictation';
+    restoreLaborDraft();
     try{history()}catch(error){console.error('Labor history:',error);$('laborHistory').textContent='Previous entries are temporarily unavailable.'}
   }
-  function close(){if(audioRecorder?.state==='recording'){try{audioRecorder.stop()}catch(_){}}if(recordTimer){clearInterval(recordTimer);recordTimer=null}overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
+  function close(){persistLaborDraft();if(audioRecorder?.state==='recording'){try{audioRecorder.stop()}catch(_){}}if(recordTimer){clearInterval(recordTimer);recordTimer=null}overlay.style.display='none';if(recognition){try{recognition.abort()}catch(_){}recognition=null}if(!isIOS)window.speechSynthesis?.cancel()}
   btn.onclick=()=>{
     try{open()}catch(error){
       console.error('Labor Log failed to open:',error);
@@ -436,6 +437,33 @@
 
   const CATEGORIES=['Equipment Management','Employee Management','Field Work','Marketing','Financial Management','Landowner Relations','FSA Compliance','Cattle Management','Office / Administration','Other'];
   let extracted=[];
+  let draftOwner=null;
+  const draftKey=id=>'sodvilleScoutLaborDraftV1:'+id;
+  function laborFeedback(message){
+    const el=$('laborError');el.textContent=message;el.style.color='#a32222';
+    el.scrollIntoView?.({block:'nearest',behavior:'smooth'});el.focus?.({preventScroll:true});
+  }
+  function persistLaborDraft(){
+    const id=draftOwner;if(!id)return;
+    const value={userId:id,notes:$('laborNotes').value,date:$('laborDate').value,tasks:extracted,updatedAt:new Date().toISOString()};
+    try{if(value.notes.trim()||value.tasks.length)localStorage.setItem(draftKey(id),JSON.stringify(value));else localStorage.removeItem(draftKey(id));}
+    catch(error){laborFeedback('Draft backup could not be saved on this device. Keep this page open and copy your notes before reloading. '+error.message);}
+  }
+  function restoreLaborDraft(){
+    draftOwner=user()?.id||null;if(!draftOwner)return;
+    try{
+      const value=JSON.parse(localStorage.getItem(draftKey(draftOwner))||'null');
+      if(!value||value.userId!==draftOwner)return;
+      $('laborNotes').value=typeof value.notes==='string'?value.notes:'';
+      $('laborDate').value=value.date||'';
+      if(Array.isArray(value.tasks)&&value.tasks.length)taskEditor(value.tasks,value.date,'restored');
+      laborFeedback('Your unfinished labor draft was restored. Check the details, continue to review, then tap Approve & save.');
+    }catch(error){laborFeedback('The unfinished draft could not be restored. '+error.message);}
+  }
+  // Bubble after task input handlers so the backup includes the latest edited values.
+  overlay.addEventListener('input',persistLaborDraft);
+  overlay.addEventListener('change',persistLaborDraft);
+  window.addEventListener('pagehide',persistLaborDraft);
   const isoDate=d=>{const x=new Date(d);return new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,10)};
   function localInterpret(text) {
     const lower=text.toLowerCase(),now=new Date(),today=isoDate(now);
@@ -484,7 +512,7 @@
   function taskEditor(items,date,source){
     extracted=items.map(x=>({...x,date:x.date||date||''}));
     $('laborDate').value=date||items[0]?.date||'';
-    renderTaskEditor(source);
+    renderTaskEditor(source);persistLaborDraft();
   }
   function renderTaskEditor(source){
     const root=$('laborParsedTasks');root.replaceChildren();
@@ -498,7 +526,7 @@
       const panel=document.createElement('div');panel.style.cssText='position:relative;border:1px solid #d4e2d5;border-radius:9px;padding:10px;margin:9px 0;background:#f7faf7';
       const title=document.createElement('b');title.textContent='Task '+(i+1);title.style.cssText='display:block;min-height:32px;padding-right:44px';panel.appendChild(title);
       const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Remove task '+(i+1));remove.title='Remove this task';remove.style.cssText='position:absolute;top:4px;right:4px;width:44px;height:44px;min-height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:#9b2c2c;font-size:26px;line-height:1;cursor:pointer';
-      remove.onclick=()=>{const index=extracted.indexOf(task);if(index<0)return;extracted.splice(index,1);draft=null;spoken='';$('laborError').textContent='Task removed from this draft.';renderTaskEditor(source);const buttons=root.querySelectorAll('button');(buttons[Math.min(index,buttons.length-1)]||$('laborReview')).focus();};panel.appendChild(remove);
+      remove.onclick=()=>{const index=extracted.indexOf(task);if(index<0)return;extracted.splice(index,1);draft=null;spoken='';$('laborError').textContent='Task removed from this draft.';renderTaskEditor(source);persistLaborDraft();const buttons=root.querySelectorAll('button');(buttons[Math.min(index,buttons.length-1)]||$('laborReview')).focus();};panel.appendChild(remove);
       const description=document.createElement('textarea');description.rows=2;description.value=task.description||'';description.style.cssText='display:block;width:100%;margin:6px 0';description.setAttribute('aria-label','Task '+(i+1)+' description');description.oninput=()=>task.description=description.value;panel.appendChild(description);
       const category=document.createElement('select');category.style.cssText='display:block;width:100%;margin:6px 0';
       for(const c of CATEGORIES){const opt=document.createElement('option');opt.textContent=c;opt.value=c;category.appendChild(opt)}
@@ -532,27 +560,29 @@
   }
   $('laborContinue').onclick=()=> $('laborReview').click();
   $('laborReview').onclick=async()=>{
+    persistLaborDraft();
+    if(!user()||user().id!==draftOwner){laborFeedback('Select the scout who owns this draft before reviewing.');return;}
     const text=$('laborNotes').value.trim();
     if(!extracted.length){await interpret();return}
     const date=$('laborDate').value;
-    if(extracted.some(x=>!(x.date||date))){$('laborError').textContent='Please enter the missing work date for each task.';return}
+    if(extracted.some(x=>!(x.date||date))){laborFeedback('Please enter the missing work date for each task.');return}
     if(extracted.some(x=>!x.description?.trim()||!x.startTime||!x.endTime)){
-      $('laborError').textContent='Each task needs its description, actual start time, and finish time. Complete the missing details above.';return;
+      laborFeedback('Each task needs its description, actual start time, and finish time. Complete the missing details above.');return;
     }
     const drafts=[];
     for(const task of extracted){
       const taskDate=task.date||date;
       const start=new Date(taskDate+'T'+task.startTime),end=new Date(taskDate+'T'+task.endTime);
       if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start||end>Date.now()+60000||end-start>86400000){
-        $('laborError').textContent='Check the start and finish times for '+task.description+'. Times must be valid, in the past, and in order.';return;
+        laborFeedback('Check the start and finish times for '+task.description+'. Times must be valid, in the past, and in order.');return;
       }
       const overlap=currentLogs().filter(x=>x.approvedAt).some(x=>{const r=range(x);return r&&+start<r[1]&&+end>r[0]});
-      if(overlap){$('laborError').textContent='This time overlaps an already approved labor entry. Correct the time before approval.';return}
+      if(overlap){laborFeedback('This time overlaps an already approved labor entry. Correct the time before approval.');return}
       drafts.push({id:crypto.randomUUID(),userId:user().id,userName:user().name,category:task.category,notes:task.description.trim(),start:start.toISOString(),end:end.toISOString(),workDate:taskDate,sourceNarrative:text});
     }
     const sorted=[...drafts].sort((a,b)=>Date.parse(a.start)-Date.parse(b.start));
     if(sorted.some((x,i)=>i>0&&Date.parse(x.start)<Date.parse(sorted[i-1].end))){
-      $('laborError').textContent='Two tasks overlap. Correct their times before approval.';return;
+      laborFeedback('Two tasks overlap. Correct their times before approval.');return;
     }
     draft=drafts;
     spoken='Review '+drafts.length+' activities. '+drafts.map(x=>x.category+'. '+x.notes+'. '+fmt(x.start)+' to '+fmt(x.end)).join('. ');
@@ -562,6 +592,8 @@
     }).join('\n\n');
     $('laborWarning').textContent='Only approve if every activity, date, and time is correct. Scouting overlaps are excluded from additional labor totals.';
     $('laborError').textContent='';$('laborForm').hidden=true;$('laborReviewPanel').hidden=false;
+    $('laborReviewPanel').scrollIntoView?.({block:'start',behavior:'smooth'});
+    $('laborApprove').focus?.({preventScroll:true});
     $('laborReadBack').textContent='🔊 Read results aloud';
     $('laborSpokenPlayback').pause();$('laborSpokenPlayback').removeAttribute('src');$('laborSpokenPlayback').style.display='none';
     $('laborError').textContent='Review the entries below. Tap Read results aloud to hear them, then say Save or Edit, or use the buttons.';
@@ -597,15 +629,24 @@
 
   $('laborEdit').onclick=()=>{$('laborForm').hidden=false;$('laborReviewPanel').hidden=true;draft=null};
   function approve(){
-    if(!Array.isArray(draft)||!draft.length)return;
+    if(!Array.isArray(draft)||!draft.length){laborFeedback('Review your tasks before saving.');return;}
     const u=user();
     if(!u||draft.some(x=>x.userId!==u.id)){$('laborError').textContent='Selected scout changed. Review again.';return}
+    // Recheck after review: synchronization may have added an overlapping task.
+    if(draft.some(item=>currentLogs().some(x=>{const r=range(x);return x.approvedAt&&r&&Date.parse(item.start)<r[1]&&Date.parse(item.end)>r[0]}))){laborFeedback('Another saved task overlaps this draft. Tap Edit and correct its times before saving.');return;}
+    const previous=db.laborLogs.slice();
     const now=new Date().toISOString();
     for(const item of draft)db.laborLogs.push({...item,approvedAt:now,createdAt:now,revision:1});
-    const count=draft.length;save();history();$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
+    const count=draft.length;
+    try{save()}catch(error){db.laborLogs=previous;laborFeedback('Could not save on this device. Your draft is still open; copy your notes before reloading. '+error.message);return;}
+    try{localStorage.removeItem(draftKey(u.id))}catch(_){}
+    window.sodvilleSyncChanged?.();
+    try{history()}catch(error){console.warn('Labor history refresh:',error)}
+    $('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborNotes').value='';$('laborStart').value='';$('laborEnd').value='';$('laborDate').value='';$('laborCategory').value='';
     $('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none';extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
     $('laborError').style.color='#176333';$('laborError').textContent=count+' approved labor activities saved. Synchronization will run automatically.';
+    $('laborError').scrollIntoView?.({block:'nearest',behavior:'smooth'});
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
   }
   $('laborApprove').onclick=approve;
@@ -675,5 +716,6 @@
     }
   };
 })();
+
 
 
