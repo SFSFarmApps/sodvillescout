@@ -3,7 +3,7 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-10-27T21:38:51.776592+00:00",
+  "updatedUtc": "2026-10-27T22:39:23.670157+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
@@ -418,7 +418,7 @@
         "lat": 27.941786
       },
       "rain1h": null,
-      "rain24h": 0.41,
+      "rain24h": 0.4,
       "rain48h": 0.41,
       "rain72h": 0.41,
       "rain7d": null,
@@ -1095,7 +1095,7 @@
       "rain1h": null,
       "rain24h": 0.57,
       "rain48h": 0.57,
-      "rain72h": 0.65,
+      "rain72h": 0.59,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1410,7 +1410,7 @@
       "rain1h": null,
       "rain24h": 0.31,
       "rain48h": 0.31,
-      "rain72h": 0.35,
+      "rain72h": 0.34,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
