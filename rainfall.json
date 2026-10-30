@@ -3,7 +3,7 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-10-30T00:52:39.892464+00:00",
+  "updatedUtc": "2026-10-30T07:02:32.595319+00:00",
   "fields": {
     "e444dbae-67b4-473b-ade6-65155e5cacb8": {
       "fieldName": "160 3198-A",
@@ -148,7 +148,7 @@
         "lat": 28.07594
       },
       "rain1h": null,
-      "rain24h": 0.12,
+      "rain24h": 0.11,
       "rain48h": 0.12,
       "rain72h": 0.43,
       "rain7d": null,
@@ -328,7 +328,7 @@
         "lat": 28.06991
       },
       "rain1h": null,
-      "rain24h": 0.14,
+      "rain24h": 0.12,
       "rain48h": 0.14,
       "rain72h": 0.4,
       "rain7d": null,
@@ -343,7 +343,7 @@
         "lat": 28.067001
       },
       "rain1h": null,
-      "rain24h": 0.07,
+      "rain24h": 0.06,
       "rain48h": 0.07,
       "rain72h": 0.33,
       "rain7d": null,
@@ -358,7 +358,7 @@
         "lat": 28.070746
       },
       "rain1h": null,
-      "rain24h": 0.07,
+      "rain24h": 0.06,
       "rain48h": 0.07,
       "rain72h": 0.33,
       "rain7d": null,
@@ -373,7 +373,7 @@
         "lat": 28.061937
       },
       "rain1h": null,
-      "rain24h": 0.02,
+      "rain24h": 0.01,
       "rain48h": 0.02,
       "rain72h": 0.33,
       "rain7d": null,
@@ -388,7 +388,7 @@
         "lat": 28.061581
       },
       "rain1h": null,
-      "rain24h": 0.02,
+      "rain24h": 0.01,
       "rain48h": 0.02,
       "rain72h": 0.33,
       "rain7d": null,
@@ -748,7 +748,7 @@
         "lat": 28.065438
       },
       "rain1h": null,
-      "rain24h": 0.02,
+      "rain24h": 0.01,
       "rain48h": 0.02,
       "rain72h": 0.29,
       "rain7d": null,
@@ -1408,7 +1408,7 @@
         "lat": 28.169712
       },
       "rain1h": null,
-      "rain24h": 0.95,
+      "rain24h": 0.94,
       "rain48h": 0.95,
       "rain72h": 1.26,
       "rain7d": null,
