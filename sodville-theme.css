@@ -1,0 +1,116 @@
+/* Sodville shared presentation. No data, workflow, visibility or print-layout changes. */
+:root{--sodville-bg:#111b17;--sodville-header:#15251c;--sodville-panel:#19291f;--sodville-card:#1b2d22;--sodville-input:#112018;--sodville-hover:#2b4430;--sodville-line:#3b5041;--sodville-ink:#edf1e9;--sodville-muted:#a7bba3;--sodville-gold:#d5bf87;--sodville-boundary:#c3e3a1;--sodville-selected:#fff0b5;--sodville-font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+html:has(body.sodville-theme){color-scheme:dark;background:var(--sodville-bg)}
+body.sodville-theme{color-scheme:dark;background:var(--sodville-bg)!important;color:var(--sodville-ink)!important;font-family:var(--sodville-font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;--bg:var(--sodville-bg);--paper:var(--sodville-bg);--cream:var(--sodville-bg);--stone:var(--sodville-bg);--card:var(--sodville-card);--white:var(--sodville-card);--ink:var(--sodville-ink);--muted:var(--sodville-muted);--line:var(--sodville-line);--border:var(--sodville-line);--pale:#253c2b;--sage:#344b37;--green:#a7c58e;--g:#a7c58e;--g2:#b9d899;--forest:var(--sodville-header);--forest2:#263f2d;--deep:var(--sodville-header);--gold:var(--sodville-gold);--lime:#c2d99b;--red:#f0a39a;--amber:#e2bf7b;--shadow:0 6px 24px #0002;--land-forest:var(--sodville-header);--land-olive:#8eaa7e;--land-sage:#344b37;--land-stone:var(--sodville-bg);--land-paper:var(--sodville-card);--land-ink:var(--sodville-ink);--land-muted:var(--sodville-muted);--land-line:var(--sodville-line);--land-accent:var(--sodville-gold);--land-shadow:0 6px 24px #0002}
+body.sodville-theme h1,body.sodville-theme h2,body.sodville-theme h3,body.sodville-theme h4{font-family:var(--sodville-font);color:var(--sodville-ink);letter-spacing:-.025em;font-weight:650}
+body.sodville-theme h1{font-size:28px;line-height:1.2}body.sodville-theme h2{font-size:21px}body.sodville-theme h3{font-size:16px}
+body.sodville-theme :is(.metric strong,.metric .value,.metric-value,.stat strong,.stat b,.total strong,.dashMetric,.dashTime b){font-family:var(--sodville-font);font-weight:650;letter-spacing:-.035em;font-variant-numeric:tabular-nums;color:var(--sodville-ink)}
+body.sodville-theme :is(header,.land-masthead,.app-header,.dashHead){background:var(--sodville-header)!important;color:var(--sodville-ink);border-color:var(--sodville-line)!important;box-shadow:none}
+body.sodville-theme :is(header h1,header b,header strong,header h2){color:var(--sodville-ink)}
+body.sodville-theme header a,body.sodville-theme .land-page .land-utilities a{color:#bbcab6}
+body.sodville-theme header a:hover{color:#fff;background:#2a4232}
+body.sodville-theme :is(.mark,.brand-mark,.land-monogram){background:var(--sodville-gold);color:#1b2b1e;border-color:var(--sodville-gold);font-family:var(--sodville-font);font-weight:800;border-radius:10px}
+body.sodville-theme :is(.brand>a,.brand b,header>b,header>div>b){letter-spacing:.12em;font-weight:750}
+body.sodville-theme :is(.eyebrow,.land-kicker,.section-title,.kicker){color:var(--sodville-gold);font-size:10px;font-weight:750;letter-spacing:.14em}
+body.sodville-theme :is(.muted,.hint,.note,.caption,.meta,.sub,.label,.source-note,.land-caption,.land-note,.empty,.loading,.taskField,.userBadge,.dashSub,.op .when,.popMeta,.selected-path){color:var(--sodville-muted)}
+body.sodville-theme small{color:var(--sodville-muted)}
+body.sodville-theme a{color:var(--sodville-gold)}
+body.sodville-theme :is(.card,.panel,.stat,.metric,.total,.workflow-card,.welcome-next,.priority-card,.decision-shell,.decision-stat,.decision-detail,.decision-method,.decision-context,.sfs-service,.sfs-intro,.sfs-intro-card,.sfs-lines-total,.budget-document,.forecastperiod,.agreement,.cropSection,.seedpackage,.tracker,.document-library,.service-card,.empty-state,.sprayReport,.fieldSearchResults,.landDialog,.landModal,.fsa-register-record,.dashCard,.dashSection,.dashTime,.dashList,.loginBox,.measure,.mapChoice,.candidate,.op,.detail,.details,.fields,.workspace-page,.atlas-shell,.atlas-profile,.profile-totals>div,.profit-year-picker,.financial-disclosure,.land-page #editor,.fieldhistory,.operation-card){background:var(--sodville-card)!important;color:var(--sodville-ink);border-color:var(--sodville-line)!important;box-shadow:0 2px 12px #0001}
+body.sodville-theme :is(aside,.sidebar,.inspector,.taskSidebar,.atlas-fields,.atlas-profile,.alerts-panel){background:var(--sodville-panel)!important;color:var(--sodville-ink);border-color:var(--sodville-line)!important}
+body.sodville-theme :is(.fact,.dashTime,.chip,.badge,.pill,.year-chip,.context-status,.profile-summary,.linked-summary,.clientHead,.client,.clientGroup>summary,.asidehead,.sideTop,.insTop,.atlas-toolbar,.toolbar,.financial-navigation,.decision-controls,.decision-heading,.decision-note,.decision-context,.decision-method,.sfs-lines-total,.dialogFoot,.taskCategory,.land-navigation,.legend,.mapLegend,.map-legend,.atlas-legend,.scenariolegend){background:#203427!important;color:#cbdac0;border-color:var(--sodville-line)!important;box-shadow:none}
+body.sodville-theme :is(.clientHead,.client,.clientGroup>summary){font-size:11px;font-weight:650;letter-spacing:.04em;color:#c3d0bc}
+body.sodville-theme :is(.clientDropdown,.landDialog,.fieldSearchResults,.modal>.card,dialog){background:var(--sodville-card)!important;color:var(--sodville-ink);border:1px solid #526a49!important;border-radius:12px;box-shadow:0 16px 50px #0005}
+body.sodville-theme dialog::backdrop{background:#07140cce;backdrop-filter:blur(3px)}
+body.sodville-theme :is(button,.button,.toolbtn){font-family:var(--sodville-font);background:#203427;color:#dce5d4;border:1px solid #425747;border-radius:7px;box-shadow:none;font-weight:600;transition:background-color .15s,border-color .15s}
+body.sodville-theme :is(button,.button,.toolbtn):hover:not(:disabled){background:#2d4633;color:#f2f1e1;border-color:#6d805e}
+body.sodville-theme :is(button.primary,.button.primary,.primary,#save,#sessionBtn,.popBtn,.landRecordAction){background:var(--sodville-gold)!important;border-color:var(--sodville-gold)!important;color:#17251a!important;font-weight:700;box-shadow:none}
+body.sodville-theme :is(button.primary,.button.primary,.primary,#save,#sessionBtn):hover:not(:disabled){background:#e4d2a0!important;border-color:#e4d2a0!important;color:#17251a!important}
+body.sodville-theme :is(button.danger,.taskDelete,.danger){color:#ffc2b4;background:#4a2d28;border-color:#805044}
+body.sodville-theme button:disabled{opacity:.5}
+body.sodville-theme :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--sodville-input)!important;color:var(--sodville-ink)!important;border-color:#425747!important;border-radius:7px;box-shadow:none;font-family:var(--sodville-font)}
+body.sodville-theme :is(input,textarea)::placeholder{color:#8ea48a;opacity:1}
+body.sodville-theme :is(input[type=checkbox],input[type=radio]){accent-color:var(--sodville-gold)}
+body.sodville-theme :is(button,a,input,select,textarea):focus-visible{outline:2px solid var(--sodville-gold)!important;outline-offset:3px}
+body.sodville-theme :is(.tabs,.section,.ph,.panel-head,.panel-heading,.map-head,.recordHead,.recordHead,.dialog-head,.card-head,.insTop,.sideTop,.landDialogHead,.source-note,.taskItem,.fieldTask,.userRow,.row,.field,.fieldRow,.op,.item,.dashRow,.mapChoice,.candidate,.atlas-field){border-color:var(--sodville-line)}
+body.sodville-theme :is(.ph,.panel-head,.panel-heading,.map-head,.recordHead,.asidehead,.dialogHead,.dialogFoot,.landDialogHead){background:#203427!important;color:var(--sodville-ink)!important;border-color:var(--sodville-line)!important}
+body.sodville-theme :is(.tabs button,.decision-tabs button){background:transparent!important;color:#a8bca1!important;box-shadow:none!important}
+body.sodville-theme :is(.tabs button.active,.decision-tabs button.active,.tabactive,.land-navigation a[aria-current=page],.dashboardBtn.active){background:#344d36!important;color:#f0e6c5!important;border-color:#526a47!important;box-shadow:inset 0 -2px var(--sodville-gold)!important}
+body.sodville-theme .tabs button:hover{background:#2b4430!important}
+body.sodville-theme table{color:var(--sodville-ink);border-color:var(--sodville-line)}
+body.sodville-theme :is(td,th){border-color:#354a39!important}
+body.sodville-theme th{background:#203427!important;color:#b9ccb0;font-weight:650}
+body.sodville-theme :is(tr.total,.total-row,.subtotal,.sfs-lines-total){background:#2b4430!important;color:#edf1e9}
+body.sodville-theme tr:hover td{background:#263e2d}
+body.sodville-theme :is(.positive,.ok,.good,.ready){color:#b4d994}
+body.sodville-theme :is(.negative,.error,.form-error,.bad){color:#f3aaa0}
+body.sodville-theme :is(.warning,.notice,.callout,.alert,.status.error,.context-status.needs-review,.sfs-pending,#notice:not(:empty)){background:#372f20!important;color:#edcf97!important;border-color:#827046!important}
+body.sodville-theme :is(.alert-card.red,.service-card.overdue,.decision-stat.loss){background:#422a27!important;color:#f1b7ac;border-color:#89564d!important}
+body.sodville-theme :is(.alert-card.yellow,.service-card.soon,.decision-stat.caution,.warn){background:#3b3422!important;color:#eed399;border-color:#8c7848!important}
+body.sodville-theme :is(.badge.share,.badge.blank,.badge.warn,.badge.pending){color:#dfca92;border-color:#675e3c}
+body.sodville-theme :is(.row:hover,.row.active,.field:hover,.field.active,.fieldRow:hover,.fieldRow.selected,.atlas-field:hover,.atlas-field.selected,.fieldSearchOption:hover,.workflow-card:hover,.mapChoice:hover,.candidate:hover){background:var(--sodville-hover)!important;color:#f1f1df}
+body.sodville-theme :is(.field b,.field strong,.row b,.fieldRow b,.atlas-field b,.acre,.money,.fieldTitle,.taskName,.dashName,.dashValue){color:var(--sodville-ink);font-weight:650}
+body.sodville-theme .atlas-field.selected{box-shadow:inset 3px 0 var(--sodville-gold)}
+body.sodville-theme :is(.map,.map-panel,#map,#rentMap,#financialMap,.atlas-map,.leaflet-container){background:#26372c!important}
+body.sodville-theme :is(.map-legend,.mapLegend,.legend,.atlas-legend,.scenariolegend){border:1px solid #657a515e;background:#17291eec!important;color:#dce6cf!important;border-radius:7px;box-shadow:0 3px 12px #0003}
+body.sodville-theme .leaflet-popup-content-wrapper,body.sodville-theme .leaflet-popup-tip{background:#1b2d22;color:#edf1e9;border-color:#6a7d58}
+body.sodville-theme .leaflet-tooltip{background:#15251deF;border:1px solid #74816b80;color:#edf1e9;border-radius:5px;box-shadow:0 2px 7px #0005;font:11px/1.4 var(--sodville-font)}
+body.sodville-theme .leaflet-tooltip::before{border-top-color:#15251d;border-bottom-color:#15251d}
+body.sodville-theme .leaflet-control-zoom a{background:#1a2a1ef2!important;color:#e2e9d5!important;border-color:#657556!important}
+body.sodville-theme .leaflet-control-layers{background:#1b2d22;color:#dbe6cf;border-color:#657556}
+body.sodville-theme .leaflet-control-attribution{background:#15261bda!important;color:#b9c8ad!important;font-size:9px}
+body.sodville-theme .leaflet-control-attribution a{color:#d2dec5!important}
+body.sodville-theme .leaflet-control-scale-line{border-color:#e0e9d3;background:#18281ce0;color:#eef4e3;text-shadow:none}
+body.sodville-theme :is(.land-map-expand,#mapExpandBtn){background:#1b3021!important;color:#e7eacf!important;border:1px solid #7c8b68!important;border-radius:7px!important;box-shadow:0 3px 14px #0004!important}
+body.sodville-theme .land-map-expanded .land-map-expand{background:#1b3021!important}
+body.sodville-theme :is(.atlas-shell:fullscreen,.atlas-expanded,.decision-body:fullscreen,.decision-expanded){background:var(--sodville-bg)!important}
+body.sodville-theme :is(.budget-document,.budget-document section,.document-lines){color:var(--sodville-ink)}
+body.sodville-theme footer{background:#15251c;color:#91a78a;border-top:1px solid var(--sodville-line)}
+body.sodville-theme .skip-link:focus,body.sodville-theme .land-skip:focus{background:var(--sodville-gold);color:#17251a}
+.sodville-polygon-thumb{display:inline-flex;width:40px;height:42px;flex:0 0 40px;align-items:center;justify-content:center;vertical-align:middle;color:#9ebf7e;margin-right:7px}
+.sodville-polygon-thumb svg{width:40px;height:40px;overflow:visible}
+.sodville-polygon-thumb path{fill:currentColor;fill-opacity:.22;stroke:#c3e3a1;stroke-width:1.35;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.sodville-selected-field{display:flex;gap:7px;align-items:center}.sodville-selected-field>div{min-width:0}
+body.sodville-theme #landList .sodville-polygon-thumb{float:left;margin-top:1px;margin-bottom:3px}
+body.sodville-theme #landList .row{min-height:65px;overflow:auto}
+body.sodville-theme .atlas-field .sodville-polygon-thumb{margin-right:0;flex-shrink:0}
+body.sodville-theme .atlas-field .dot{margin-top:13px;flex-shrink:0}
+body.sodville-theme.scout-page .toolbar{background:#19291f!important;border-color:#3b5041!important;box-shadow:none!important}
+body.sodville-theme.scout-page :is(.toolbar button:not(.primary),.toolbar input,.toolbar select,#laborLogBtn,#dashboardBtn,#reportBtn){background:#203427!important;color:#dce5d4!important;border-color:#425747!important;box-shadow:none!important}
+body.sodville-theme.scout-page :is(main,.dashboardView){background:#111b17!important}
+body.sodville-theme.scout-page :is(.taskSidebar,.taskSidebar aside,aside,.card,.dashGrid>*,.dashSections>*,.dashTime,.dashList,#allocationBanner){background:#19291f!important;color:#edf1e9!important;border-color:#3b5041!important;box-shadow:none!important}
+body.sodville-theme.scout-page :is(.taskSidebar input,.taskSidebar select,.taskSidebar textarea,.card input,.card select,.card textarea){background:#112018!important;color:#edf1e9!important;border-color:#425747!important}
+body.sodville-theme.scout-page :is(.taskSidebar .chip,.chip,#fieldCount,.taskCategory){background:#2b4430!important;color:#ccdbbd!important;border-color:#4a6143!important}
+body.sodville-theme.scout-page :is(.taskSidebar h3,.fieldTitle,.taskName,.taskField,.meta,.muted,.dashSub,.userBadge){color:#b8c9ae!important}
+body.sodville-theme.scout-page :is(.taskSidebar .section,.taskSidebar .taskItem,.taskSidebar .fieldTask,.dashRow){border-color:#3b5041!important}
+body.sodville-theme.scout-page #timerDisplay{background:#112018;border-color:#425747;color:#edf1e9;box-shadow:none;font-weight:650;letter-spacing:.03em}
+body.sodville-theme.scout-page .priorityDot{box-shadow:none!important}
+body.sodville-theme.scout-page .dashPriority.Urgent,body.sodville-theme.scout-page .red{background:#4a2d28;color:#ffc2b4;border-color:#805044}
+body.sodville-theme.scout-page .dashPriority.High,body.sodville-theme.scout-page .yellow{background:#3b3422;color:#eed399;border-color:#8c7848}
+body.sodville-theme.scout-page .dashPriority.Normal,body.sodville-theme.scout-page .green{background:#294632;color:#c8e2b2;border-color:#52734c}
+body.sodville-theme.scout-page #sidebarToggle{background:#264332!important;color:#e5ecd9!important;border-color:#627e54!important}
+body.sodville-theme.scout-page #map{background:#26372c!important}
+body.sodville-theme .heat td,body.sodville-theme .decision-heat td,body.sodville-theme .coverage-table td[style*="background"]{color:#172d20}
+@media screen{
+/* Legacy neutral panels and toolbars share the same surfaces. Data-layer colors stay in their original styles. */
+body.sodville-theme :is(.land-page-tools,.panelHead,.dialoghead,.clienthead,.map-ribbon,.health-strip,.editor-note,.alert-tally,.sourcePlan,.input-total,.position,.mapNote,.analog-metrics article,.analog-year-detail,.analog-validation-summary,.analog-test-metrics span,.sfs-insurance,.sfs-savebar,.sfs-forecast,.statement-section>summary,.linked-summaries>button,.linked-summaries>a,#importStatus,#coveragePanel,#coverageBody>div){background:#203427!important;color:var(--sodville-ink)!important;border-color:var(--sodville-line)!important}
+body.sodville-theme.land-page[data-land-page=planner]>nav:not(.land-navigation){background:#19291f!important;border-color:var(--sodville-line)!important}
+body.sodville-theme :is(#coveragePanel summary,.inlineBtn,.optype){color:var(--sodville-gold)!important}
+body.sodville-theme :is(.analog-warning,#fieldPrescriptions .rx-attached){background:#372f20!important;color:#edcf97!important;border-color:#827046!important}
+body.sodville-theme .login{background:#101c17eb}
+body.sodville-theme :is(.field.selected,.fieldRow.active,.machine-row.selected,.mapChoice.active){background:#2b4430!important;box-shadow:inset 3px 0 var(--sodville-gold)}
+body.sodville-theme .decision-stat.strong{background:#294632!important;color:#c8e2b2}
+}
+/* Dynamic Scout dialogs use inline light surfaces; keep their text and controls legible. */
+body.sodville-theme [role=dialog]{background:var(--sodville-card)!important;color:var(--sodville-ink)!important;border-color:var(--sodville-line)!important}
+body.sodville-theme.scout-page :is(#taskFilters,#soilLegendOverlay,#mapPinsOverlay,#laborError,#laborReviewPanel,#laborParsedTasks>div,.builder-controls,.builder-preview,.builder-output,.labor-report-metrics p){background:var(--sodville-panel)!important;color:var(--sodville-ink)!important;border-color:var(--sodville-line)!important}
+body.sodville-theme.scout-page [role=dialog] :is(h1,h2,h3,p,label,b,strong,.muted,.empty-report){color:var(--sodville-ink)!important}
+body.sodville-theme.scout-page #laborError{color:#f3aaa0!important}
+body.sodville-theme.scout-page :is(.taskMix,aside a,.taskSidebar a){color:var(--sodville-gold)!important}
+body.sodville-theme.scout-page :is(#laborReportOverlay,#laborSavedEditor) button:not(.primary){background:#203427!important;color:#dce5d4!important;border-color:#425747!important}
+@media(min-width:1051px){body.sodville-theme .atlas-grid{grid-template-columns:280px minmax(240px,1fr) 320px}body.sodville-theme.land-page[data-land-page=overview] .grid{grid-template-columns:280px minmax(0,1fr)}body.sodville-theme.land-page[data-land-page=overview] .grid>.panel:first-child{grid-column:2;grid-row:1}body.sodville-theme.land-page[data-land-page=overview] .grid>.panel:last-child{grid-column:1;grid-row:1}}
+@media(min-width:801px){body.sodville-theme.scout-page main{grid-template-columns:320px minmax(0,1fr)}}
+@media(max-width:600px){body.sodville-theme h1{font-size:24px}.sodville-polygon-thumb{width:34px;flex-basis:34px;height:38px}.sodville-polygon-thumb svg{width:34px;height:34px}}
+@media(prefers-reduced-motion:reduce){body.sodville-theme button{transition:none}}
+@media print{html:has(body.sodville-theme),body.sodville-theme{color-scheme:light!important;background:#fff!important;color:#17251a!important;--bg:#fff;--paper:#fff;--card:#fff;--white:#fff;--ink:#17251a;--muted:#526152;--border:#c9d4c5;--line:#c9d4c5}body.sodville-theme :is(main,section,article,aside,.card,.panel,.budget-document,.document-lines,.stat,.metric,.fact,.forecastperiod,.agreement,.decision-detail,.decision-stat,.decision-method,.sfs-service,.sfs-lines-total,.workspace-page,.dashboardView,.dashCard,.dashSection,.dashTime,.dashList){background:#fff!important;color:#17251a!important;box-shadow:none!important;border-color:#c9d4c5!important}body.sodville-theme :is(h1,h2,h3,h4,td,th,b,strong,p,small,label,.muted,.hint,.note,.caption,.meta,.sub,.label,.source-note){color:#17251a!important}body.sodville-theme th,body.sodville-theme tr.total{background:#edf1e9!important}body.sodville-theme a{color:#244b30}body.sodville-theme :is(input,select,textarea){color:#17251a!important;background:#fff!important}}
+
+@media print{body.sodville-theme.scout-page :is(main,.dashboardView,.taskSidebar,.taskSidebar aside,aside,.card,.dashGrid>*,.dashSections>*,.dashTime,.dashList,#allocationBanner,[role=dialog],#taskFilters,#soilLegendOverlay,#mapPinsOverlay,#laborError,#laborReviewPanel,#laborParsedTasks>div,.builder-controls,.builder-preview,.builder-output,.labor-report-metrics p){background:#fff!important;color:#17251a!important;box-shadow:none!important}body.sodville-theme.scout-page :is(h1,h2,h3,p,label,b,strong,.muted,.empty-report,.meta,.taskMix,aside a){color:#17251a!important}}
