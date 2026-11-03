@@ -2,11 +2,13 @@ name: Update Field Rainfall
 on:
   workflow_dispatch:
   schedule:
-    - cron: '12 * * * *'
+    - cron: '17,47 * * * *'
   push:
     paths:
       - '.github/workflows/rainfall.yml'
       - 'rainfall-trigger.txt'
+      - 'scripts/update-rainfall.py'
+      - 'test/test_rainfall.py'
 permissions:
   contents: write
 concurrency:
@@ -15,88 +17,19 @@ concurrency:
 jobs:
   rainfall:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - name: Build rainfall.json from NOAA MRMS
         shell: bash
         run: |
-          python3 - <<'PY'
-          import json,re,urllib.parse,urllib.request,datetime
-          html=open("index.html",encoding="utf-8").read()
-          marker="window.SODVILLE_FIELDS = "
-          pos=html.index(marker)+len(marker)
-          geo,end=json.JSONDecoder().raw_decode(html[pos:])
-          fields=geo["features"]
-          def coords(obj):
-              if isinstance(obj,list) and len(obj)>=2 and all(isinstance(x,(int,float)) for x in obj[:2]):
-                  yield obj[0],obj[1]
-              elif isinstance(obj,list):
-                  for x in obj: yield from coords(x)
-          meta=[]
-          points=[]
-          for f in fields:
-              pts=list(coords(f["geometry"]["coordinates"]))
-              lon=sum(x for x,y in pts)/len(pts); lat=sum(y for x,y in pts)/len(pts)
-              p=f["properties"]
-              meta.append({"fieldId":str(p["FIELD_ID"]),"fieldName":p.get("FIELD_NAME",""),"farmName":p.get("FARM_NAME",""),"lon":lon,"lat":lat})
-              points.append([lon,lat])
-          base="https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/getSamples"
-          now=datetime.datetime.now(datetime.timezone.utc)
-          out={"source":"NOAA/NWS MRMS RadarOnly QPE","units":"in","sourceUnits":"mm","conversion":"mm/25.4","updatedUtc":now.isoformat(),"fields":{}}
-          try:
-              history=json.load(open("rainfall-history.json",encoding="utf-8"))
-          except Exception:
-              history={"fields":{}}
-          for m in meta:
-              out["fields"][m["fieldId"]]={"fieldName":m["fieldName"],"farmName":m["farmName"],"point":{"lon":round(m["lon"],6),"lat":round(m["lat"],6)}}
-          geom=json.dumps({"points":points,"spatialReference":{"wkid":4326}},separators=(",",":"))
-          for hours in (1,24,48,72):
-              params={
-                "geometryType":"esriGeometryMultipoint",
-                "geometry":geom,
-                "mosaicRule":json.dumps({"mosaicMethod":"esriMosaicAttribute","where":f"idp_subset = 'conus_QPE_{hours}H'"}),
-                "renderingRule":json.dumps({"rasterFunction":f"rft_{hours}hr"}),
-                "returnFirstValueOnly":"true",
-                "f":"json"
-              }
-              url=base+"?"+urllib.parse.urlencode(params)
-              with urllib.request.urlopen(url,timeout=60) as r:
-                  data=json.loads(r.read().decode())
-              samples=data.get("samples",[])
-              byloc={int(s.get("locationId",-1)):s for s in samples}
-              for i,m in enumerate(meta):
-                  s=byloc.get(i)
-                  try:
-                      mm=float(s["value"])
-                      val=None if mm < 0 else round(mm/25.4,2)
-                  except Exception: val=None
-                  out["fields"][m["fieldId"]][f"rain{hours}h"]=val
-          stamp=now.replace(minute=0,second=0,microsecond=0).isoformat()
-          cutoff=now-datetime.timedelta(days=8)
-          for m in meta:
-              fid=m["fieldId"]
-              v=out["fields"][fid]
-              arr=history.setdefault("fields",{}).setdefault(fid,[])
-              arr=[x for x in arr if datetime.datetime.fromisoformat(x["time"])>=cutoff]
-              if not arr or arr[-1]["time"]!=stamp:
-                  arr.append({"time":stamp,"rain1h":v.get("rain1h")})
-              history["fields"][fid]=arr
-              valid=[x for x in arr if isinstance(x.get("rain1h"),(int,float))]
-              v["rain7d"]=round(sum(x["rain1h"] for x in valid[-168:]),2) if len(valid)>=168 else None
-              for threshold,key in ((0.10,"daysSince010"),(0.50,"daysSince050")):
-                  hit=next((x for x in reversed(valid) if x["rain1h"]>=threshold),None)
-                  v[key]=round((now-datetime.datetime.fromisoformat(hit["time"])).total_seconds()/86400,1) if hit else None
-          history["updatedUtc"]=now.isoformat()
-          with open("rainfall-history.json","w",encoding="utf-8") as hf:
-              json.dump(history,hf,separators=(",",":"))
-          vals=[v for v in out["fields"].values()]
-          out["validation"]={"fieldCount":len(vals),"with24h":sum(v.get("rain24h") is not None for v in vals),"with48h":sum(v.get("rain48h") is not None for v in vals),"with72h":sum(v.get("rain72h") is not None for v in vals)}
-          with open("rainfall.json","w",encoding="utf-8") as f: json.dump(out,f,indent=2)
-          PY
+          python3 -m unittest discover -s test -p 'test_rainfall.py'
+          python3 scripts/update-rainfall.py
       - name: Commit rainfall data
         run: |
           git config user.name "Sodville Rainfall Bot"
           git config user.email "actions@users.noreply.github.com"
           git add rainfall.json rainfall-history.json
           git diff --cached --quiet || git commit -m "Update NOAA MRMS field rainfall"
+          git pull --rebase origin main
           git push
