@@ -102,6 +102,7 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
         <button type="button" id="laborDictate">🎙 Start recording</button>
         <button type="button" id="laborKeyboardMic">⌨️ Use iPhone keyboard mic</button>
+        <button type="button" id="laborReinterpret" hidden>Reinterpret dictation</button>
         <button type="button" id="laborReview" style="background:#173b25;color:#fff;font-weight:800">✨ Interpret & review dictation</button>
       </div>
       <div id="laborParsedTasks" style="margin:10px 0"></div>
@@ -323,7 +324,7 @@
     $('laborWho').textContent='Scout: '+(u?.name||'Select a scout');
     $('laborStart').value='';
     $('laborEnd').value='';
-    $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none';
+    $('laborNotes').value='';$('laborCategory').value='';$('laborDate').value='';$('laborParsedTasks').replaceChildren();$('laborReinterpret').hidden=true;$('laborContinue').hidden=true;$('laborContinue').style.display='none';
     $('laborError').textContent='Tap Start recording and speak. Tap Stop & transcribe when finished. If recording is unavailable, use the iPhone keyboard microphone.';$('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborRecordStatus').textContent='';
     if(recordTimer){clearInterval(recordTimer);recordTimer=null}
@@ -517,7 +518,7 @@
   function renderTaskEditor(source){
     const root=$('laborParsedTasks');root.replaceChildren();
     $('laborReview').textContent=extracted.length?'Continue to review & save →':'✨ Interpret dictation again';
-    $('laborContinue').hidden=!extracted.length;$('laborContinue').style.display=extracted.length?'block':'none';
+    $('laborReinterpret').hidden=!extracted.length;$('laborContinue').hidden=!extracted.length;$('laborContinue').style.display=extracted.length?'block':'none';
     const head=document.createElement('p');head.style.cssText='font-size:12px;color:#415b47';
     head.textContent=(source==='ai'?'AI analyzed':'Basic extraction (AI unavailable)')+' '+extracted.length+' task(s). Dates and times spoken in your dictation are filled in automatically. Correct anything inaccurate or remove unwanted tasks with ×, then tap Continue to review & save.';
     root.appendChild(head);
@@ -558,6 +559,7 @@
     if(result.questions?.length)$('laborError').textContent=result.questions.join(' ');
     $('laborParsedTasks').scrollIntoView({block:'nearest',behavior:'smooth'});
   }
+  $('laborReinterpret').onclick=async()=>{if(extracted.length&&!confirm('Reinterpret the original dictation? This replaces task edits in this draft. Your original notes are kept.'))return;await interpret();};
   $('laborContinue').onclick=()=> $('laborReview').click();
   $('laborReview').onclick=async()=>{
     persistLaborDraft();
@@ -598,7 +600,7 @@
     $('laborSpokenPlayback').pause();$('laborSpokenPlayback').removeAttribute('src');$('laborSpokenPlayback').style.display='none';
     $('laborError').textContent='Review the entries below. Tap Read results aloud to hear them, then say Save or Edit, or use the buttons.';
   };
-  $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none'});
+  $('laborNotes').addEventListener('input',()=>{extracted=[];$('laborParsedTasks').replaceChildren();$('laborReinterpret').hidden=true;$('laborContinue').hidden=true;$('laborContinue').style.display='none'});
   let spokenAudioUrl=null;
   $('laborReadBack').onclick=async()=>{
     const button=$('laborReadBack'),player=$('laborSpokenPlayback');
@@ -644,7 +646,7 @@
     try{history()}catch(error){console.warn('Labor history refresh:',error)}
     $('laborReviewPanel').hidden=true;$('laborForm').hidden=false;
     $('laborNotes').value='';$('laborStart').value='';$('laborEnd').value='';$('laborDate').value='';$('laborCategory').value='';
-    $('laborParsedTasks').replaceChildren();$('laborContinue').hidden=true;$('laborContinue').style.display='none';extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
+    $('laborParsedTasks').replaceChildren();$('laborReinterpret').hidden=true;$('laborContinue').hidden=true;$('laborContinue').style.display='none';extracted=[];draft=null;$('laborReview').textContent='✨ Interpret & review dictation';
     $('laborError').style.color='#176333';$('laborError').textContent=count+' approved labor activities saved. Synchronization will run automatically.';
     $('laborError').scrollIntoView?.({block:'nearest',behavior:'smooth'});
     setTimeout(()=>{$('laborError').style.color='#a32222'},2500);
