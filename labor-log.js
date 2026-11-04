@@ -468,13 +468,13 @@
   function localInterpret(text) {
     const lower=text.toLowerCase(),now=new Date(),today=isoDate(now);
     let date=null;
-    if(/\\btoday\\b/.test(lower))date=today;
-    else if(/\\byesterday\\b/.test(lower))date=isoDate(now.getTime()-86400000);
+    if(/\btoday\b/.test(lower))date=today;
+    else if(/\byesterday\b/.test(lower))date=isoDate(now.getTime()-86400000);
     else {
-      const numeric=lower.match(/\\b(\\d{1,2})[\\/.-](\\d{1,2})(?:[\\/.-](\\d{2,4}))?\\b/);
+      const numeric=lower.match(/\b(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?\b/);
       if(numeric){let y=numeric[3]?Number(numeric[3]):now.getFullYear();if(y<100)y+=2000;const m=Number(numeric[1]),d=Number(numeric[2]);if(m>=1&&m<=12&&d>=1&&d<=31){const test=new Date(y,m-1,d);if(test.getMonth()===m-1&&test.getDate()===d)date=isoDate(test)}}
     }
-    const groups=text.split(/(?:\\s+then\\s+|;|\\.\\s+|\\s+after that\\s+|\\s+and then\\s+)/i).map(x=>x.trim()).filter(Boolean);
+    const groups=text.split(/(?:\s+then\s+|;|\.\s+|\s+after that\s+|\s+and then\s+)/i).map(x=>x.trim()).filter(Boolean);
     const tasks=groups.map(segment=>{
       const l=segment.toLowerCase();
       let category='Other';
@@ -487,10 +487,10 @@
       else if(/fsa|farm service agency|compliance|acreage report/.test(l))category='FSA Compliance';
       else if(/cattle|cow|calv|pasture|fenc|graz/.test(l))category='Cattle Management';
       else if(/office|paperwork|email|admin/.test(l))category='Office / Administration';
-      const duration=l.match(/\\b(?:for|about|roughly|approximately)\\s+(\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?|mins?)\\b/);
+      const duration=l.match(/\b(?:for|about|roughly|approximately)\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|minutes?|mins?)\b/);
       const minutes=duration?Math.round(Number(duration[1])*(duration[2].startsWith('h')?60:1)):null;
       // Recognize explicit 24-hour or AM/PM clock ranges; do not guess ambiguous 8-to-10.
-      const clock=l.match(/\\b(?:from\\s+)?(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)?\\s*(?:to|until|through|-)\\s*(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)?\\b/);
+      const clock=l.match(/\b(?:from\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*(?:to|until|through|-)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/);
       let startTime=null,endTime=null;
       if(clock){
         const convert=(h,m,meridiem)=>{let hour=Number(h);const minute=Number(m||0);if(hour>23||minute>59)return null;if(meridiem){if(hour>12||hour<1)return null;hour=hour%12+(meridiem==='pm'?12:0)}return String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')};
@@ -657,16 +657,16 @@
   }
   function handleVoiceCommand(transcript){
     const command=transcript.toLowerCase().trim().replace(/[.!?]+$/,'');
-    if(/^(?:yes\\s+)?(?:save|approve|approve and save|save it|save entries|save the entries)$/.test(command)){
+    if(/^(?:yes\s+)?(?:save|approve|approve and save|save it|save entries|save the entries)$/.test(command)){
       $('laborError').textContent='Voice approval received: '+transcript;
       approve();
     }else if(/^(?:edit|change|correct|edit it|make changes)$/.test(command)){
       $('laborEdit').click();
       $('laborError').textContent='Editing is open. Change the fields, then continue to review and save.';
-    }else if(/^(?:edit|change|correct)\\b/.test(command)){
+    }else if(/^(?:edit|change|correct)\b/.test(command)){
       $('laborEdit').click();
       const notes=$('laborNotes');
-      notes.value=(notes.value+'\\nCorrection: '+transcript).trim();
+      notes.value=(notes.value+'\nCorrection: '+transcript).trim();
       notes.dispatchEvent(new Event('input',{bubbles:true}));
       $('laborError').textContent='I added your spoken correction to the dictation. Tap Interpret & review dictation to apply it, then confirm before saving.';
     }else{
@@ -716,6 +716,7 @@
     }
   };
 })();
+
 
 
 
