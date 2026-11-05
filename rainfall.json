@@ -3,28 +3,28 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-11-05T00:22:38.045880+00:00",
-  "observedUtc": "2026-11-05T00:00:00+00:00",
+  "updatedUtc": "2026-11-05T07:25:24.093983+00:00",
+  "observedUtc": "2026-11-05T07:00:00+00:00",
   "products": {
     "1": {
-      "id": 156309638,
+      "id": 156388438,
       "subset": "conus_QPE_01H",
-      "observedUtc": "2026-11-05T00:00:00+00:00"
+      "observedUtc": "2026-11-05T07:00:00+00:00"
     },
     "24": {
-      "id": 156315638,
+      "id": 156394438,
       "subset": "conus_QPE_24H",
-      "observedUtc": "2026-11-05T00:00:00+00:00"
+      "observedUtc": "2026-11-05T07:00:00+00:00"
     },
     "48": {
-      "id": 156317238,
+      "id": 156396038,
       "subset": "conus_QPE_48H",
-      "observedUtc": "2026-11-05T00:00:00+00:00"
+      "observedUtc": "2026-11-05T07:00:00+00:00"
     },
     "72": {
-      "id": 156318438,
+      "id": 156397238,
       "subset": "conus_QPE_72H",
-      "observedUtc": "2026-11-05T00:00:00+00:00"
+      "observedUtc": "2026-11-05T07:00:00+00:00"
     }
   },
   "fields": {
@@ -550,7 +550,7 @@
       "rain48h": 0.42,
       "rain72h": 0.42,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "24aeddfb-2b3d-4ceb-93da-a64e5af2f9c0": {
@@ -565,7 +565,7 @@
       "rain48h": 0.42,
       "rain72h": 0.42,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "ddfc015f-b139-4604-89a6-643b728cad80": {
@@ -580,7 +580,7 @@
       "rain48h": 0.15,
       "rain72h": 0.15,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "aaf99a9a-2430-47ea-ac35-6e8177e0cf7c": {
@@ -1630,7 +1630,7 @@
       "rain48h": 0.12,
       "rain72h": 0.12,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "91a28c2f-a7df-483f-b167-3cab95f6bf6a": {
@@ -1645,7 +1645,7 @@
       "rain48h": 0.12,
       "rain72h": 0.12,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "fd6725cc-0d06-463f-a40e-2ca227e778d7": {
@@ -1750,7 +1750,7 @@
       "rain48h": 0.21,
       "rain72h": 0.21,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "ac865345-f40e-4f6c-bf0a-c968dac5ff92": {
@@ -1765,7 +1765,7 @@
       "rain48h": 0.21,
       "rain72h": 0.21,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     },
     "e37087d4-16a0-45c2-9fee-f81b3411823b": {
@@ -1825,7 +1825,7 @@
       "rain48h": 0.12,
       "rain72h": 0.12,
       "rain7d": null,
-      "daysSince010": 1.3,
+      "daysSince010": 1.6,
       "daysSince050": null
     }
   },
