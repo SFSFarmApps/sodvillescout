@@ -240,108 +240,26 @@
   installTimeEditor();
 
 
-  // Independent bulk task editor: the modal has its own selection checkboxes,
-  // so it works even when the legacy task-list selection handler is unavailable.
+  // Apply urgency directly to the selection already made in the task list.
   function installTaskUrgencyEditor() {
-    const complete = $('completeSelectedTasks');
-    if (!complete || $('changeTaskUrgencyBtn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'changeTaskUrgencyBtn';
-    btn.type = 'button';
-    btn.textContent = 'Urgency';
-    btn.disabled = false;
-    btn.style.cssText = 'padding:7px 10px;border:1px solid #b4c6b8;border-radius:7px;background:#f2f6ee;color:#173b25;font-weight:700;cursor:pointer';
-    complete.insertAdjacentElement('beforebegin', btn);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'taskUrgencyEditorOverlay';
-    overlay.hidden = true;
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.55);padding:12px;overflow:auto;display:none;align-items:flex-start;justify-content:center';
-    overlay.innerHTML = `
-      <section role="dialog" aria-modal="true" aria-label="Change task urgency" style="background:white;color:#173b25;border-radius:12px;padding:18px;max-width:460px;width:100%;margin:4vh auto;box-shadow:0 8px 35px #0004">
-        <h2 style="margin:0 0 8px;font-size:20px">Change Task Urgency</h2>
-        <p style="font-size:13px;margin:0 0 10px">Select one or more tasks to update.</p>
-        <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-weight:700"><input id="taskUrgencySelectAll" type="checkbox"> Select all outstanding tasks</label>
-        <div id="taskUrgencyChoices" style="max-height:40vh;overflow:auto;border:1px solid #d7e2d7;border-radius:8px;padding:6px"></div>
-        <p id="taskUrgencyCount" style="font-size:13px;margin:10px 0"></p>
-        <label style="display:block;margin:12px 0;font-weight:700">New urgency
-          <select id="taskUrgencyValue" style="display:block;width:100%;padding:11px;margin-top:6px">
-            <option value="Urgent">Urgent — Red</option>
-            <option value="High">High — Yellow</option>
-            <option value="Normal" selected>Normal — Green</option>
-            <option value="Low">Low</option>
-          </select>
-        </label>
-        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
-          <button id="taskUrgencyCancel" type="button" style="padding:11px 14px">Cancel</button>
-          <button id="taskUrgencySave" type="button" style="padding:11px 14px;background:#173b25;color:white;border-radius:7px">Save urgency</button>
-        </div>
-      </section>`;
-    document.body.appendChild(overlay);
-    const choices = $('taskUrgencyChoices');
-    const count = $('taskUrgencyCount');
-    const allBox = $('taskUrgencySelectAll');
-    const saveBtn = $('taskUrgencySave');
-    const selectedInputs = () => Array.from(choices.querySelectorAll('input[data-urgency-task-id]:checked'));
-    const updateCount = () => {
-      const n = selectedInputs().length;
-      count.textContent = n + ' task' + (n === 1 ? '' : 's') + ' selected';
-      saveBtn.disabled = n === 0;
-      const total = choices.querySelectorAll('input[data-urgency-task-id]').length;
-      allBox.checked = total > 0 && n === total;
-    };
-    const close = () => { overlay.hidden = true; overlay.style.display = 'none'; };
-    btn.addEventListener('click', () => {
-      const preselected = new Set(Array.from(document.querySelectorAll('.taskSelect:checked'), el => String(el.dataset.taskId)));
-      const tasks = (db.tasks || []).filter(t => t && t.id && !['Complete','Completed','Closed'].includes(t.status))
-        .sort((a,b) => ({Urgent:0,High:1,Normal:2,Low:3}[a.priority || 'Normal'] ?? 2) - ({Urgent:0,High:1,Normal:2,Low:3}[b.priority || 'Normal'] ?? 2));
-      choices.replaceChildren();
-      for (const task of tasks) {
-        const label = document.createElement('label');
-        label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid #e9eee9;font-size:14px';
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.dataset.urgencyTaskId = String(task.id);
-        check.checked = preselected.has(String(task.id));
-        check.style.cssText = 'width:20px;height:20px;flex-shrink:0';
-        const desc = document.createElement('span');
-        desc.textContent = (task.name || 'Unnamed task') + ' — ' + (task.priority || 'Normal');
-        label.append(check, desc);
-        choices.appendChild(label);
-      }
-      if (!tasks.length) choices.textContent = 'No outstanding tasks.';
-      overlay.hidden = false;
-      overlay.style.display = 'flex';
-      updateCount();
-    });
-    choices.addEventListener('change', updateCount);
-    allBox.addEventListener('change', () => {
-      choices.querySelectorAll('input[data-urgency-task-id]').forEach(x => { x.checked = allBox.checked; });
-      updateCount();
-    });
-    $('taskUrgencyCancel').addEventListener('click', close);
-    overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
-    saveBtn.addEventListener('click', () => {
-      const priority = $('taskUrgencyValue').value;
-      if (!['Urgent','High','Normal','Low'].includes(priority)) return;
-      const ids = new Set(selectedInputs().map(x => x.dataset.urgencyTaskId));
-      if (!ids.size) return;
-      let changed = 0;
-      for (const task of db.tasks || []) {
-        if (ids.has(String(task.id)) && !['Complete','Completed','Closed'].includes(task.status)) {
-          task.priority = priority;
-          changed++;
-        }
-      }
-      if (!changed) return;
-      if (typeof save === 'function') save();
-      else localStorage.setItem('sodvilleScoutV1', JSON.stringify(db));
-      close();
-      if (typeof refresh === 'function') refresh();
-      if (typeof renderDashboard === 'function') renderDashboard();
-      if (typeof showToast === 'function') showToast('Urgency updated for ' + changed + ' task' + (changed === 1 ? '' : 's'));
-      schedule();
-    });
+    const complete=$('completeSelectedTasks');
+    if(!complete||$('changeTaskUrgencyBtn'))return;
+    const btn=document.createElement('button');btn.id='changeTaskUrgencyBtn';btn.type='button';btn.textContent='Urgency ▾';btn.setAttribute('aria-haspopup','menu');btn.setAttribute('aria-expanded','false');btn.disabled=true;
+    complete.insertAdjacentElement('beforebegin',btn);
+    const menu=document.createElement('div');menu.id='taskUrgencyMenu';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Change selected task urgency');menu.hidden=true;menu.style.cssText='position:fixed;z-index:100001;background:white;color:#173b25;border:1px solid #b4c6b8;border-radius:10px;padding:6px;box-shadow:0 8px 28px #0004;min-width:200px';document.body.append(menu);
+    const selectedIds=()=>new Set(Array.from(document.querySelectorAll('.taskSelect:checked,.fieldTaskCheck:checked'),x=>String(x.dataset.taskId||x.value)));
+    const openTask=t=>t&&t.id&&!['Complete','Completed','Closed'].includes(t.status);
+    const selectedTasks=()=>{const ids=selectedIds();return (db.tasks||[]).filter(t=>openTask(t)&&ids.has(String(t.id)));};
+    const close=()=>{menu.hidden=true;btn.setAttribute('aria-expanded','false');};
+    const update=()=>{btn.disabled=selectedTasks().length===0;if(btn.disabled)close();};
+    for(const [priority,label]of [['Urgent','Urgent · Red'],['High','High · Yellow'],['Normal','Normal · Green'],['Low','Low']]){
+      const item=document.createElement('button');item.type='button';item.setAttribute('role','menuitem');item.dataset.priority=priority;item.textContent=label;item.style.cssText='display:block;width:100%;text-align:left;padding:12px;border:0;background:white;color:#173b25;font-weight:700';menu.append(item);
+      item.onclick=()=>{const tasks=selectedTasks();if(!tasks.length){close();update();return;}const prior=tasks.map(t=>[t,t.priority]);try{for(const t of tasks)t.priority=priority;if(typeof save==='function')save();else localStorage.setItem('sodvilleScoutV1',JSON.stringify(db));}catch(e){for(const [t,p]of prior)t.priority=p;if(typeof showToast==='function')showToast('Urgency could not be saved: '+e.message);return;}close();if(typeof refresh==='function')refresh();if(typeof renderDashboard==='function')renderDashboard();update();schedule();if(typeof showToast==='function')showToast('Urgency changed to '+priority+' for '+tasks.length+' task'+(tasks.length===1?'':'s')+'.');};
+    }
+    btn.onclick=()=>{update();if(btn.disabled)return;if(!menu.hidden){close();return;}const rect=btn.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-220))+'px';menu.style.top=Math.max(8,Math.min(rect.bottom+5,window.innerHeight-220))+'px';menu.hidden=false;btn.setAttribute('aria-expanded','true');menu.querySelector('button').focus();};
+    document.addEventListener('change',e=>{if(e.target.matches('.taskSelect,.fieldTaskCheck'))update();});
+    document.addEventListener('click',e=>{if(!menu.contains(e.target)&&e.target!==btn)close();});document.addEventListener('keydown',e=>{if(e.key==='Escape'){close();btn.focus();}});
+    const list=$('taskList');if(list)new MutationObserver(update).observe(list,{childList:true,subtree:true});update();
   }
   installTaskUrgencyEditor();
 
