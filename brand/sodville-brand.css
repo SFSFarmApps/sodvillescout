@@ -12,3 +12,6 @@ header .brand.sodville-brand{font-size:inherit}header .land-logo.sodville-brand{
 @media print{.sodville-brand .sodville-logo{width:180px!important;border:0;padding:0}.sodville-brand .sodville-module{color:#59554e!important}.sodville-brand-utility{break-after:avoid}}
 .sodville-scout-header .sodville-scout-identity{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.sodville-scout-header .sodville-logo{width:148px!important;padding:3px 6px}.sodville-scout-header .sodville-module{font-size:9px!important}.sodville-scout-header{gap:12px}.sodville-scout-header #sessionStatus{font-size:12px;letter-spacing:normal}
 @media(max-width:600px){.sodville-scout-header .sodville-scout-identity{gap:5px 12px}.sodville-scout-header #sessionStatus{font-size:10px}.sodville-scout-header .sodville-logo{width:132px!important}}
+
+/* Module names must not inherit the old square monogram treatment. */
+.sodville-brand .sodville-module{width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;background:transparent!important;background-image:none!important;border-radius:0!important;box-shadow:none!important;flex:0 0 auto!important}
