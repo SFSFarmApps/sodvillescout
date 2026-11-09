@@ -10,10 +10,16 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "app-icon.svg?v=sodville-logo-20261109",
+      "src": "app-icon.svg?v=scout-classic-20261109",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "brand/scout-icon.png?v=20261109-icons1",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "id": "./?app=fieldscout-v11"
