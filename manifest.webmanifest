@@ -10,7 +10,7 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "app-icon.svg",
+      "src": "app-icon.svg?v=sodville-logo-20261109",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
