@@ -189,7 +189,7 @@
 ]
 }
 ;
-</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
+</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script src="./scout-workability.js?v=20261118-1"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
 let fields,selected,geoLayer,map;
 let multiFieldMode=false,multiSelectedFields=new Map();
 function multiFieldStyle(f){if(multiFieldMode&&multiSelectedFields.has(String(f.properties.FIELD_ID)))return{color:'#ffffff',weight:6,opacity:1,fillColor:'#00b7ff',fillOpacity:.48};return style(f)}
@@ -265,7 +265,7 @@ function latestObs(fid){return db.observations.filter(o=>o.fieldId===fid).sort((
 function color(f){let o=latestObs(f.properties.FIELD_ID),m=$('#layerMode').value;if(!o)return '#777';let v=m==='weed'?o.weed:m==='insect'?o.insect:o.status;return v==='red'?'#d62828':v==='yellow'?'#f6bd00':'#2b9348'}
 function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!=='Complete' && t.status!=='Completed' && t.status!=='Closed')}
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
-function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let r=rainfallFeed?.fields?.[String(f.properties.FIELD_ID)],soil=soilDryingClass(soilCache[String(f.properties.FIELD_ID)]||[]),a=workabilityAssessment(r,soil),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
+function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#7CFF00',weight:4,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let a=assessFieldWorkability(f),fill=a.score===null?'#777777':a.score<50?'#d32f2f':a.score<85?'#f2c94c':'#2eaf5d';return{color:'#202020',weight:2,opacity:1,fillColor:fill,fillOpacity:.62};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#7CFF00',weight:4,opacity:1,fillColor:fill,fillOpacity:top?.58:0}}
 let soilLayer=null,soilLoading=false; const SOIL_BUILD='2026-10-01-original-ssurgo-static-v1',SOIL_CACHE_KEY='sodvilleOriginalSSURGOStaticV1';
 let soilCache={};try{const z=JSON.parse(localStorage.getItem(SOIL_CACHE_KEY)||'null');if(z?.build===SOIL_BUILD&&z?.fields)soilCache=z.fields}catch(e){soilCache={}}
 function persistSoilCache(){try{localStorage.setItem(SOIL_CACHE_KEY,JSON.stringify({build:SOIL_BUILD,fields:soilCache,savedAt:new Date().toISOString()}))}catch(e){console.warn('Soil cache persist failed',e)}}
@@ -351,6 +351,7 @@ async function refreshWorkabilityLayer(){
    await Promise.all(fs.slice(i,i+8).map(f=>fetchFieldSoils(f).catch(()=>[])));
    if(document.getElementById('layerMode')?.value==='workability'&&geoLayer){geoLayer.setStyle(style)}
   }
+  if(document.getElementById('dashboardView')?.classList.contains('open'))renderDashboard();
  }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
@@ -393,39 +394,24 @@ async function refreshLiveRainfall(){
   if(document.getElementById('dashboardView')?.classList.contains('open'))renderDashboard();
  }catch(e){console.warn('Rainfall refresh failed; keeping last available data',e)}
 }
-function soilDryingClass(soils){
- const names=(soils||[]).map(s=>String(s.properties?.muname||'').toLowerCase()).join(' ');
- if(/clay|victoria|raymondville|lomalta|orelia/.test(names))return {key:'slow',label:'Slow-drying clay',factor:1.25};
- if(/sand|sandy|loamy sand/.test(names))return {key:'fast',label:'Fast-drying sandy soil',factor:.75};
- return {key:'normal',label:'Moderate-drying soil',factor:1};
+function assessFieldWorkability(f) {
+ const fieldId=String(f.properties.FIELD_ID);
+ return SodvilleWorkability.assess(fieldId,rainfallFeed,soilCache[fieldId]);
 }
-function workabilityAssessment(r,soil){
- if(!r||typeof r.rain24h!=='number'||typeof r.rain48h!=='number'||typeof r.rain72h!=='number')return {status:'INSUFFICIENT DATA',score:null,reason:'Waiting for complete rainfall data'};
- let p=0,reasons=[];
- const f=soil.factor||1;
- const a=r.rain24h*f,b=r.rain48h*f,d=r.rain72h*f;
- if(a>=1){p+=70;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.5){p+=52;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.25){p+=34;reasons.push(r.rain24h.toFixed(2)+'" in 24h')} else if(a>=.1){p+=18}
- const older48=Math.max(0,r.rain48h-r.rain24h)*f,older72=Math.max(0,r.rain72h-r.rain48h)*f;
- if(older48>=.5)p+=28;else if(older48>=.25)p+=18;else if(older48>=.1)p+=8;
- if(older72>=.5)p+=18;else if(older72>=.25)p+=11;else if(older72>=.1)p+=5;
- if(soil.key==='slow'){p+=8;reasons.push(soil.label)} else reasons.push(soil.label);
- p=Math.min(100,Math.round(p));
- const score=100-p;
- let status=score<50?'TOO WET':score<85?'MARGINAL':'WORKABLE';
- if(!reasons.length)reasons.push('Little recent rainfall');
- return {status,score,reason:reasons.join(' • ')};
-}
-async function updateWorkability(f,r){
+async function updateWorkability(f) {
  const box=document.getElementById('workabilityBox');if(!box)return;
  try{
-  const soils=await fetchFieldSoils(f),soil=soilDryingClass(soils),a=workabilityAssessment(r,soil);
+  const a=assessFieldWorkability(f);
   if(selected?.feature?.properties?.FIELD_ID!==f.properties.FIELD_ID)return;
   const status=document.getElementById('workabilityStatus'),detail=document.getElementById('workabilityDetail');
   if(status){status.textContent=a.status+(a.score===null?'':' • '+a.score+'/100');status.style.fontWeight='800';status.style.color=a.score===null?'':a.score<50?'#b42318':a.score<85?'#9a6700':'#18794e';}
-  if(detail)detail.textContent=a.reason+' • V1 estimate—confirm field conditions';
+  if(detail)detail.textContent=a.reason;
+  const fieldId=String(f.properties.FIELD_ID);
+  if(!soilCache[fieldId])fetchFieldSoils(f).then(()=>updateWorkability(f)).catch(()=>{});
  }catch(e){const s=document.getElementById('workabilityStatus');if(s)s.textContent='INSUFFICIENT DATA';}
 }
 async function updateFieldRainfall(f){
+ updateWorkability(f);
  const ids=['rain24h','rain48h','rain72h'];
  try{
   const feed=await loadRainfallFeed(),r=feed?.fields?.[String(f.properties.FIELD_ID)];
@@ -433,7 +419,7 @@ async function updateFieldRainfall(f){
   ids.forEach(id=>{const el=document.getElementById(id);if(el){const v=r?.[id];el.textContent=(typeof v==='number'&&isFinite(v))?v.toFixed(2)+'"':'—';}});
   const r7=document.getElementById('rain7d');if(r7)r7.textContent=(typeof r?.rain7d==='number')?r.rain7d.toFixed(2)+'"':'Building history';
   const u=document.getElementById('rainUpdated');
-  if(u&&feed?.updatedUtc){const d=new Date(feed.updatedUtc);u.textContent='NOAA MRMS • '+d.toLocaleString([],{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});} updateWorkability(f,r);
+  if(u&&feed?.updatedUtc){const d=new Date(feed.updatedUtc);u.textContent='NOAA MRMS • '+d.toLocaleString([],{month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'});} updateWorkability(f);
  }catch(e){console.warn('Rainfall feed unavailable',e);ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});}
 }
 function showField(f,l){selected={feature:f,layer:l};const sb=document.getElementById('taskSidebar');if(sb&&window.matchMedia('(max-width:800px)').matches)sb.classList.remove('collapsed');let p=f.properties,o=latestObs(p.FIELD_ID),tasks=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)),open=db.tasks.filter(t=>String(t.fieldId)===String(p.FIELD_ID)&&!['Complete','Completed','Closed'].includes(t.status)),pins=(db.geoMarks||[]).filter(m=>String(m.fieldId)===String(p.FIELD_ID)).sort((a,b)=>new Date(b.time)-new Date(a.time));$('#panel').innerHTML=`<h2 class="fieldTitle">${p.FIELD_NAME}</h2><div class="meta">${p.CLIENT_NAM} • ${p.FARM_NAME}</div><div class="chips"><span class="chip">${p.ACRES||'?'} ac</span><span class="chip">24h rain: <b id="rain24h">…</b></span><span class="chip">48h: <b id="rain48h">…</b></span><span class="chip">72h: <b id="rain72h">…</b></span><span class="chip">7d: <b id="rain7d">Building history</b></span><span class="chip">JD Field ID retained</span></div><div class="muted" id="rainUpdated">NOAA MRMS rainfall loading…</div><div id="workabilityBox" class="section" style="margin-top:10px"><b>Can I Work It?</b><div id="workabilityStatus" style="font-size:20px;margin-top:4px">CALCULATING…</div><div class="muted" id="workabilityDetail">Rainfall + USDA soil estimate</div></div><div class="actions"><button onclick="observation()">+ Observation</button><button onclick="task()">+ Task</button></div><div class="section"><b>Latest scouting</b>${o?`<p>${fmt(o.time)} — Weed <b>${o.weed}</b>, Insect <b>${o.insect}</b></p><p>${o.notes||''}</p>`:'<p class="muted">No observations yet.</p>'}</div><div class="section"><b>Outstanding Tasks (${open.length})</b>${open.map(t=>`<label class="fieldTask"><input type="checkbox" class="fieldTaskCheck" value="${t.id}" data-task-id="${t.id}" onchange="updateFieldDeleteButton()"><span><span class="priorityDot ${t.priority||'Normal'}"></span><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.priority||'Normal'} • ${fmt(t.time)}</span></span></label>`).join('')||'<p class="muted">No outstanding tasks.</p>'}${open.length?'<div class="fieldTaskActions"><button id="fieldDeleteBtn" class="taskDelete" disabled onclick="deleteFieldSelectedTasks()">Delete selected</button></div>':''}</div><div class="section"><b>Map Pins (${pins.length})</b>${pins.map(geoMarkRow).join('')||'<p class="muted">No saved map pins for this field.</p>'}</div><div class="section"><b>Task history (${tasks.length})</b>${tasks.filter(t=>!open.some(o=>o.id===t.id)).map(t=>`<p><b>${t.type}</b> — ${t.name}<br><span class="muted">${t.status} • ${fmt(t.time)}</span></p>`).join('')||'<p class="muted">No completed/closed tasks.</p>'}</div>`;updateFieldRainfall(f)}
@@ -532,7 +518,7 @@ async function renderDashboard(){
  try{await loadRainfallFeed()}catch(e){}
  const fs=fields?.features||[],work=[];
  for(const f of fs){
-  const fid=String(f.properties.FIELD_ID),r=rainfallFeed?.fields?.[fid],soil=soilDryingClass(soilCache[fid]||[]),a=workabilityAssessment(r,soil);
+  const fid=String(f.properties.FIELD_ID),r=rainfallFeed?.fields?.[fid],a=assessFieldWorkability(f);
   work.push({f,r,a});
  }
  const ranked=work.slice().sort((x,y)=>(y.a.score??-1)-(x.a.score??-1));
