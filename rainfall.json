@@ -3,28 +3,28 @@
   "units": "in",
   "sourceUnits": "mm",
   "conversion": "mm/25.4",
-  "updatedUtc": "2026-11-18T01:19:28.227952+00:00",
-  "observedUtc": "2026-11-18T00:00:00+00:00",
+  "updatedUtc": "2026-11-18T09:09:54.290886+00:00",
+  "observedUtc": "2026-11-18T08:00:00+00:00",
   "products": {
     "1": {
-      "id": 159814038,
+      "id": 159903638,
       "subset": "conus_QPE_01H",
-      "observedUtc": "2026-11-18T01:00:00+00:00"
+      "observedUtc": "2026-11-18T09:00:00+00:00"
     },
     "24": {
-      "id": 159809238,
+      "id": 159898838,
       "subset": "conus_QPE_24H",
-      "observedUtc": "2026-11-18T00:00:00+00:00"
+      "observedUtc": "2026-11-18T08:00:00+00:00"
     },
     "48": {
-      "id": 159810838,
+      "id": 159900438,
       "subset": "conus_QPE_48H",
-      "observedUtc": "2026-11-18T00:00:00+00:00"
+      "observedUtc": "2026-11-18T08:00:00+00:00"
     },
     "72": {
-      "id": 159812438,
+      "id": 159902038,
       "subset": "conus_QPE_72H",
-      "observedUtc": "2026-11-18T00:00:00+00:00"
+      "observedUtc": "2026-11-18T08:00:00+00:00"
     }
   },
   "fields": {
@@ -40,7 +40,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "5d03b4b8-d813-44e4-95cd-aa8552b505e7": {
@@ -70,7 +70,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "ff6960f4-cb0c-44df-bda6-f457be1e9880": {
@@ -85,7 +85,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "3b93e176-5406-4795-a53e-ce3fad8a6ca5": {
@@ -100,7 +100,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "a003fe9d-fb5b-4d36-8967-b43d86e18708": {
@@ -130,8 +130,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "61d753fb-0000-1000-4a2c-e1e1e144b228": {
       "fieldName": "Cleveland North 2561",
@@ -145,7 +145,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "61d756cd-0000-1000-4a2e-e1e1e144b228": {
@@ -160,7 +160,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "6c934b4e-9a3d-496f-8f2c-1c038955602b": {
@@ -173,9 +173,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.01,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.1,
+      "daysSince010": 3.4,
       "daysSince050": null
     },
     "650e4bad-ff5c-4470-bc0d-30082360f81f": {
@@ -265,7 +265,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "49153ef0-0114-4452-814d-e9845ef4bb7f": {
@@ -278,9 +278,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.01,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "a519af78-b64d-4a0c-87db-d7bdb382ccb4": {
@@ -295,7 +295,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "0d6d2e07-eb2b-4029-b7d4-e7cd87c13add": {
@@ -310,7 +310,7 @@
       "rain48h": 0.0,
       "rain72h": 0.02,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "61ccee5c-a5e3-45f1-acdd-08078c301384": {
@@ -325,7 +325,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "c534e16d-1420-441c-9226-cbc0c4f5aabb": {
@@ -340,7 +340,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "a3439238-416a-4708-8c1d-adb1204dc92b": {
@@ -353,9 +353,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.02,
+      "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.1,
+      "daysSince010": 3.4,
       "daysSince050": null
     },
     "c3a48942-bb0d-44db-aeed-87a66446e011": {
@@ -368,9 +368,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.01,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "d97899fe-0dce-41cb-aa9d-1eacc56a95ad": {
@@ -383,9 +383,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.01,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "8c8f3ab8-21d7-441b-8895-4cfe2bb1c078": {
@@ -400,7 +400,7 @@
       "rain48h": 0.0,
       "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "7a057bd4-18c6-439d-9753-39a665797bd7": {
@@ -415,7 +415,7 @@
       "rain48h": 0.0,
       "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "d32a8d9f-60ac-4a45-9020-253b8514c957": {
@@ -430,8 +430,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "91ab0edf-f692-41f5-a3a2-564132867d34": {
       "fieldName": "Mount Homeplace 985",
@@ -445,7 +445,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "e83fdbd1-9479-42ba-a2e0-c0d2f2ebe115": {
@@ -475,7 +475,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "4a7c5fbd-3ad2-406b-9cc1-34f67b8340ba": {
@@ -520,7 +520,7 @@
       "rain48h": 0.0,
       "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "aa9e620c-8bdc-4676-8982-2f41eae53788": {
@@ -535,7 +535,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 7.4,
+      "daysSince010": 7.8,
       "daysSince050": null
     },
     "13c61e4a-082d-4761-b93b-90419a100893": {
@@ -580,8 +580,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "aaf99a9a-2430-47ea-ac35-6e8177e0cf7c": {
       "fieldName": "Schmidt 3018",
@@ -610,7 +610,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "1e363c1b-7321-4c82-b40d-54f258fdfa20": {
@@ -625,7 +625,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 7.4,
+      "daysSince010": 7.8,
       "daysSince050": null
     },
     "fcfc5a15-fa9f-40d8-9f43-f3695d11a836": {
@@ -640,8 +640,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "3c9846d7-5e43-41a1-b8c2-c888d1d7acdf": {
       "fieldName": "Smith West 1971",
@@ -655,8 +655,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "4a7a38ff-afea-492f-9765-1320961f195c": {
       "fieldName": "South Pasture",
@@ -685,7 +685,7 @@
       "rain48h": 0.0,
       "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "0e1d7444-7373-4193-bcd8-7cd7a55bab39": {
@@ -700,7 +700,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "1c16d4cd-d7f9-46f6-a5be-8342af33ea7b": {
@@ -715,8 +715,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 3.2
+      "daysSince010": 3.5,
+      "daysSince050": 3.5
     },
     "748c0207-39e6-4c7f-b642-69d2edbeb402": {
       "fieldName": "Substation Taft 3676",
@@ -745,7 +745,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "0d5168ef-ed09-4773-9d39-2966bedbfef0": {
@@ -773,9 +773,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.04,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.1,
+      "daysSince010": 3.4,
       "daysSince050": null
     },
     "589b8ac0-0000-1000-4031-e1e1e1478cb8": {
@@ -790,7 +790,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "20e494b3-ec75-455a-b26a-a9b1ee7b6c9b": {
@@ -805,7 +805,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "b0663ae9-599f-47f4-9515-dc84ccbc70db": {
@@ -850,7 +850,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "589b8c2a-0000-1000-4036-e1e1e1478cb8": {
@@ -865,7 +865,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "8de22bd3-4521-452a-94a6-40fbee76029c": {
@@ -895,7 +895,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "7754aa75-290a-461f-afdc-6ba885259710": {
@@ -968,9 +968,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.01,
+      "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "182fa0a2-c907-4cd4-8da8-da1d2543c126": {
@@ -1105,7 +1105,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "75c60513-6c86-49a4-bac7-2008a987a5b2": {
@@ -1118,9 +1118,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.07,
+      "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.1,
+      "daysSince010": 3.4,
       "daysSince050": null
     },
     "35952187-27a8-4994-b2fd-b0d82ee4bb37": {
@@ -1133,9 +1133,9 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.03,
+      "rain72h": 0.01,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "06846e19-65d9-481d-8af9-9e79ad68e08f": {
@@ -1210,7 +1210,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "7e5aa689-56e3-4d77-b4be-0366209b04f8": {
@@ -1225,7 +1225,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "f3c18654-6034-4784-be54-a79459f974f3": {
@@ -1240,7 +1240,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "f3a4f63a-b90f-4600-9340-cb936c0be71c": {
@@ -1330,7 +1330,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "15016ded-290c-4bf0-a941-938e7359dac1": {
@@ -1345,7 +1345,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "d6d9fa35-73ac-4700-b202-2c7eeae74a93": {
@@ -1360,8 +1360,8 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
-      "daysSince050": 7.4
+      "daysSince010": 3.5,
+      "daysSince050": 7.8
     },
     "84b9a1aa-eb8b-40d4-a37b-9502440aa0c8": {
       "fieldName": "PhllpsCsNrth 2557-A",
@@ -1433,7 +1433,7 @@
       "rain1h": 0.0,
       "rain24h": 0.0,
       "rain48h": 0.0,
-      "rain72h": 0.04,
+      "rain72h": 0.02,
       "rain7d": null,
       "daysSince010": null,
       "daysSince050": null
@@ -1450,7 +1450,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "e72c9680-090e-4eef-982d-d533d94f1107": {
@@ -1465,7 +1465,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "ac36e50e-1755-4643-a3e2-63795870827d": {
@@ -1630,7 +1630,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "91a28c2f-a7df-483f-b167-3cab95f6bf6a": {
@@ -1645,7 +1645,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "fd6725cc-0d06-463f-a40e-2ca227e778d7": {
@@ -1660,7 +1660,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "02ae6da8-075b-48dc-8ed5-11192bd06030": {
@@ -1705,7 +1705,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "bbfcef50-75a3-4fa7-b0bd-536c5788416c": {
@@ -1720,7 +1720,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "daf0990e-ae19-4e1a-ae51-83d0a7b45c40": {
@@ -1735,7 +1735,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "a508a41b-1d87-4fbd-afc9-90181397a6d4": {
@@ -1750,7 +1750,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "ac865345-f40e-4f6c-bf0a-c968dac5ff92": {
@@ -1765,7 +1765,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "e37087d4-16a0-45c2-9fee-f81b3411823b": {
@@ -1780,7 +1780,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     },
     "b5bce4c2-c5e3-42a2-9b3e-8dcf8fde21df": {
@@ -1825,7 +1825,7 @@
       "rain48h": 0.0,
       "rain72h": 0.0,
       "rain7d": null,
-      "daysSince010": 3.2,
+      "daysSince010": 3.5,
       "daysSince050": null
     }
   },
