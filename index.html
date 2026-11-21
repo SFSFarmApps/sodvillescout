@@ -281,7 +281,7 @@ main.map-expanded #mapExpandBtn{position:fixed!important;top:auto!important;bott
 }
 ;
 window.SODVILLE_FIELDS = window.SODVILLE_LAND_FIELDS || window.SODVILLE_FIELDS;    
-</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script src="./scout-workability.js?v=20261118-1"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
+</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script src="./scout-workability.js?v=20261120-1"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
 let fields,selected,geoLayer,map;
 let multiFieldMode=false,multiSelectedFields=new Map();
 function multiFieldStyle(f){if(multiFieldMode&&multiSelectedFields.has(String(f.properties.FIELD_ID)))return{color:'#fff0b5',weight:2.5,opacity:1,fillColor:'#e8c866',fillOpacity:.84};return style(f)}
@@ -540,7 +540,7 @@ async function refreshLiveRainfall(){
 }
 function assessFieldWorkability(f) {
  const fieldId=String(f.properties.FIELD_ID);
- return SodvilleWorkability.assess(fieldId,rainfallFeed,soilCache[fieldId]);
+ return SodvilleWorkability.assess(fieldId,rainfallFeed,soilCache[fieldId],Date.now(),window.turf?.area);
 }
 async function updateWorkability(f) {
  const box=document.getElementById('workabilityBox');if(!box)return;
