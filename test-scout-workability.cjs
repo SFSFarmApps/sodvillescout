@@ -52,3 +52,14 @@ test('missing soil or stale rain does not receive a score during recovery', () =
   assert.equal(SodvilleWorkability.assess('dry', feed({ dry }), [], now).score, null);
   assert.equal(SodvilleWorkability.assess('dry', feed({ dry }, now - 13 * 3600000), clay, now).score, null);
 });
+
+test('workability colors cover every score and distinguish nearby marginal ratings', () => {
+  const { colors, colorForScore } = SodvilleWorkability;
+  for (let score = 0; score <= 100; score++) {
+    const matches = colors.filter(band => score >= band.min && score <= band.max);
+    assert.equal(matches.length, 1);
+    assert.equal(colorForScore(score), matches[0]);
+  }
+  assert.equal(new Set([75, 77, 82].map(score => colorForScore(score).fill)).size, 3);
+  assert.ok(colors.every(band => band.fill !== colorForScore(null).fill));
+});

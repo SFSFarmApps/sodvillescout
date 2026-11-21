@@ -66,6 +66,12 @@ aside{background:#fff;border:1px solid #e2eae1;border-radius:16px;padding:15px;m
 .dashboardView{background:#f5f8f4}
 #sidebarToggle{background:#17482e;color:white;border:1px solid #2c6847;border-radius:11px;box-shadow:0 4px 16px #102d1e44}
 #map{background:#dce7dc}
+.workabilityLegend{background:#fff;color:#172018;border:1px solid #dfe5df;border-radius:9px;padding:8px 10px;font-size:13px;box-shadow:0 1px 5px #0005;max-height:55vh;overflow:auto}
+.workabilityLegend summary{cursor:pointer;font-weight:800}
+.workabilityLegend b{display:block;margin-top:7px}
+.workabilityLegend ul{list-style:none;margin:3px 0 0;padding:0}
+.workabilityLegend li{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.workabilityLegend li span{width:17px;height:11px;border:1px solid #17201859;border-radius:2px}
 .leaflet-control-zoom a{color:#17482e!important}
 #allocationBanner{border:1px solid #bcd7c0!important;border-top:5px solid #286344!important;box-shadow:0 14px 38px #102d1e33!important}
 @media(max-width:800px){header{padding:12px 13px;gap:10px}header b{font-size:15px;letter-spacing:1px}header span{font-size:11px}#timerDisplay{font-size:17px;min-width:91px}#sessionBtn{font-size:13px;min-height:44px;padding:9px 11px}.toolbar{padding:9px;gap:7px}.toolbar button,.toolbar select{font-size:13px}.taskSidebar{padding:50px 12px 12px}.card{padding:17px;border-radius:16px}.dashHead{padding:14px!important}}
@@ -281,7 +287,7 @@ main.map-expanded #mapExpandBtn{position:fixed!important;top:auto!important;bott
 }
 ;
 window.SODVILLE_FIELDS = window.SODVILLE_LAND_FIELDS || window.SODVILLE_FIELDS;    
-</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script src="./scout-workability.js?v=20261120-1"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
+</script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script><script src="./scout-workability.js?v=20261120-2"></script><script>const DBKEY='sodvilleScoutV1';let db=JSON.parse(localStorage.getItem(DBKEY)||'{"sessions":[],"observations":[],"tasks":[],"products":[],"users":[]}');db.users=db.users||[];if(!db.users.length)db.users=[{id:'default-andrew',name:'Andrew Miller',active:true}];db.currentUserId=db.currentUserId||db.users.find(u=>u.active!==false)?.id;db.geoMarks=db.geoMarks||[];db.locationVisible=db.locationVisible!==false;db.pinsVisible=db.pinsVisible!==false;const save=()=>localStorage.setItem(DBKEY,JSON.stringify(db));
 let fields,selected,geoLayer,map;
 let multiFieldMode=false,multiSelectedFields=new Map();
 function multiFieldStyle(f){if(multiFieldMode&&multiSelectedFields.has(String(f.properties.FIELD_ID)))return{color:'#fff0b5',weight:2.5,opacity:1,fillColor:'#e8c866',fillOpacity:.84};return style(f)}
@@ -357,7 +363,7 @@ function latestObs(fid){return db.observations.filter(o=>o.fieldId===fid).sort((
 function color(f){let o=latestObs(f.properties.FIELD_ID),m=$('#layerMode').value;if(!o)return '#777';let v=m==='weed'?o.weed:m==='insect'?o.insect:o.status;return v==='red'?'#d62828':v==='yellow'?'#f6bd00':'#2b9348'}
 function openTasks(fid){return db.tasks.filter(t=>t.fieldId===fid && t.status!=='Complete' && t.status!=='Completed' && t.status!=='Closed')}
 function taskShade(f){let tasks=openTasks(f.properties.FIELD_ID);if(!tasks.length)return null;if(tasks.some(t=>t.priority==='Urgent'))return '#ff3b30';if(tasks.some(t=>t.priority==='High'))return '#ff9500';return '#00b7ff'}
-function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let a=assessFieldWorkability(f),fill=a.score===null?'#94a3b8':a.score<50?'#ef4444':a.score<85?'#facc15':'#22c55e';return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:fill,fillOpacity:a.score===null?.45:.72};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:fill,fillOpacity:top?.72:0}}
+function style(f){let mode=document.getElementById('layerMode')?.value||'status';if(mode==='soils')return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:'#000000',fillOpacity:0};if(mode==='workability'){let a=assessFieldWorkability(f),fill=SodvilleWorkability.colorForScore(a.score).fill;return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:fill,fillOpacity:a.score===null?.45:.81};}let fid=String(f.properties.FIELD_ID),open=db.tasks.filter(t=>String(t.fieldId)===fid&&!['Complete','Completed','Closed'].includes(t.status)),rank={Urgent:4,High:3,Normal:2,Low:1},top=open.slice().sort((a,b)=>(rank[b.priority||'Normal']||2)-(rank[a.priority||'Normal']||2))[0],fill=top?(top.priority==='Urgent'?'#ff0000':top.priority==='High'?'#ffff00':'#00ff00'):'#000000';return{color:'#c3e3a1',weight:1.5,opacity:1,fillColor:fill,fillOpacity:top?.72:0}}
 let soilLayer=null,soilLoading=false; const SOIL_BUILD='2026-10-01-original-ssurgo-static-v1',SOIL_CACHE_KEY='sodvilleOriginalSSURGOStaticV1';
 let soilCache={};try{const z=JSON.parse(localStorage.getItem(SOIL_CACHE_KEY)||'null');if(z?.build===SOIL_BUILD&&z?.fields)soilCache=z.fields}catch(e){soilCache={}}
 function persistSoilCache(){try{localStorage.setItem(SOIL_CACHE_KEY,JSON.stringify({build:SOIL_BUILD,fields:soilCache,savedAt:new Date().toISOString()}))}catch(e){console.warn('Soil cache persist failed',e)}}
@@ -447,11 +453,41 @@ async function refreshWorkabilityLayer(){
  }catch(e){console.warn('Workability layer data',e)}
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
+let workabilityLegend;
+function updateWorkabilityLegend(on) {
+ if (!map) return;
+ if (on && !workabilityLegend) {
+  workabilityLegend = L.control({position:'topright'});
+  workabilityLegend.onAdd = () => {
+   const legend = L.DomUtil.create('details', 'workabilityLegend');
+   const {colors, colorForScore} = SodvilleWorkability;
+   const swatch = (color, label) => '<li><span aria-hidden="true" style="background:'+color+'"></span>'+label+'</li>';
+   const groups = [
+    ['Too wet', 0, 49],
+    ['Marginal', 50, 84],
+    ['Workable', 85, 100]
+   ];
+   legend.innerHTML = '<summary>Workability legend</summary>' + groups.map(([label,min,max]) =>
+    '<b>'+label+'</b><ul>'+colors.filter(band=>band.min>=min&&band.max<=max)
+     .map(band=>swatch(band.fill,band.min+'–'+band.max)).join('')+'</ul>'
+   ).join('') + '<ul>'+swatch(colorForScore(null).fill,'Insufficient data')+'</ul>';
+   L.DomEvent.disableClickPropagation(legend);
+   L.DomEvent.disableScrollPropagation(legend);
+   return legend;
+  };
+  workabilityLegend.addTo(map);
+ } else if (!on && workabilityLegend) {
+  workabilityLegend.remove();
+  workabilityLegend = null;
+ }
+}
 function setSoilMode(on){
  if(on){loadSoils()}
  else {if(soilLayer&&map.hasLayer(soilLayer))map.removeLayer(soilLayer);if(window._soilRefreshImage)map.off('moveend',window._soilRefreshImage);}
  if(!on){const b=document.getElementById('soilLegendBtn');if(b)b.style.display='none';const x=document.getElementById('soilLegendOverlay');if(x)x.style.display='none'}
- if(document.getElementById('layerMode')?.value==='workability')refreshWorkabilityLayer();
+ const workabilityMode=document.getElementById('layerMode')?.value==='workability';
+ updateWorkabilityLegend(workabilityMode);
+ if(workabilityMode)refreshWorkabilityLayer();
  if(geoLayer){geoLayer.setStyle(style);geoLayer.bringToFront()}
 }
 let rainfallFeed=null,rainfallFeedPromise=null,rainfallFeedFetchedAt=0;
@@ -634,7 +670,7 @@ async function renderDashboard(){
  const green=work.filter(x=>x.a.score!==null&&x.a.score>=85).length,yellow=work.filter(x=>x.a.score!==null&&x.a.score>=50&&x.a.score<85).length,red=work.filter(x=>x.a.score!==null&&x.a.score<50).length;
  const tasks=dashboardTaskRows(),urgent=tasks.filter(t=>t.priority==='Urgent').length,high=tasks.filter(t=>t.priority==='High').length;
  const rainRows=work.slice().sort((a,b)=>(b.r?.rain24h??-1)-(a.r?.rain24h??-1)).map(x=>{const p=x.f.properties,v=x.r?.rain24h;return '<div class="dashRow"><div><div class="dashName">'+esc(p.FIELD_NAME||'Field')+'</div><div class="dashSub">'+esc(p.FARM_NAME||p.CLIENT_NAM||'')+'</div></div><div class="dashValue">'+(typeof v==='number'?v.toFixed(2)+'"':'—')+'</div></div>'}).join('');
- const workRows=ranked.map(x=>{const p=x.f.properties,s=x.a.score,col=s===null?'#ddd':s<50?'#ef8b8b':s<85?'#f2d86b':'#8ed69b';return '<div class="dashRow"><div><div class="dashName">'+esc(p.FIELD_NAME||'Field')+'</div><div class="dashSub">'+esc(p.FARM_NAME||'')+' • '+esc(x.a.status)+'</div></div><span class="dashScore" style="background:'+col+'">'+(s===null?'—':s)+'</span></div>'}).join('');
+ const workRows=ranked.map(x=>{const p=x.f.properties,s=x.a.score,col=SodvilleWorkability.colorForScore(s);return '<div class="dashRow"><div><div class="dashName">'+esc(p.FIELD_NAME||'Field')+'</div><div class="dashSub">'+esc(p.FARM_NAME||'')+' • '+esc(x.a.status)+'</div></div><span class="dashScore" style="background:'+col.fill+';color:'+col.text+'">'+(s===null?'—':s)+'</span></div>'}).join('');
  const taskRows=tasks.map(t=>{const p=taskFieldProps(t);return '<div class="dashRow"><div><div class="dashName">'+esc(t.name||t.type||'Task')+'</div><div class="dashSub">'+esc(p.FIELD_NAME||'Unknown field')+' • '+esc(t.type||'Other')+taskCropYearText(t)+'</div></div><span class="dashPriority '+esc(t.priority||'Normal')+'">'+esc(t.priority||'Normal')+'</span></div>'}).join('')||'<p class="muted">No urgent, high or normal tasks.</p>';
  const u=currentUser();
  v.innerHTML='<div class="dashHead"><div><h2>Field Operations Dashboard</h2><div class="muted">'+esc(u?.name||'Scout')+' • '+new Date().toLocaleString()+'</div></div><button id="dashClose">Back to Map</button></div>'+
