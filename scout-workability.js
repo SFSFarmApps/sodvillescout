@@ -3,6 +3,22 @@
 
   const hour = 3600000;
   const soilProfiles = new WeakMap();
+  const colors = [
+    { min: 0, max: 24, fill: '#a51d3d', text: '#fff' },
+    { min: 25, max: 49, fill: '#dc3d42', text: '#000' },
+    { min: 50, max: 64, fill: '#c85e1a', text: '#111' },
+    { min: 65, max: 74, fill: '#e47c13', text: '#111' },
+    { min: 75, max: 76, fill: '#f39c12', text: '#111' },
+    { min: 77, max: 79, fill: '#ffca28', text: '#111' },
+    { min: 80, max: 84, fill: '#fff070', text: '#111' },
+    { min: 85, max: 92, fill: '#99d66a', text: '#111' },
+    { min: 93, max: 100, fill: '#39b65e', text: '#111' }
+  ];
+  const noRating = { fill: '#94a3b8', text: '#111' };
+
+  function colorForScore(score) {
+    return colors.find(band => score !== null && score >= band.min && score <= band.max) || noRating;
+  }
   const wetFieldReport = {
     observedAt: Date.parse('2026-11-18T12:00:00-06:00'),
     reason: 'Nov. 18 field report: wet across Scout blocks. Smith West photos confirm wet ground.'
@@ -98,5 +114,5 @@
     return result(Math.round(score), reasons.join(' • '));
   }
 
-  root.SodvilleWorkability = { assess };
+  root.SodvilleWorkability = { assess, colors, colorForScore };
 })(typeof module === 'object' ? module.exports : globalThis);
